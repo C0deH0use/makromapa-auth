@@ -1,0 +1,6 @@
+<FindBugsFilter>
+  <Match>
+    <Pacakge name="com.ingo.[*].config.[*]?"/>
+    <Pacakge name="com.ingo.[*].ws.[*]?"/>
+  </Match>
+</FindBugsFilter>

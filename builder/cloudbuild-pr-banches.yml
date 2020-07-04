@@ -1,0 +1,39 @@
+## How to submit:$
+#  gcloud builds submit --config builder/cloudbuild-pr-banches.yml .
+##
+steps:
+
+  #
+  # Build the project
+  #
+  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+    id: build_jar
+    args: ["./gradlew", "clean", "build", "-x", "test"]
+
+  #
+  # Unit test
+  #
+  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+    id: unit_test
+    args: ["./gradlew", "test"]
+    waitFor:
+      - build_jar
+
+  #
+  # integration test
+  #
+  - name: 'docker/compose:1.25.5'
+    id: postgres_db
+    args: ['-f', 'builder/docker-compose.cicd.dependencies.yml', "up", "-d"]
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+    waitFor:
+      - unit_test
+
+  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+    id: integration_test
+    args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
+    env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev' ]
+    waitFor: ["postgres_db"]
+
+timeout: 1800s

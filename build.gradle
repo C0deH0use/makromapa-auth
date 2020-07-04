@@ -1,0 +1,266 @@
+buildscript {
+    ext {
+        set('springBootVersion', "2.3.1.RELEASE")
+        set("springCloudVersion", "Hoxton.SR4")
+        set("springSecurityOAuth2Version", "2.4.1.RELEASE")
+
+        set("lombokVersion", "1.18.10")
+
+        set("restAssured", "4.2.0")
+        set("junit5Version", "5.6.2")
+        set("junitPlatformVersion", "1.6.2")
+        set("spockVersion", "2.0-M2-groovy-2.5")
+
+        set("junitPlatformVersion", "1.6.2")
+        set('junit-jupiter.version', '5.6.2')
+
+        set("flywayVersion", "6.4.2")
+        set('swaggerVersion', "2.9.2")
+    }
+
+    ext["mockito.version"] = "3.0.0"
+
+    ext['junit-jupiter.version'] = "5.6.2"
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+plugins {
+    id "java"
+    id "groovy"
+    id "idea"
+    id 'pmd'
+    id 'checkstyle'
+
+    id "org.flywaydb.flyway" version "6.4.2"
+    id 'io.franzbecker.gradle-lombok' version '4.0.0'
+
+    id 'org.springframework.boot' version '2.3.1.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id "org.springframework.cloud.contract" version "2.1.5.RELEASE"
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_14
+    targetCompatibility = JavaVersion.VERSION_14
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+
+    integrationTestRuntime.extendsFrom testRuntime
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+
+    integrationTestCompile.extendsFrom testImplementation
+    integrationTestCompileOnly.extendsFrom testCompileOnly
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+}
+
+
+idea {
+    module {
+        testSourceDirs += file("src/integrationTest/java")
+        testSourceDirs += file("src/integrationTest/resources")
+    }
+}
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/java')
+        }
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+springBoot {
+    mainClassName = 'pl.code.house.makro.mapa.auth.MakroMapaApp'
+    buildInfo()
+}
+
+bootRun {
+    doFirst() {
+        if (project.hasProperty('profiles')) {
+            systemProperty 'spring.profiles.active', profiles
+        } else {
+            println "***@@@@@ Property profiles (-Pprofiles=)was not passed, setting default = local @@@@@***"
+            systemProperty 'spring.profiles.active', 'local'
+        }
+    }
+    main = 'pl.code.house.makro.mapa.auth.MakroMapaAuthApplication'
+}
+
+bootJar {
+    archiveFileName.set("${archiveBaseName.get()}.${archiveExtension.get()}")
+    mainClassName = "pl.code.house.makro.mapa.auth.MakroMapaAuthApplication"
+
+    println "Project: $rootProject.name:$project.version"
+    println "Generate jar: ${archiveFileName.get()}"
+}
+
+dependencies {
+    implementation(
+            'org.springframework.boot:spring-boot-starter-actuator',
+            'org.springframework.boot:spring-boot-starter-logging',
+
+            'org.springframework.boot:spring-boot-starter-data-jpa',
+            'org.springframework.boot:spring-boot-starter-web',
+
+            'org.springframework.boot:spring-boot-starter-security',
+            'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure',
+
+
+
+            'org.flywaydb:flyway-core',
+            'org.postgresql:postgresql'
+    )
+
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor(
+            'org.springframework.boot:spring-boot-configuration-processor',
+            'org.projectlombok:lombok'
+    )
+
+    testRuntimeOnly(
+            "org.junit.platform:junit-platform-engine:${junitPlatformVersion}",
+            "org.junit.vintage:junit-vintage-engine:${junit5Version}",
+    )
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    testImplementation (
+            'io.projectreactor:reactor-test',
+            'org.springframework.security:spring-security-test',
+
+            "org.junit.jupiter:junit-jupiter-api:${junit5Version}",
+            "org.junit.jupiter:junit-jupiter-params:${junit5Version}",
+            "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}",
+
+            "io.rest-assured:spring-mock-mvc:${restAssured}",
+            "io.rest-assured:rest-assured:${restAssured}",
+            "io.rest-assured:rest-assured-all:${restAssured}",
+            "io.rest-assured:rest-assured-common:${restAssured}",
+
+            "org.spockframework:spock-core:${spockVersion}",
+    )
+
+    integrationTestRuntimeOnly(
+            "org.junit.platform:junit-platform-engine:${junitPlatformVersion}",
+    )
+
+}
+
+
+
+/*
+ * Tasks
+ */
+pmd {
+    toolVersion = "6.23.0"
+    ignoreFailures = false
+    pmdTest.enabled = false
+    pmdIntegrationTest.enabled = false
+    ruleSets = []
+    ruleSetFiles = files("$rootProject.projectDir/config/pmd/pmdRules.xml")
+}
+
+checkstyle {
+    toolVersion = "8.12"
+    ignoreFailures = false
+    maxErrors = 0
+    maxWarnings = 0
+    checkstyleTest.enabled = false
+    checkstyleIntegrationTest.enabled = false
+    configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+tasks.withType(Pmd) {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+test {
+//    dependsOn spockTest
+    maxParallelForks = 4
+
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    outputs.upToDateWhen { false }
+
+    useJUnitPlatform {
+        excludeEngines 'junit-vintage'
+        excludeTags 'maintenance'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+task integrationTest(type: Test) {
+    description = 'Run integration tests.'
+
+    outputs.upToDateWhen { false }
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    useJUnitPlatform {
+        excludeEngines 'junit-vintage'
+        excludeTags 'maintenance'
+    }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+
+    doFirst() {
+        if (project.hasProperty('profiles')) {
+            println "***@@@@@ Property profiles with value: $profiles"
+            systemProperty 'spring.profiles.active', profiles
+        } else {
+            println "***@@@@@ Property profiles (-Pprofiles=) was not passed, setting default = default, integrationTests @@@@@***"
+            systemProperty 'spring.profiles.active', 'integrationTest'
+        }
+    }
+}
+
