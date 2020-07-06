@@ -132,13 +132,16 @@ dependencies {
             'org.springframework.boot:spring-boot-starter-data-jpa',
             'org.springframework.boot:spring-boot-starter-web',
 
+            'org.springframework.security:spring-security-oauth2-jose',
+            'org.springframework.security:spring-security-oauth2-resource-server',
+
             'org.springframework.boot:spring-boot-starter-security',
             'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure',
 
-
-
             'org.flywaydb:flyway-core',
-            'org.postgresql:postgresql'
+            'org.postgresql:postgresql',
+
+            "org.apache.commons:commons-lang3:3.10",
     )
 
     compileOnly 'org.projectlombok:lombok'

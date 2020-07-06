@@ -11,7 +11,7 @@ services:
       - 5432:5432
 
     environment:
-      - POSTGRES_DB=makromapa-db-dev
+      - POSTGRES_DB=makromapa-db-auth
       - POSTGRES_USER=makromapa-db-user
       - POSTGRES_PASSWORD=mysecretpassword
 
