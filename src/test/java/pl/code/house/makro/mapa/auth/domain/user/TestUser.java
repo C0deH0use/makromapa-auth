@@ -1,0 +1,34 @@
+package pl.code.house.makro.mapa.auth.domain.user;
+
+import io.restassured.http.Header;
+import lombok.Value;
+import org.springframework.http.HttpHeaders;
+
+public class TestUser {
+
+  public static final String BEARER_TOKEN = "Bearer ";
+
+  public static MockUser GOOGLE_NEW_USER = new MockUser("Test Android1", "109775294290602056945", "",
+      "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY1YjNmZWFhZDlkYjBmMzhiMWI0YWI5NDU1M2ZmMTdkZTRkZDRkNDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI1NjQ4MTI2MDYxOTgtN2cxdnRoNHI2OGp1dHNuaDJkMnE4bDBpbWtxaW0wcXYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI1NjQ4MTI2MDYxOTgtcTVoZ2prZjQyYWU4ZnE5N3JvMDlrbmo0MmEydDlrY3IuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDk3NzUyOTQyOTA2MDIwNTY5NDUiLCJlbWFpbCI6ImFuZHIwaWQxbWFrcjBtYXBhQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiVGVzdCBBbmRyb2lkMSIsInBpY3R1cmUiOiJodHRwczovL2xoNC5nb29nbGV1c2VyY29udGVudC5jb20vLXpSTElNdkM1TXRnL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FNWnV1Y2tPZFRWLVc1Vzl5dG9Zalh3M09qcC1CZlowU2cvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6IlRlc3QiLCJmYW1pbHlfbmFtZSI6IkFuZHJvaWQxIiwibG9jYWxlIjoicGwiLCJpYXQiOjE1OTQ0ODQ0NTgsImV4cCI6MTU5NDQ4ODA1OH0.5Svv6qxWWI37D3HevUJ8E9YCqZX-jXPGGY49UKdv5EaDK4JSmgJop0IjgMls05EALmYcWqEQsAzWaDvcnmPqxvzDn-1cRayB4nA_u2hucPnp5HiRV-rfKj9EKeuC5yvTQQOj01JCmVY-_LKL9wV80oLM2kb64z3rY66rnNf8tW5cFpCuB3cmHkijU7IepXDATMFh0GqJ8-d9BtwmnqpZuZubhowZ8OdqQc04oca_1v_k9XiJwBvKdWe2HIp7S6g62bmkI4KHAsWaRaByBPSHmsRXlItbX8vvLliSn9gLgKA4RrEAnqYgK8tzHk63nKp7xyjRLUmEj9qT40VdxG-2zQ");
+  public static MockUser GOOGLE_PREMIUM_USER = new MockUser("Makromapa Test01", "118364847911502210416", "248c8807-9c34-44d8-b477-e379d6633ca5",
+      "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY1YjNmZWFhZDlkYjBmMzhiMWI0YWI5NDU1M2ZmMTdkZTRkZDRkNDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI1NjQ4MTI2MDYxOTgtN2cxdnRoNHI2OGp1dHNuaDJkMnE4bDBpbWtxaW0wcXYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI1NjQ4MTI2MDYxOTgtcTVoZ2prZjQyYWU4ZnE5N3JvMDlrbmo0MmEydDlrY3IuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTgzNjQ4NDc5MTE1MDIyMTA0MTYiLCJlbWFpbCI6InRlc3QubWFrcm8wMUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6Ik1ha3JvbWFwYSBUZXN0MDEiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1pa1lfQ203MmN6dy9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQS9BTVp1dWNsT1lzLWxRbXhBV2FoSzROaHFZVS1XMnBjeTdnL3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJNYWtyb21hcGEiLCJmYW1pbHlfbmFtZSI6IlRlc3QwMSIsImxvY2FsZSI6InBsIiwiaWF0IjoxNTk0NDk0NDUwLCJleHAiOjE1OTQ0OTgwNTB9.EAeOrWiiZOSi3-_9wTo2xAticnDhIhU8r7ErjNDIRtFof3NM4L0W3f-Ahp0T9ELWNUPy3kgtMt3LnHehu779AUFk3PV8Kp_fhDSpONJ7CpC-rT9I9D_Y2BuFBwtyjhH-88ZE87OOpYTcoSXfduciYIeRBtOfTC-Q-so30KbU-OdmlEFrnfNUj0eBRD4soLSxjIsG0lGd1ysdin3ac4548FZiAExBeOhsg9HGr4thF04LslBoj1B4iR_ZVORyXEFaEzB0_SYmWy8lcEe8gwCuXIdA0YW4qizJY2XDRv_2-UJRTPXuoe2OLMGCwNq_qFBrpmEfWqD40CR-m8CXG5heuA");
+
+  @Value
+  public static class MockUser {
+
+    public MockUser(String name, String externalId, String accessToken, String jwt) {
+      this.name = name;
+      this.externalId = externalId;
+      this.accessToken = accessToken;
+      this.jwt = jwt;
+      this.authenticationHeader = new Header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN + jwt);
+    }
+
+    String name;
+    String externalId;
+    String accessToken;
+    String jwt;
+    Header authenticationHeader;
+  }
+
+}

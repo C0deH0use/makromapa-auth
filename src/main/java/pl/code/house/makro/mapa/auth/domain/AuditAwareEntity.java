@@ -22,8 +22,6 @@ public class AuditAwareEntity {
       created = now();
     }
 
-    if (lastUpdated == null) {
-      lastUpdated = now();
-    }
+    lastUpdated = now();
   }
 }

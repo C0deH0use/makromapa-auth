@@ -142,6 +142,7 @@ dependencies {
             'org.postgresql:postgresql',
 
             "org.apache.commons:commons-lang3:3.10",
+            'io.vavr:vavr:0.10.3',
     )
 
     compileOnly 'org.projectlombok:lombok'
@@ -174,6 +175,7 @@ dependencies {
             "io.rest-assured:rest-assured-common:${restAssured}",
 
             "org.spockframework:spock-core:${spockVersion}",
+            "org.exparity:hamcrest-date:2.0.7",
     )
 
     integrationTestRuntimeOnly(

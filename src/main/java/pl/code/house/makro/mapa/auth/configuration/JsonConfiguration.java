@@ -1,14 +1,13 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+import static java.time.Clock.systemUTC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Clock;
-import java.time.ZoneId;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -43,6 +42,6 @@ class JsonConfiguration {
 
   @Bean
   Clock systemClock() {
-    return Clock.system(ZoneId.of("Europe/Warsaw"));
+    return systemUTC();
   }
 }

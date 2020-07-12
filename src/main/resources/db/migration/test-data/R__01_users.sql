@@ -1,0 +1,2 @@
+INSERT INTO macro_user (id, external_id, provider, terms_and_conditions_id, name, surname, email, picture, type, created, last_updated)
+VALUES (nextval('macro_user_seq'), '118364847911502210416', 'GOOGLE', 1000, 'Makromapa Test01', 'Test01', 'test.makro01@gmail.com', 'https://lh3.googleusercontent.com/-ikY_Cm72czw/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclOYs-lQmxAWahK4NhqYU-W2pcy7g/s96-c/photo.jpg', 'PREMIUM_USER', now(), now());

@@ -5,6 +5,8 @@ import static lombok.AccessLevel.PROTECTED;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -22,14 +24,18 @@ import lombok.ToString;
 class UserDetails {
 
   @Column(name = "name")
-  String name;
+  private String name;
 
   @Column(name = "surname")
-  String surname;
+  private String surname;
 
   @Column(name = "email")
-  String email;
+  private String email;
 
   @Column(name = "picture")
-  String picture;
+  private String picture;
+
+  @Column(name = "type")
+  @Enumerated(EnumType.STRING)
+  private UserType type;
 }

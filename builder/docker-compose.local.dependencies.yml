@@ -1,14 +1,14 @@
 version: '3.7'
 services:
-  postgres_db:
+  makromapa_auth_db:
     image: postgres:12
     restart: always
 
     expose:
-      - 5442
+      - 5433
 
     ports:
-      - 5432:5432
+      - 5433:5432
 
     environment:
       - POSTGRES_DB=makromapa-db-auth

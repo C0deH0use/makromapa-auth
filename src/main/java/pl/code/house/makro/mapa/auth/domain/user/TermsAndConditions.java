@@ -1,16 +1,13 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static javax.persistence.AccessType.FIELD;
-import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.SEQUENCE;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
 
 import javax.persistence.Access;
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
@@ -23,16 +20,16 @@ import lombok.NoArgsConstructor;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
 
 @Entity
-@Table(name = User.TABLE_NAME)
+@Table(name = TermsAndConditions.TABLE_NAME)
 @Access(FIELD)
 @Getter(PACKAGE)
 @Builder(access = PACKAGE)
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PACKAGE)
-class User extends AuditAwareEntity {
+class TermsAndConditions extends AuditAwareEntity {
 
-  static final String TABLE_NAME = "macro_user";
+  static final String TABLE_NAME = "terms_and_conditions";
 
   private static final int SEQ_INITIAL_VALUE = 1000;
   private static final int SEQ_INCREMENT_BY_VALUE = 1;
@@ -44,18 +41,10 @@ class User extends AuditAwareEntity {
   @SequenceGenerator(name = GENERATOR, sequenceName = SEQ_NAME, allocationSize = SEQ_INCREMENT_BY_VALUE, initialValue = SEQ_INITIAL_VALUE)
   private Long id;
 
-  @Column(name = "external_id", updatable = false, nullable = false)
-  private String externalId;
+  @Column(name = "contract_pl", insertable = false, updatable = false, nullable = false)
+  private String contractPl;
 
-  @Column(name = "terms_and_conditions_id")
-  private Long termsAndConditionsId;
-
-  @Enumerated(STRING)
-  @Column(name = "provider", updatable = false, nullable = false)
-  private AuthProvider provider;
-
-  @Embedded
-  private UserDetails userDetails;
-
+  @Column(name = "contract_en", insertable = false, updatable = false, nullable = false)
+  private String contractEn;
 
 }
