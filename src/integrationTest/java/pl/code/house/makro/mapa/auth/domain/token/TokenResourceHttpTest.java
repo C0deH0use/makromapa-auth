@@ -1,8 +1,10 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -11,13 +13,14 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static pl.code.house.makro.mapa.auth.ApiConstraints.AUTH_BASE_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
+import io.restassured.http.Header;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
@@ -36,11 +39,38 @@ class TokenResourceHttpTest {
   void returnOkWhenUsingCorrectValidToken() {
     given()
         .param("token", GOOGLE_PREMIUM_USER.getAccessToken())
-
+//        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa", "secret", UTF_8)))
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+        .log().all(true)
 
         .when()
-        .post(AUTH_BASE_PATH + "/token/introspect")
+        .post("/oauth/check_token")
+
+        .then()
+        .log().ifValidationFails()
+        .status(OK)
+
+        .body("username", equalTo(1000))
+        .body("active", equalTo(true))
+        .body("scope", equalTo("MAKROMAPA"))
+        .body("client_id", equalTo("123456789"))
+        .body("exp", notNullValue())
+    ;
+  }
+
+  @Test
+  @DisplayName("return OK with new token")
+  void returnOkWithNewToken() {
+    given()
+        .param("grant_type", "password")
+        .param("username", "enduser")
+        .param("password", "password")
+        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa", "secret", UTF_8)))
+        .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+        .log().all(true)
+
+        .when()
+        .post("/oauth/token")
 
         .then()
         .log().ifValidationFails()

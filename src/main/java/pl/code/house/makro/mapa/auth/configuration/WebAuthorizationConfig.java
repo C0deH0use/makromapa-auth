@@ -6,6 +6,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256;
 
 import java.util.List;
+import javax.sql.DataSource;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,7 +27,10 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -34,50 +39,55 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
+import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-@NoArgsConstructor
 @Configuration
+@NoArgsConstructor
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
-
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
-
-  @Autowired
-  public void configureGlobal(AuthenticationManagerBuilder auth, @Value("${admin.auth.password:PASSWORD}") String adminPassword) {
-    try {
-      auth.inMemoryAuthentication()
-          .withUser("admin_aga")
-          .password(passwordEncoder().encode(adminPassword))
-          .authorities("ROLE_REGISTER");
-    } catch (Exception e) {
-      throw new IllegalStateException("Error when creating BASIC AUTH ADMIN", e);
-    }
-  }
-
-  @Override
-  public void configure(HttpSecurity http) throws Exception {
-    http
-        .csrf().disable()
-
-        .requestMatcher(new AntPathRequestMatcher("/api/admin/**"))
-        .httpBasic().authenticationEntryPoint(new HttpStatusEntryPoint(UNAUTHORIZED))
-        .and()
-
-        .authorizeRequests()
-        .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
-        .and()
-
-        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
-    ;
-  }
-
   @Order(1)
+  @Configuration
+  public static class Oauth2AuthenticationConfig extends WebSecurityConfigurerAdapter {
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+      return super.authenticationManagerBean();
+    }
+
+    @Bean
+    @Override
+    public UserDetailsService userDetailsServiceBean() throws Exception {
+      PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+      return new InMemoryUserDetailsManager(
+          User.withUsername("enduser").password(encoder.encode("password")).roles("USER").build());
+    }
+
+    @Bean
+    public TokenStore tokenStore(DataSource dataSource) {
+      return new JdbcTokenStore(dataSource);
+    }
+
+    @Bean
+    public TokenStoreUserApprovalHandler userApprovalHandler(TokenStore tokenStore, ClientDetailsService clientDetailsService) {
+      TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
+      handler.setTokenStore(tokenStore);
+      handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
+      handler.setClientDetailsService(clientDetailsService);
+      return handler;
+    }
+
+  }
+
+  @Order(2)
   @Configuration
   public static class GoogleAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
