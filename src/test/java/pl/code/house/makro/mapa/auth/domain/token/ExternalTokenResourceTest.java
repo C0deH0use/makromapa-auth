@@ -42,13 +42,14 @@ import pl.code.house.makro.mapa.auth.configuration.ImportTestAuthorizationConfig
 @WebMvcTest(controllers = {ExternalTokenResource.class})
 class ExternalTokenResourceTest {
 
+  private static final String ACCESS_CODE = "10c7fc72-64f6-4c9a-af2b-a5d33c65ecf3";
   private static final String CLIENT_ID = "CLIENT_ID";
   private static final String EXTERNAL_TOKEN_TYPE = "external-token";
   private static final String CLIENT_GRANT_TYPES = "external-token,refresh_token";
   private static final ClientDetails CLIENT_DETAILS = new BaseClientDetails(CLIENT_ID, "makromapa-mobile", "user", CLIENT_GRANT_TYPES, "ROLE_CLIENT");
   private static final ClientDetails INVALID_CLIENT_DETAILS = new BaseClientDetails("INVALID_CLIENT_ID", "makromapa-admin", "admin", CLIENT_GRANT_TYPES, "ROLE_CLIENT, ROLE_ADMIN");
 
-  private static final OAuth2AccessToken TOKEN = new DefaultOAuth2AccessToken(GOOGLE_PREMIUM_USER.getAccessToken());
+  private static final OAuth2AccessToken TOKEN = new DefaultOAuth2AccessToken(ACCESS_CODE);
 
   @Autowired
   private MockMvc mvc;
@@ -83,7 +84,7 @@ class ExternalTokenResourceTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("token_type", equalToIgnoringCase("bearer")))
-        .andExpect(jsonPath("access_token", equalToIgnoringCase(GOOGLE_PREMIUM_USER.getAccessToken())))
+        .andExpect(jsonPath("access_token", equalToIgnoringCase(ACCESS_CODE)))
     ;
   }
 

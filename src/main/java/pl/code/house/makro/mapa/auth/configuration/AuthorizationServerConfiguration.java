@@ -43,7 +43,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     oauthServer
         .realm("makromapa/client")
         .tokenKeyAccess("denyAll()")
-        .checkTokenAccess("permitAll()")
+        .checkTokenAccess("isAuthenticated() and hasRole('MAKROMAPA_BACKEND')")
     ;
   }
 }

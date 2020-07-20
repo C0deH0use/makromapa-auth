@@ -3,10 +3,13 @@ package org.springframework.security.oauth2.provider;
 import static lombok.AccessLevel.PRIVATE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.GRANT_TYPE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.RESPONSE_TYPE;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -15,7 +18,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import pl.code.house.makro.mapa.auth.domain.user.UserType;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Value
 @AllArgsConstructor(access = PRIVATE)
@@ -25,13 +31,12 @@ public class ExternalUserAuthRequest extends TokenRequest {
 
   private static final long serialVersionUID = 1791623350551969647L;
 
-
   Set<String> responseTypes;
 
   JwtAuthenticationToken principal;
 
   @NonFinal
-  UUID externalUserId = null;
+  UserDto externalUser = null;
 
   @NonFinal
   TokenRequest refresh = null;
@@ -97,8 +102,8 @@ public class ExternalUserAuthRequest extends TokenRequest {
     this.resourceIds = resourceIds;
   }
 
-  public void setExternalUserId(UUID externalId) {
-    this.externalUserId = externalId;
+  public void setExternalUserId(UserDto externalUser) {
+    this.externalUser = externalUser;
   }
 
   /**
@@ -147,8 +152,16 @@ public class ExternalUserAuthRequest extends TokenRequest {
     modifiable.remove("client_secret");
     // Add grant type so it can be retrieved from OAuth2Request
     modifiable.put("grant_type", getGrantType());
-    modifiable.put(EXTERNAL_USER_ID, externalUserId.toString());
-    return new OAuth2Request(modifiable, client.getClientId(), client.getAuthorities(), true, this.getScope(),
+    modifiable.put(EXTERNAL_USER_ID, externalUser.getId().toString());
+
+    Set<String> scopes = new HashSet<>(this.getScope());
+    Collection<GrantedAuthority> authorities = new HashSet<>(client.getAuthorities());
+    if(PREMIUM_USER == externalUser.getUserDetails().getType()) {
+      scopes.add("PREMIUM_USER");
+      authorities.add(new SimpleGrantedAuthority("ROLE_PREMIUM_USER"));
+    }
+
+    return new OAuth2Request(modifiable, client.getClientId(), authorities, true, scopes,
         client.getResourceIds(), null, null, null);
   }
 }

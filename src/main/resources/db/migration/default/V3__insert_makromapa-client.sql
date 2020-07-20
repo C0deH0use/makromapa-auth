@@ -1,3 +1,0 @@
-INSERT INTO oauth_client_details (client_id, resource_ids, client_secret, scope, authorized_grant_types, web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, additional_information, autoapprove)
-VALUES ('makromapa-mobile', 'makromapa-mobile', '{bcrypt}$2a$10$i7epMu64Ms1U4jKlvbEXVulgIxXutLKddfw/pZbKyXOXjh2LztNLW', 'user', 'password,external-token,refresh_token', null, 'ROLE_CLIENT,', 900, 600, '{}', 'external-token'),
-       ('makromapa-admin', 'makromapa-admin', '{bcrypt}$2a$10$Gr.ERuXphbc273y22x290OWRCr5h619KYXcJBt2xyqBTTdryohPn6', 'admin', 'password', null, 'ROLE_ROLE_ADMIN', 21600, 600, '{}', 'internal-token');

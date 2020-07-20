@@ -106,7 +106,7 @@ class ExternalTokenResourceHttpTest {
         .body("refresh_token", notNullValue())
     ;
 
-    assertAccessTokenCount().isEqualTo(1);
+    assertAccessTokenCount().isEqualTo(2);
   }
 
   @Test

@@ -56,12 +56,11 @@ class ExternalUserTokenGranter implements TokenGranter {
     Jwt token = tokenRequest.getPrincipal().getToken();
 
     UserDto userDto = userFacade.findUserByToken(token);
-    tokenRequest.setExternalUserId(userDto.getId());
+    tokenRequest.setExternalUserId(userDto);
 
     OAuth2Request auth2Request = tokenRequest.createOAuth2Request(client);
     return new ExternalUserAuthentication(auth2Request, userAuth);
   }
-
 
   protected OAuth2AccessToken getAccessToken(ClientDetails client, ExternalUserAuthRequest tokenRequest) {
     return tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest));

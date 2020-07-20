@@ -13,9 +13,8 @@ public class TestUser {
   public static final String PREMIUM_USER_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlNGViZTQ4N2Q1Y2RmMmIwMjZhM2IyMjlkODZmMGQ0MjU4NDQ5ZmUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI1NjQ4MTI2MDYxOTgtN2cxdnRoNHI2OGp1dHNuaDJkMnE4bDBpbWtxaW0wcXYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI1NjQ4MTI2MDYxOTgtdTZiNXRvOHJoanNxa3BpOXNpZHNlazN2cmswMmtqcTUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTgzNjQ4NDc5MTE1MDIyMTA0MTYiLCJlbWFpbCI6InRlc3QubWFrcm8wMUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6Ik1ha3JvbWFwYSBUZXN0MDEiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1pa1lfQ203MmN6dy9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQS9BTVp1dWNsT1lzLWxRbXhBV2FoSzROaHFZVS1XMnBjeTdnL3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJNYWtyb21hcGEiLCJmYW1pbHlfbmFtZSI6IlRlc3QwMSIsImxvY2FsZSI6InBsIiwiaWF0IjoxNTk1MjQxODIzLCJleHAiOjE1OTUyNDU0MjN9.suRsYVSPGuqcfMINEe8oEbyLp_tbOoIW1uTuiaWLg3XN0HugSF6cZ9l9dMfhdfOAztQtuPfc9Cl9xFq-uulIWEGtGHUBk9REbdpQ769PdcFJUPLXe7jKRG9E9d9VAv74aOLkiAYCy5IWJp2AuXPyX1FwgbGPzyPFcpIoQi3fy6obQKalzG0BbJcPkVB66Jey-nihpOe-W5umFvBhU5wG58b_zb46J4nQQMHyXwZr5AAw3A4nLjsK_HUZmTy3yePcznttxbkZq8eyjY-f1yECiG8swNz-lSOmGvLdKO4aJ5oC2ovwxlIDB5vZCA8dMv9L56qo6VaCP3Mk39rHKwHygg";
   public static final String FREE_USER_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjRlNGViZTQ4N2Q1Y2RmMmIwMjZhM2IyMjlkODZmMGQ0MjU4NDQ5ZmUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI1NjQ4MTI2MDYxOTgtN2cxdnRoNHI2OGp1dHNuaDJkMnE4bDBpbWtxaW0wcXYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI1NjQ4MTI2MDYxOTgtdTZiNXRvOHJoanNxa3BpOXNpZHNlazN2cmswMmtqcTUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDQ3OTY4NjU4ODE0ODEwMzQzMDAiLCJlbWFpbCI6ImNvZGVob3VzZS5tYWtyb21hcGFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNYWtybyBNYXBhIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9BT2gxNEdqeHpSTGlGQ09HTGdCaldnal9mbDNkM2RXSjZxOTctb2V0dll0aD1zOTYtYyIsImdpdmVuX25hbWUiOiJNYWtybyIsImZhbWlseV9uYW1lIjoiTWFwYSIsImxvY2FsZSI6InBsIiwiaWF0IjoxNTk1MjQxNDY4LCJleHAiOjE1OTUyNDUwNjh9.lxPNxsIjH8lE0aFmGIm_7zUu7033qwKSz_5AaCLGmXcuoWjTY0LD-jQWBOHdUJCiWTJd3SRcUvncok16sS3JbW3iMHbS8inFg9V4-CBuBjR7_jXFw57OyE35ilDKQZk-lQyuGgCS6yA7WL4BPLqrWJIctZqhVo3pa_3NwTjOchYIch0F17tvR3QUDowG4jSrfeRjVZ8lz-w1RUEokZgCxCIjHAIeAbtfaxgy85SfbPnCyONyryk2iwTdCirW8mmnC8YiftFKQT9pNfysEWnFsObNyh5g10MYU5RDHQ2CAaFcexLCQxmd3Q4MwYDaG_PettO4swwWi4xhZj95M78guA";
 
-  public static MockUser GOOGLE_NEW_USER = new MockUser(null, "Makro Mapa", "104796865881481034300", null, FREE_USER_TOKEN);
-  public static MockUser GOOGLE_PREMIUM_USER = new MockUser("aa6641c1-e9f4-417f-adf4-f71accc470cb", "Makromapa Test01", "118364847911502210416", "e29dfb7b-490b-43f3-9dba-270d5aeb586e",
-      PREMIUM_USER_TOKEN);
+  public static MockUser GOOGLE_NEW_USER = new MockUser(null, "Makro Mapa", "104796865881481034300", FREE_USER_TOKEN);
+  public static MockUser GOOGLE_PREMIUM_USER = new MockUser("aa6641c1-e9f4-417f-adf4-f71accc470cb", "Makromapa Test01", "118364847911502210416", PREMIUM_USER_TOKEN);
 
   @Value
   public static class MockUser {
@@ -23,15 +22,13 @@ public class TestUser {
     UUID userId;
     String name;
     String externalId;
-    String accessToken;
     String jwt;
     Header authenticationHeader;
 
-    public MockUser(String userId, String name, String externalId, String accessToken, String jwt) {
+    public MockUser(String userId, String name, String externalId, String jwt) {
       this.userId = userId == null ? null : fromString(userId);
       this.name = name;
       this.externalId = externalId;
-      this.accessToken = accessToken;
       this.jwt = jwt;
       this.authenticationHeader = new Header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN + jwt);
     }
