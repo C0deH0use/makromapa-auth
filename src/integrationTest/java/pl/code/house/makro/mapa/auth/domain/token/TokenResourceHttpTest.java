@@ -3,14 +3,13 @@ package pl.code.house.makro.mapa.auth.domain.token;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.AUTH_BASE_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
 import io.restassured.http.Header;
@@ -21,11 +20,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import pl.code.house.makro.mapa.auth.domain.user.TestUser;
 
 @SpringBootTest
 class TokenResourceHttpTest {
 
+  private final PasswordEncoder encoder = new BCryptPasswordEncoder();
   @Autowired
   private WebApplicationContext context;
 
@@ -35,52 +39,45 @@ class TokenResourceHttpTest {
   }
 
   @Test
-  @DisplayName("return OK when using correct valid token")
-  void returnOkWhenUsingCorrectValidToken() {
-    given()
-        .param("token", GOOGLE_PREMIUM_USER.getAccessToken())
-//        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa", "secret", UTF_8)))
-        .contentType(APPLICATION_FORM_URLENCODED_VALUE)
-        .log().all(true)
-
-        .when()
-        .post("/oauth/check_token")
-
-        .then()
-        .log().ifValidationFails()
-        .status(OK)
-
-        .body("username", equalTo(1000))
-        .body("active", equalTo(true))
-        .body("scope", equalTo("MAKROMAPA"))
-        .body("client_id", equalTo("123456789"))
-        .body("exp", notNullValue())
-    ;
-  }
-
-  @Test
+  @Transactional
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() {
     given()
-        .param("grant_type", "password")
-        .param("username", "enduser")
-        .param("password", "password")
-        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa", "secret", UTF_8)))
+            .param("grant_type", "password")
+            .param("username", "user_1@example.com")
+            .param("password", "secret")
+            .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "mobile-apps-secret", UTF_8)))
+            .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+            .log().all(true)
+
+            .when()
+            .post("/oauth/token")
+
+            .then()
+            .log().ifValidationFails()
+            .status(OK)
+
+            .body("token_type", equalTo("bearer"))
+            .body("scope", equalTo("user"))
+            .body("access_token", notNullValue())
+            .body("refresh_token", notNullValue())
+            .body("expires_in", lessThanOrEqualTo(900))
+        ;
+  }
+
+  @Test
+  @DisplayName("return token details when requesting with valid access token")
+  void returnTokenDetailsWhenRequestingWithValidAccessToken() {
+    given()
+        .param("token", GOOGLE_PREMIUM_USER.getAccessToken())
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
-        .log().all(true)
 
         .when()
-        .post("/oauth/token")
+        .get("/oauth/check_token")
 
         .then()
-        .log().ifValidationFails()
+        .log().all()
         .status(OK)
-
-        .body("username", equalTo(1000))
-        .body("active", equalTo(true))
-        .body("scope", equalTo("MAKROMAPA"))
-        .body("client_id", equalTo("123456789"))
-        .body("exp", notNullValue())
     ;
   }
 
@@ -92,11 +89,12 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .post(AUTH_BASE_PATH + "/token/introspect")
+        .get("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
-        .status(UNAUTHORIZED)
+        .status(BAD_REQUEST)
+        .body("error", equalTo("invalid_token"))
     ;
   }
 
@@ -107,7 +105,7 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .post(AUTH_BASE_PATH + "/token/introspect")
+        .get("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
@@ -123,11 +121,11 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .post(AUTH_BASE_PATH + "/token/introspect")
+        .get("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
-        .status(UNAUTHORIZED)
+        .status(BAD_REQUEST)
     ;
   }
 

@@ -16,11 +16,11 @@ import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 @Configuration
-class TestWebAuthorizationConfig {
+public class TestWebAuthorizationConfig {
 
   @Bean
   @Profile({"integrationTest"})
-  JwtDecoder nimbusJwtDecoderJwkSupport(
+  public JwtDecoder nimbusJwtDecoderJwkSupport(
       @Value("${android.oauth2.client.client-id}") String androidClientId,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri

@@ -1,3 +1,0 @@
-INSERT INTO access_token (id, user_id, enabled, code, refresh_code, expiry_date, refresh_code_expiry_date, created, last_updated)
-VALUES (nextval('access_token_seq'), 1000, true, '248c8807-9c34-44d8-b477-e379d6633ca5', '0587a2eb-0eed-4add-9ad9-b20d52e8e236', now() + interval '6 hour', now() + interval '30 day', now(), now());
-VALUES (nextval('access_token_seq'), 1001, true, 'c1ffdd6c-a83b-496d-8335-febffac18fc4', 'a1f86c06-176c-411c-aebe-99220f2ec139', now() - interval '1 hour',  now() + interval '29 day', now(), now());

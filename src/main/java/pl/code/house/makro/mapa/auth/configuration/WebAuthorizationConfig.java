@@ -2,19 +2,17 @@ package pl.code.house.makro.mapa.auth.configuration;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.boot.actuate.health.HealthEndpoint;
-import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -26,10 +24,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -44,18 +39,45 @@ import org.springframework.security.oauth2.provider.approval.TokenStoreUserAppro
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import pl.code.house.makro.mapa.auth.domain.token.ExternalUserAuthenticationKeyGenerator;
 
 @Configuration
 @NoArgsConstructor
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
-  @Order(1)
+
+  public static List<String> trimClientIds(String androidClientId) {
+    return List.of(split(androidClientId, ",")).stream().map(StringUtils::trimToEmpty).collect(toList());
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+  }
+
+  @Order(2)
   @Configuration
+  @RequiredArgsConstructor
   public static class Oauth2AuthenticationConfig extends WebSecurityConfigurerAdapter {
+
+    private final DataSource dataSource;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+      http.csrf().disable();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+      auth.jdbcAuthentication()
+          .dataSource(dataSource)
+          .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE email = ?")
+          .authoritiesByUsernameQuery("SELECT user_id::text, authority FROM user_authority WHERE user_id::text = ?")
+      ;
+    }
 
     @Bean
     @Override
@@ -64,16 +86,15 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    @Override
-    public UserDetailsService userDetailsServiceBean() throws Exception {
-      PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-      return new InMemoryUserDetailsManager(
-          User.withUsername("enduser").password(encoder.encode("password")).roles("USER").build());
+    public UserDetailsService userDetailsServiceBean(DataSource dataSource) {
+      return new JdbcUserDetailsManager(dataSource);
     }
 
     @Bean
     public TokenStore tokenStore(DataSource dataSource) {
-      return new JdbcTokenStore(dataSource);
+      JdbcTokenStore jdbcTokenStore = new JdbcTokenStore(dataSource);
+      jdbcTokenStore.setAuthenticationKeyGenerator(new ExternalUserAuthenticationKeyGenerator());
+      return jdbcTokenStore;
     }
 
     @Bean
@@ -84,10 +105,9 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       handler.setClientDetailsService(clientDetailsService);
       return handler;
     }
-
   }
 
-  @Order(2)
+  @Order(1)
   @Configuration
   public static class GoogleAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
@@ -107,13 +127,15 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http
-          .requestMatcher(new AntPathRequestMatcher("/api/auth/authorize"))
+          .csrf().disable()
+          .requestMatcher(new AntPathRequestMatcher(EXTERNAL_AUTH_BASE_PATH + "/**"))
           .authorizeRequests().anyRequest().authenticated()
-
           .and()
+
           .oauth2ResourceServer()
           .jwt()
-          .decoder(decoder);
+          .decoder(decoder)
+      ;
     }
 
     @Override
@@ -137,9 +159,5 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
       return decoder;
     }
-  }
-
-  public static List<String> trimClientIds(String androidClientId) {
-    return List.of(split(androidClientId, ",")).stream().map(StringUtils::trimToEmpty).collect(toList());
   }
 }

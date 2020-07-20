@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserDetailsDto;
 
 @Embeddable
 @ToString
@@ -38,4 +39,8 @@ class UserDetails {
   @Column(name = "type")
   @Enumerated(EnumType.STRING)
   private UserType type;
+
+  UserDetailsDto toDto() {
+    return new UserDetailsDto(name, surname, email, picture, type);
+  }
 }

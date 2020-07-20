@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 interface UserRepository extends JpaRepository<User, Long> {
 
   @Query("SELECT u FROM User u WHERE u.externalId = :externalId")
-  Optional<User> findByExternalId(@Param("externalId") String externalId);
+  Optional<User> findByExternalIdAndAuthProvider(@Param("externalId") String externalId);
 }

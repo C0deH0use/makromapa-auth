@@ -3,7 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import io.vavr.collection.Stream;
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
 
-public enum AuthProvider {
+public enum OAuth2Provider {
   GOOGLE("https://accounts.google.com"),
   FACEBOOK(""),
   APPLE(""),
@@ -11,11 +11,11 @@ public enum AuthProvider {
 
   private final String issuer;
 
-  AuthProvider(String issuer) {
+  OAuth2Provider(String issuer) {
     this.issuer = issuer;
   }
 
-  public static AuthProvider fromIssuer(String iss) {
+  public static OAuth2Provider fromIssuer(String iss) {
     return Stream.of(values())
         .find(provider -> provider.issuer.equalsIgnoreCase(iss))
         .getOrElseThrow(() -> new UnsupportedAuthenticationIssuerException("Unknown issuer - " + iss));

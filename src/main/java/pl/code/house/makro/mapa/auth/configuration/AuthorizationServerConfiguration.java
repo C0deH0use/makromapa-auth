@@ -2,8 +2,6 @@ package pl.code.house.makro.mapa.auth.configuration;
 
 import javax.sql.DataSource;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -11,12 +9,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
-import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
 @Configuration
 @AllArgsConstructor
@@ -33,15 +27,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
   @Override
   public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-    clients.inMemory()
-        .withClient("makromapa")
-        .secret("{noop}secret")
-        .authorizedGrantTypes("password", "authorization_code", "refresh_token")
-        .authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
-        .scopes("read", "write", "trust")
-        .accessTokenValiditySeconds(120)
-        .refreshTokenValiditySeconds(600)
-    ;
+    clients.jdbc(dataSource);
   }
 
   @Override
@@ -56,7 +42,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
   public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
     oauthServer
         .realm("makromapa/client")
-//        .tokenKeyAccess("permitAll()")
+        .tokenKeyAccess("denyAll()")
         .checkTokenAccess("permitAll()")
     ;
   }

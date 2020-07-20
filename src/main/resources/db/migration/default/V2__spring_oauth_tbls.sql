@@ -40,12 +40,6 @@ CREATE TABLE oauth_refresh_token
     authentication bytea
 );
 
-CREATE TABLE oauth_code
-(
-    code           VARCHAR(256),
-    authentication bytea
-);
-
 CREATE TABLE oauth_approvals
 (
     userId         VARCHAR(256),
