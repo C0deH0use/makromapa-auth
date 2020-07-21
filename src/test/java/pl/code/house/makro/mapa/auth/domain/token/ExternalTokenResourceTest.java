@@ -1,5 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.notNullValue;
@@ -9,6 +10,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,6 +20,10 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
 import io.restassured.http.Header;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
@@ -28,12 +34,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.code.house.makro.mapa.auth.configuration.ImportTestAuthorizationConfig;
 
@@ -67,6 +79,8 @@ class ExternalTokenResourceTest {
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() throws Exception {
     //given
+    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
 
@@ -92,6 +106,8 @@ class ExternalTokenResourceTest {
   @SneakyThrows
   @DisplayName("return UNAUTHORIZED if loaded client details does not match by ID")
   void returnUnauthorizedIfLoadedClientDetailsDoesNotMatchById() {
+    //given
+    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
 
@@ -116,6 +132,9 @@ class ExternalTokenResourceTest {
   @SneakyThrows
   @DisplayName("return BAD if uploaded client details do not match what was send to resource")
   void returnBadIfUploadedClientDetailsDoNotMatchWhatWasSendToResource() {
+    //given
+    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(INVALID_CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
 
@@ -141,6 +160,9 @@ class ExternalTokenResourceTest {
   @SneakyThrows
   @DisplayName("return BAD_REQUEST if missing grant_type param")
   void returnBadRequestIfMissingGrantTypeParam() {
+    //given
+    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
 
@@ -166,6 +188,8 @@ class ExternalTokenResourceTest {
   @DisplayName("return BAD_REQUEST if grant_type is unknown or not supported")
   void returnBadRequestIfGrantTypeIsUnknownOrNotSupported() {
     //given
+    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(null);
 
@@ -185,5 +209,35 @@ class ExternalTokenResourceTest {
         .andExpect(jsonPath("error", containsStringIgnoringCase("Unsupported grant type:")))
         .andExpect(jsonPath("uniqueErrorId", notNullValue(UUID.class)))
         ;
+  }
+
+  private Authentication validAuthentication() {
+    String token = GOOGLE_PREMIUM_USER.getJwt();
+    Map<String, Object> headers = tokenHeaders();
+    Map<String, Object> claims = minimalClaims();
+
+    Jwt jwt = Jwt.withTokenValue(token)
+        .headers(h -> h.putAll(headers))
+        .claims(c -> c.putAll(claims))
+        .build();
+    return new JwtAuthenticationToken(jwt, emptyList());
+  }
+
+  private Map<String, Object> minimalClaims() {
+    return Map.ofEntries(
+        Map.entry("sub", GOOGLE_PREMIUM_USER.getExternalId()),
+        Map.entry("iss", "https://accounts.google.com"),
+        Map.entry("azp", "564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com"),
+        Map.entry("exp", Instant.parse("2020-07-11T17:20:58Z")),
+        Map.entry("iat", Instant.parse("2020-07-11T16:20:58Z"))
+    );
+  }
+
+  private Map<String, Object> tokenHeaders() {
+    return Map.of(
+        "kid", "65b3feaad9db0f38b1b4ab94553ff17de4dd4d49",
+        "typ", "JWT",
+        "alg", "RS256"
+    );
   }
 }

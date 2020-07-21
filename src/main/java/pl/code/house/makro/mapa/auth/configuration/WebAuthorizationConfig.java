@@ -2,16 +2,14 @@ package pl.code.house.makro.mapa.auth.configuration;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +37,7 @@ import org.springframework.security.oauth2.provider.approval.TokenStoreUserAppro
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import pl.code.house.makro.mapa.auth.domain.token.ExternalUserAuthenticationKeyGenerator;
@@ -53,9 +52,53 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     return List.of(split(androidClientId, ",")).stream().map(StringUtils::trimToEmpty).collect(toList());
   }
 
+  private static JwtDecoder buildDecoder(String androidClientId, String issuer, String jwkSetUri) {
+    List<OAuth2TokenValidator<Jwt>> validators = List.of(
+        new JwtTimestampValidator(),
+        new JwtIssuerValidator(issuer),
+        new TokenSupplierValidator(trimClientIds(androidClientId))
+    );
+    NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
+    return decoder;
+  }
+
   @Bean
   public PasswordEncoder passwordEncoder() {
     return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+  }
+
+  @Bean
+  public JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver(
+      JwtDecoder googleJwkDecoder,
+      JwtDecoder appleIdJwkDecoder,
+      @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String googleIssuer,
+      @Value("${spring.security.apple.oauth2.resourceserver.jwt.issuer-uri}") String appleIdIssuer) {
+    Map<String, JwtDecoder> jwtDecoders = Map.of(
+        googleIssuer, googleJwkDecoder,
+        appleIdIssuer, appleIdJwkDecoder
+    );
+    return new JwtIssuerAuthenticationManagerResolver(new CustomIssuerJwtAuthenticationManagerResolver(jwtDecoders));
+  }
+
+  @Bean
+  @Profile({"!integrationTest"})
+  public JwtDecoder googleJwkDecoder(
+      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+      @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
+  ) {
+    return buildDecoder(androidClientId, issuer, jwkSetUri);
+  }
+
+  @Bean
+  @Profile({"!integrationTest"})
+  JwtDecoder appleIdJwkDecoder(
+      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      @Value("${spring.security.apple.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+      @Value("${spring.security.apple.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
+  ) {
+    return buildDecoder(androidClientId, issuer, jwkSetUri);
   }
 
   @Order(2)
@@ -109,34 +152,10 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
   @Order(1)
   @Configuration
-  public static class GoogleAuthenticationConfig extends WebSecurityConfigurerAdapter {
+  @RequiredArgsConstructor
+  public static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${android.oauth2.client.client-id}")
-    private String androidClientId;
-
-    @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}")
-    private String issuer;
-
-    @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}")
-    private String jwkSetUri;
-
-    @Autowired
-    @Qualifier("nimbusJwtDecoderJwkSupport")
-    private JwtDecoder decoder;
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      http
-          .csrf().disable()
-          .requestMatcher(new AntPathRequestMatcher(EXTERNAL_AUTH_BASE_PATH + "/**"))
-          .authorizeRequests().anyRequest().authenticated()
-          .and()
-
-          .oauth2ResourceServer()
-          .jwt()
-          .decoder(decoder)
-      ;
-    }
+    private final JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver;
 
     @Override
     @SuppressWarnings("PMD.UselessOverridingMethod")
@@ -144,20 +163,17 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       super.configure(web);
     }
 
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+      http
+          .csrf().disable()
+          .requestMatcher(new AntPathRequestMatcher(EXTERNAL_AUTH_BASE_PATH + "/**"))
+          .authorizeRequests().anyRequest().authenticated()
+          .and()
 
-    @Bean
-    @Profile({"!integrationTest"})
-    JwtDecoder nimbusJwtDecoderJwkSupport() {
-      List<OAuth2TokenValidator<Jwt>> validators = List.of(
-          new JwtTimestampValidator(),
-          new JwtIssuerValidator(issuer),
-          new TokenSupplierValidator(trimClientIds(androidClientId))
-      );
-      NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
-          .jwsAlgorithm(RS256)
-          .build();
-      decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
-      return decoder;
+          .oauth2ResourceServer()
+          .authenticationManagerResolver(multiJwtAuthenticationManagerResolver)
+      ;
     }
   }
 }

@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 public class ApiConstraints {
 
   public static final String BASE_PATH = "/oauth";
-  public static final String EXTERNAL_AUTH_BASE_PATH =  BASE_PATH + "/external";
+  public static final String EXTERNAL_AUTH_BASE_PATH = BASE_PATH + "/external";
 }

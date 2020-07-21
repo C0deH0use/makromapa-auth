@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = EXTERNAL_AUTH_BASE_PATH, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+@RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 class ExternalTokenResource {
 
   private final OAuth2RequestValidator requestValidator = new DefaultOAuth2RequestValidator();
@@ -41,8 +41,9 @@ class ExternalTokenResource {
 
   private final ExternalUserCompositeTokenGranter tokenGranter;
 
-  @PostMapping(path = "/token")
-  ResponseEntity<OAuth2AccessToken> authorizeToken(@AuthenticationPrincipal JwtAuthenticationToken principal, @RequestParam Map<String, String> parameters) {
+  @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/token")
+  ResponseEntity<OAuth2AccessToken> authorizeGoogleToken(@AuthenticationPrincipal JwtAuthenticationToken principal,
+      @RequestParam Map<String, String> parameters) {
     log.info("Authorizing user token ['{}']", principal.getName());
 
     String clientId = getClientId(parameters);

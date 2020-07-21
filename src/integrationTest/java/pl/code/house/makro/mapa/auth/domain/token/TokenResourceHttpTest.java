@@ -61,7 +61,7 @@ class TokenResourceHttpTest {
         .status(OK)
 
         .body("token_type", equalTo("bearer"))
-        .body("scope", equalTo("user"))
+        .body("scope", equalTo("USER"))
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
         .body("expires_in", lessThanOrEqualTo(900))

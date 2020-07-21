@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.atMostOnce;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -28,6 +29,8 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserType;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserDetailsDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,7 +71,7 @@ class ExternalUserTokenGranterTest {
   }
 
   private UserDto userDto() {
-    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, null);
+    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, FREE_USER));
   }
 
   private TokenRequest validRequest() {
@@ -85,13 +88,6 @@ class ExternalUserTokenGranterTest {
         .build();
     JwtAuthenticationToken principal = new JwtAuthenticationToken(jwt, emptyList());
     return new ExternalUserAuthRequest(requestParameters, CLIENT_ID, scopes, responseTypes, principal);
-  }
-
-
-  private Map<String, Object> customTokenClaims() {
-    return Map.ofEntries(
-        Map.entry("user_id", GOOGLE_PREMIUM_USER.getExternalId())
-    );
   }
 
   private Map<String, Object> minimalClaims() {

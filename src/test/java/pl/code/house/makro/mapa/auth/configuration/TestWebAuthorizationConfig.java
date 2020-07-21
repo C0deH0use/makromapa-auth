@@ -1,6 +1,6 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
-import static org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256;
+import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
 import static pl.code.house.makro.mapa.auth.configuration.WebAuthorizationConfig.trimClientIds;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class TestWebAuthorizationConfig {
 
   @Bean
   @Profile({"integrationTest"})
-  public JwtDecoder nimbusJwtDecoderJwkSupport(
+  public JwtDecoder googleJwkDecoder(
       @Value("${android.oauth2.client.client-id}") String androidClientId,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
@@ -30,9 +30,24 @@ public class TestWebAuthorizationConfig {
         new TokenSupplierValidator(trimClientIds(androidClientId))
     );
 
-    NimbusJwtDecoder newDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
-        .jwsAlgorithm(RS256)
-        .build();
+    NimbusJwtDecoder newDecoder = withJwkSetUri(jwkSetUri).build();
+    newDecoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
+    return newDecoder;
+  }
+
+  @Bean
+  @Profile({"integrationTest"})
+  public JwtDecoder appleIdJwkDecoder(
+      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      @Value("${spring.security.apple.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+      @Value("${spring.security.apple.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
+  ) {
+    List<OAuth2TokenValidator<Jwt>> validators = List.of(
+        new JwtIssuerValidator(issuer),
+        new TokenSupplierValidator(trimClientIds(androidClientId))
+    );
+
+    NimbusJwtDecoder newDecoder = withJwkSetUri(jwkSetUri).build();
     newDecoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
     return newDecoder;
   }

@@ -6,13 +6,10 @@ import static org.springframework.security.oauth2.common.util.OAuth2Utils.RESPON
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -20,13 +17,13 @@ import lombok.experimental.NonFinal;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import pl.code.house.makro.mapa.auth.domain.user.UserType;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Value
 @AllArgsConstructor(access = PRIVATE)
 @EqualsAndHashCode(callSuper = true)
 public class ExternalUserAuthRequest extends TokenRequest {
+
   public static final String EXTERNAL_USER_ID = "external_user_id";
 
   private static final long serialVersionUID = 1791623350551969647L;
@@ -156,7 +153,7 @@ public class ExternalUserAuthRequest extends TokenRequest {
 
     Set<String> scopes = new HashSet<>(this.getScope());
     Collection<GrantedAuthority> authorities = new HashSet<>(client.getAuthorities());
-    if(PREMIUM_USER == externalUser.getUserDetails().getType()) {
+    if (PREMIUM_USER == externalUser.getUserDetails().getType()) {
       scopes.add("PREMIUM_USER");
       authorities.add(new SimpleGrantedAuthority("ROLE_PREMIUM_USER"));
     }

@@ -6,7 +6,7 @@ import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerExcept
 public enum OAuth2Provider {
   GOOGLE("https://accounts.google.com"),
   FACEBOOK(""),
-  APPLE(""),
+  APPLE("https://appleid.apple.com"),
   BASIC_AUTH("");
 
   private final String issuer;
