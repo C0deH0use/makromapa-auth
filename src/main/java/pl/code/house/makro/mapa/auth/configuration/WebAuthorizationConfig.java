@@ -2,7 +2,6 @@ package pl.code.house.makro.mapa.auth.configuration;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.split;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 
 import java.util.List;
 import java.util.Map;
@@ -34,12 +33,13 @@ import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
+import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import pl.code.house.makro.mapa.auth.domain.token.ExternalUserAuthenticationKeyGenerator;
 
 @Configuration
@@ -155,24 +155,24 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @RequiredArgsConstructor
   public static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
+    private final DataSource dataSource;
     private final JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver;
-
-    @Override
-    @SuppressWarnings("PMD.UselessOverridingMethod")
-    public void configure(WebSecurity web) throws Exception {
-      super.configure(web);
-    }
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
       http
           .csrf().disable()
-          .requestMatcher(new AntPathRequestMatcher(EXTERNAL_AUTH_BASE_PATH + "/**"))
-          .authorizeRequests().anyRequest().authenticated()
-          .and()
-
           .oauth2ResourceServer()
           .authenticationManagerResolver(multiJwtAuthenticationManagerResolver)
+
+          .and()
+          .authorizeRequests().anyRequest().authenticated()
+
+          .and()
+          .httpBasic()
+
+          .and()
+          .userDetailsService(new ClientDetailsUserDetailsService(new JdbcClientDetailsService(dataSource)))
       ;
     }
   }

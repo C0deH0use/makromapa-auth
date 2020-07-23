@@ -2,16 +2,20 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.EnumType.STRING;
+import static javax.persistence.InheritanceType.SINGLE_TABLE;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
 
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +33,9 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PACKAGE)
+@DiscriminatorColumn(name = "external_id")
+@DiscriminatorValue("NOT NULL")
+@Inheritance(strategy = SINGLE_TABLE)
 class User extends AuditAwareEntity {
 
   static final String TABLE_NAME = "app_user";
@@ -36,7 +43,7 @@ class User extends AuditAwareEntity {
   @Id
   private UUID id;
 
-  @Column(name = "external_id", updatable = false, nullable = false)
+  @Column(name = "external_id", insertable = false, updatable = false, nullable = false)
   private String externalId;
 
   @Column(name = "terms_and_conditions_id")

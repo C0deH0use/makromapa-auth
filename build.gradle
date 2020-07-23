@@ -131,6 +131,8 @@ dependencies {
 
             'org.springframework.boot:spring-boot-starter-data-jpa',
             'org.springframework.boot:spring-boot-starter-web',
+            'org.springframework.boot:spring-boot-starter-mail',
+            'org.springframework.boot:spring-boot-starter-thymeleaf',
 
             'org.springframework.security:spring-security-oauth2-jose',
             'org.springframework.security:spring-security-oauth2-resource-server',

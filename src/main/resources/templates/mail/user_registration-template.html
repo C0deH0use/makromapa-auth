@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title th:remove="all">Witamy w MakroMapie</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<h2 th:text="#{greeting(${name})}">
+  Witamy w MakroMapie
+</h2>
+<p style="margin-top: 40px;margin-bottom: 20px; margin-left: 20px">
+  Dziekujemy za dokonanie rejestracji,
+  </br>
+  Aby dokończyć proces rejestracji, musisz wprowadzić kod poniżej do aplikacji mobilnej:
+</p>
+<p style="margin-bottom: 30px; margin-left: 20px; font-size: 1.5em; color: gray">
+  <b>
+    <span th:text="${activation_code}">222222</span>
+  </b>
+</p>
+<p>
+  Pozdrawiamy, <br/>
+  <em>Zespół MakroMapy</em>
+</p>
+</body>
+</html>

@@ -2,6 +2,7 @@ package pl.code.house.makro.mapa.auth.domain;
 
 import static java.time.ZonedDateTime.now;
 
+import java.time.Clock;
 import java.time.ZonedDateTime;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -19,7 +20,7 @@ public class AuditAwareEntity {
   @PrePersist
   public void setCreatedIfNull() {
     if (created == null) {
-      created = now();
+      created = now(Clock.systemUTC());
     }
 
     lastUpdated = now();
