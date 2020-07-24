@@ -13,8 +13,6 @@ import javax.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Entity
 @Table(name = User.TABLE_NAME)

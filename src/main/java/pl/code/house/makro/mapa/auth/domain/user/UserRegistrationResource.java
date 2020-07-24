@@ -31,6 +31,8 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 @PreAuthorize("hasAuthority('ROLE_REGISTER')")
 class UserRegistrationResource {
 
+  private static final String EXTERNAL_TOKEN = "external-token";
+
   private final UserFacade facade;
 
   @PostMapping
@@ -49,7 +51,7 @@ class UserRegistrationResource {
       throw new IllegalArgumentException("Missing username or password parameters in request");
     }
 
-    if (!"external-token".equalsIgnoreCase(newUserRequest.getGrantType())) {
+    if (!EXTERNAL_TOKEN.equalsIgnoreCase(newUserRequest.getGrantType())) {
       throw new InvalidGrantException("Implicit grant type not supported from user registration endpoint");
     }
 

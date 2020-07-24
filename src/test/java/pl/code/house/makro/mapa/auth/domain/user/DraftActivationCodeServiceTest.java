@@ -1,10 +1,14 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
+import static pl.code.house.makro.mapa.auth.domain.mail.EmailType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CommunicationProtocol.EMAIL;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
@@ -12,14 +16,18 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
-import java.util.Optional;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.code.house.makro.mapa.auth.domain.mail.EmailService;
+import pl.code.house.makro.mapa.auth.domain.mail.dto.MessageDetails;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationLinkDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,11 +36,22 @@ class DraftActivationCodeServiceTest {
   private static final String PASSWORD = "DEFAULT_PASWD";
   private static final String USER_EMAIL = "email@domain.com";
 
+  private final UserActivationProperties properties = properties();
+
+  private final Clock clock = Clock.fixed(Instant.parse("2020-07-03T10:15:30.00Z"), UTC);
+
   @Mock
   private UserActivationCodeRepository repository;
 
-  @InjectMocks
+  @Mock
+  private EmailService emailService;
+
   private DraftActivationCodeService sut;
+
+  @BeforeEach
+  void setUp() {
+    sut = new DraftActivationCodeService(clock, properties, repository, emailService);
+  }
 
   @Test
   @DisplayName("should create and send email with valid draft user")
@@ -45,6 +64,14 @@ class DraftActivationCodeServiceTest {
     ActivationLinkDto linkDto = sut.sendActivationCodeToDraftUser(user);
 
     //then
+    ArgumentCaptor<MessageDetails> messageCapture = ArgumentCaptor.forClass(MessageDetails.class);
+
+    then(emailService).should(times(1)).sendHtmlMail(messageCapture.capture());
+    MessageDetails captureValue = messageCapture.getValue();
+    assertThat(captureValue.getType()).isEqualTo(REGISTRATION);
+    assertThat(captureValue.getReceiver()).isEqualTo(USER_EMAIL);
+    assertThat(captureValue.getContext().getVariable("activation_code")).isNotNull();
+
     assertThat(linkDto.getActivationLink()).isNotBlank();
     assertThat(linkDto.getCommunicationChannel()).isEqualTo(EMAIL);
     assertThat(linkDto.getCommunicationTarget()).isEqualTo(USER_EMAIL);
@@ -134,6 +161,9 @@ class DraftActivationCodeServiceTest {
     return new UserActivationCode(UUID.randomUUID(), null, true, UUID.randomUUID().toString(), null);
   }
 
+  private UserActivationProperties properties() {
+    return new UserActivationProperties(10, "REGISTRATION_SUBJECT");
+  }
 
   private UserWithPassword draftUser() {
     UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);

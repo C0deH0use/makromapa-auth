@@ -163,7 +163,7 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
 
-    testImplementation (
+    testImplementation(
             'io.projectreactor:reactor-test',
             'org.springframework.security:spring-security-test',
 
@@ -178,6 +178,8 @@ dependencies {
 
             "org.spockframework:spock-core:${spockVersion}",
             "org.exparity:hamcrest-date:2.0.7",
+
+            'com.icegreen:greenmail:1.5.14',
     )
 
     integrationTestRuntimeOnly(

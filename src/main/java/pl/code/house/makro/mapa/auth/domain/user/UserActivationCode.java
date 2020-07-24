@@ -1,7 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static javax.persistence.AccessType.FIELD;
-import static javax.persistence.InheritanceType.SINGLE_TABLE;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
 import static pl.code.house.makro.mapa.auth.domain.user.UserActivationCode.TABLE_NAME;
@@ -10,11 +9,8 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;

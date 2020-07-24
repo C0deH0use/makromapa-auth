@@ -6,9 +6,9 @@ import org.thymeleaf.context.Context;
 
 public class RegistrationMessageDetails extends MessageDetails {
 
-  private static final String template = "user_registration-template.html";
+  private static final String TEMPLATE = "user_registration-template.html";
 
   public RegistrationMessageDetails(String subject, String receiver, Context context) {
-    super(REGISTRATION, subject, receiver, template, context);
+    super(REGISTRATION, subject, receiver, TEMPLATE, context);
   }
 }

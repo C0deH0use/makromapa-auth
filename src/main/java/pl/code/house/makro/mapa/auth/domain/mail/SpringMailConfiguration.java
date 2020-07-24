@@ -43,7 +43,7 @@ public class SpringMailConfiguration {
     final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
     templateResolver.setOrder(1);
     templateResolver.setResolvablePatterns(Collections.singleton("text/*"));
-    templateResolver.setPrefix("/mail/");
+    templateResolver.setPrefix("templates/");
     templateResolver.setSuffix(".txt");
     templateResolver.setTemplateMode(TEXT);
     templateResolver.setCharacterEncoding(EMAIL_TEMPLATE_ENCODING);
@@ -55,7 +55,7 @@ public class SpringMailConfiguration {
     final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
     templateResolver.setOrder(2);
     templateResolver.setResolvablePatterns(Collections.singleton("html/*"));
-    templateResolver.setPrefix("/mail/");
+    templateResolver.setPrefix("templates/");
     templateResolver.setSuffix(".html");
     templateResolver.setTemplateMode(HTML);
     templateResolver.setCharacterEncoding(EMAIL_TEMPLATE_ENCODING);
