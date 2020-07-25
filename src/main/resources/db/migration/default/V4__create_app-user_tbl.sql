@@ -13,7 +13,7 @@ CREATE TABLE app_user
     type                    VARCHAR(255),
 
     password                VARCHAR(250),
-    enabled                 BOOLEAN DEFAULT FALSE NOT NULL,
+    enabled                 BOOLEAN DEFAULT FALSE              NOT NULL,
 
     created                 TIMESTAMP                          NOT NULL,
     last_updated            TIMESTAMP                          NOT NULL

@@ -43,4 +43,5 @@ class UserDetails {
   UserDetailsDto toDto() {
     return new UserDetailsDto(name, surname, email, picture, type);
   }
+
 }

@@ -50,7 +50,7 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("return access token when requested by new user ")
   void returnAccessTokenWhenRequestedByNewUser() {
     //given
-    assertUserCount().isEqualTo(2);
+    assertUserCount().isEqualTo(5);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(0);
 
     given()
@@ -72,7 +72,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", lessThanOrEqualTo(900))
         .body("refresh_token", notNullValue())
     ;
-    assertUserCount().isEqualTo(3);
+    assertUserCount().isEqualTo(6);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(1);
 
     assertAccessTokenCount().isEqualTo(2);
@@ -83,7 +83,7 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("return access token when requesting with AppleId token")
   void returnAccessTokenWhenRequestingWithAppleIdToken() {
     //given
-    assertUserCount().isEqualTo(2);
+    assertUserCount().isEqualTo(5);
     assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(0);
 
     given()
@@ -105,7 +105,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", lessThanOrEqualTo(900))
         .body("refresh_token", notNullValue())
     ;
-    assertUserCount().isEqualTo(3);
+    assertUserCount().isEqualTo(6);
     assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(1);
 
     assertAccessTokenCount().isEqualTo(2);

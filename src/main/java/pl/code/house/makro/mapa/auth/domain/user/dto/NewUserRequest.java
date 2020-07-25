@@ -8,7 +8,7 @@ public class NewUserRequest {
 
   String grantType;
   String clientId;
-  String username;
+  String email;
   String password;
 
   public NewUserRequest(
@@ -19,7 +19,7 @@ public class NewUserRequest {
   ) {
     this.grantType = grant_type;
     this.clientId = client_id;
-    this.username = username;
+    this.email = username;
     this.password = password;
   }
 }

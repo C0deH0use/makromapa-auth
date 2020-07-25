@@ -14,4 +14,6 @@ public class UserDto {
   OAuth2Provider provider;
 
   UserDetailsDto userDetails;
+
+  Boolean enabled;
 }

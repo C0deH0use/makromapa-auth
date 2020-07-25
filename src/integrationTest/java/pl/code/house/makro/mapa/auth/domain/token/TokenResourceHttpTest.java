@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
@@ -15,6 +16,7 @@ import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VAL
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
+import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
 import io.restassured.http.ContentType;
 import io.restassured.http.Header;
@@ -38,7 +40,7 @@ class TokenResourceHttpTest {
 
   @BeforeEach
   void setup() {
-    RestAssuredMockMvc.webAppContextSetup(context, springSecurity());
+    webAppContextSetup(context, springSecurity());
   }
 
   @Test
@@ -47,8 +49,8 @@ class TokenResourceHttpTest {
   void returnOkWithNewToken() {
     given()
         .param("grant_type", "password")
-        .param("username", "user_1@example.com")
-        .param("password", "secret")
+        .param("username", REG_USER.getName())
+        .param("password", REG_USER.getPassword())
         .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
         .log().all(true)

@@ -3,6 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static org.apache.commons.lang3.StringUtils.isAnyBlank;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
 
@@ -18,11 +19,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationLinkDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Slf4j
 @RestController
@@ -37,7 +40,7 @@ class UserRegistrationResource {
 
   @PostMapping
   ResponseEntity<ActivationLinkDto> registerNewDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
-    log.info("Request to register new user `{}` by {}", newUserRequest.getUsername(), principal.getPrincipal());
+    log.info("Request to register new user `{}` by {}", newUserRequest.getEmail(), principal.getPrincipal());
 
     String clientId = getClientId(principal);
 
@@ -47,7 +50,7 @@ class UserRegistrationResource {
       throw new InvalidClientException("Given client ID does not match authenticated client");
     }
 
-    if (isAnyBlank(newUserRequest.getUsername(), newUserRequest.getPassword())) {
+    if (isAnyBlank(newUserRequest.getEmail(), newUserRequest.getPassword())) {
       throw new IllegalArgumentException("Missing username or password parameters in request");
     }
 
@@ -57,6 +60,17 @@ class UserRegistrationResource {
 
     ActivationLinkDto draftDto = facade.registerNewUser(newUserRequest);
     return status(CREATED).body(draftDto);
+  }
+
+  @PostMapping(path = "/activate/{activation_code}")
+  ResponseEntity<UserDto> activateDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
+      @PathVariable("activation_code") String activationCode) {
+    log.info("Application Client `{}` is requesting to activate user by activation_code: `{}`", principal.getName(), activationCode);
+    String clientId = getClientId(principal);
+
+    UserDto userDto = facade.activateDraftBy(activationCode, clientId);
+
+    return ok(userDto);
   }
 
   private String getClientId(Principal principal) {

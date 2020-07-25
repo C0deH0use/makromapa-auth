@@ -3,6 +3,7 @@ package org.springframework.security.oauth2.provider;
 import static lombok.AccessLevel.PRIVATE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.GRANT_TYPE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.RESPONSE_TYPE;
+import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.userAuthoritiesFor;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.util.Collection;
@@ -15,8 +16,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import pl.code.house.makro.mapa.auth.domain.user.UserType;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Value
@@ -152,13 +153,12 @@ public class ExternalUserAuthRequest extends TokenRequest {
     modifiable.put(EXTERNAL_USER_ID, externalUser.getId().toString());
 
     Set<String> scopes = new HashSet<>(this.getScope());
-    Collection<GrantedAuthority> authorities = new HashSet<>(client.getAuthorities());
-    if (PREMIUM_USER == externalUser.getUserDetails().getType()) {
+    UserType userType = externalUser.getUserDetails().getType();
+    if (PREMIUM_USER == userType) {
       scopes.add("PREMIUM_USER");
-      authorities.add(new SimpleGrantedAuthority("ROLE_PREMIUM_USER"));
     }
 
-    return new OAuth2Request(modifiable, client.getClientId(), authorities, true, scopes,
+    return new OAuth2Request(modifiable, client.getClientId(), userAuthoritiesFor(userType), true, scopes,
         client.getResourceIds(), null, null, null);
   }
 }

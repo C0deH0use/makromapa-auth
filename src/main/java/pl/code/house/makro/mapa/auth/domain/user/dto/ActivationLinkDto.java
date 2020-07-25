@@ -6,8 +6,8 @@ import pl.code.house.makro.mapa.auth.domain.user.CommunicationProtocol;
 
 @Value
 public class ActivationLinkDto {
+
   UUID userId;
   String communicationTarget;
   CommunicationProtocol communicationChannel;
-  String activationLink;
 }

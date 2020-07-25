@@ -19,6 +19,8 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationCodeDto;
 
 @Entity
 @Table(name = TABLE_NAME)
@@ -28,7 +30,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PACKAGE)
-class UserActivationCode {
+class UserActivationCode extends AuditAwareEntity {
 
   static final String TABLE_NAME = "user_activation_code";
 
@@ -36,8 +38,8 @@ class UserActivationCode {
   private UUID id;
 
   @OneToOne
-  @JoinColumn(name = "draft_user_id", updatable = false, insertable = false, nullable = false)
-  private User draftUser;
+  @JoinColumn(name = "draft_user_id", updatable = false, nullable = false)
+  private BaseUser draftUser;
 
   @Column(name = "enabled", nullable = false)
   private Boolean enabled;
@@ -45,7 +47,16 @@ class UserActivationCode {
   @Column(name = "code", updatable = false, nullable = false)
   private String code;
 
-  @Column(name = "expires_on", updatable = false, insertable = false, nullable = false)
+  @Column(name = "expires_on", updatable = false, nullable = false)
   private ZonedDateTime expiresOn;
 
+  ActivationCodeDto toDto() {
+    return ActivationCodeDto.builder()
+        .id(id)
+        .code(code)
+        .draftUser(draftUser.toDto())
+        .enabled(enabled)
+        .expiresOn(expiresOn)
+        .build();
+  }
 }

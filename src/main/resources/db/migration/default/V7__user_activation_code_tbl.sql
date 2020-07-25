@@ -6,6 +6,7 @@ CREATE TABLE user_activation_code
     code          VARCHAR(255)                       NOT NULL,
     enabled       BOOLEAN DEFAULT FALSE,
     expires_on    TIMESTAMP                          NOT NULL,
+
     created       TIMESTAMP                          NOT NULL,
     last_updated  TIMESTAMP                          NOT NULL
 );

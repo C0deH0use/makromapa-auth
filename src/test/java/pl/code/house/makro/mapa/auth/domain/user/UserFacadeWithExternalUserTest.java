@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -15,18 +16,24 @@ import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import pl.code.house.makro.mapa.auth.domain.user.TestUser.ExternalMockUser;
+import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
+import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
+import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
-class UserTokenAuthenticationServiceTest {
+class UserFacadeWithExternalUserTest {
 
   @Mock
   private UserRepository repository;
@@ -34,13 +41,25 @@ class UserTokenAuthenticationServiceTest {
   @Mock
   private TermsAndConditionsRepository termsRepository;
 
+  @Spy
+  private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+  @Mock
+  private DraftActivationCodeService activationCodeService;
+
+  @Mock
+  private UserAuthoritiesService userAuthoritiesService;
+
+  @InjectMocks
+  private UserFacade sut;
+
   @Test
   @DisplayName("authorize new principal with JWT token")
   void authorizeNewPrincipalWithJwtToken() {
     //given
     String token = GOOGLE_NEW_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = tokenClaims(GOOGLE.getIssuer());
+    Map<String, Object> claims = tokenClaims(GOOGLE.getIssuer(), GOOGLE_NEW_USER);
 
     Jwt principal = Jwt.withTokenValue(token)
         .headers(h -> h.putAll(headers))
@@ -48,24 +67,22 @@ class UserTokenAuthenticationServiceTest {
         .build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId())).willReturn(Optional.empty());
-    given(repository.save(any(User.class))).willAnswer(returnsFirstArg());
+    given(repository.saveAndFlush(any(BaseUser.class))).willAnswer(returnsFirstArg());
 
     //when
-//    sut.authorizePrincipal(principal);
+    sut.findUserByToken(principal);
 
     //then
-    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    ArgumentCaptor<BaseUser> userCaptor = ArgumentCaptor.forClass(BaseUser.class);
 
-    then(repository).should(times(1)).save(userCaptor.capture());
-    User passedUser = userCaptor.getValue();
+    then(repository).should(times(1)).saveAndFlush(userCaptor.capture());
+    BaseUser passedUser = userCaptor.getValue();
     assertThat(passedUser.getProvider()).isEqualTo(GOOGLE);
     assertThat(passedUser.getTermsAndConditionsId()).isNull();
     assertThat(passedUser.getUserDetails().getType()).isEqualTo(FREE_USER);
     assertThat(passedUser.getUserDetails().getName()).isEqualTo(GOOGLE_NEW_USER.getName());
     assertThat(passedUser.getUserDetails().getEmail()).isNotBlank();
     assertThat(passedUser.getUserDetails().getPicture()).isNotBlank();
-
-//    then(accessTokenFacade).should(times(1)).issueTokenFor(null);
   }
 
   @Test
@@ -74,7 +91,7 @@ class UserTokenAuthenticationServiceTest {
     //given
     String token = GOOGLE_NEW_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = minimalClaims();
+    Map<String, Object> claims = minimalClaims(GOOGLE_NEW_USER.getExternalId());
 
     Jwt principal = Jwt.withTokenValue(token)
         .headers(h -> h.putAll(headers))
@@ -82,24 +99,22 @@ class UserTokenAuthenticationServiceTest {
         .build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId())).willReturn(Optional.empty());
-    given(repository.save(any(User.class))).willAnswer(returnsFirstArg());
+    given(repository.saveAndFlush(any(BaseUser.class))).willAnswer(returnsFirstArg());
 
     //when
-//    sut.authorizePrincipal(principal);
+    sut.findUserByToken(principal);
 
     //then
-    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    ArgumentCaptor<BaseUser> userCaptor = ArgumentCaptor.forClass(BaseUser.class);
 
-    then(repository).should(times(1)).save(userCaptor.capture());
-    User passedUser = userCaptor.getValue();
+    then(repository).should(times(1)).saveAndFlush(userCaptor.capture());
+    BaseUser passedUser = userCaptor.getValue();
     assertThat(passedUser.getProvider()).isEqualTo(GOOGLE);
     assertThat(passedUser.getTermsAndConditionsId()).isNull();
     assertThat(passedUser.getUserDetails().getType()).isEqualTo(FREE_USER);
     assertThat(passedUser.getUserDetails().getName()).isNull();
     assertThat(passedUser.getUserDetails().getEmail()).isNull();
     assertThat(passedUser.getUserDetails().getPicture()).isNull();
-
-//    then(accessTokenFacade).should(times(1)).issueTokenFor(null);
   }
 
   @Test
@@ -108,33 +123,32 @@ class UserTokenAuthenticationServiceTest {
     //given
     String token = GOOGLE_NEW_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = minimalClaims();
+    Map<String, Object> claims = minimalClaims(GOOGLE_PREMIUM_USER.getExternalId());
 
     Jwt principal = Jwt.withTokenValue(token)
         .headers(h -> h.putAll(headers))
         .claims(c -> c.putAll(claims))
         .build();
 
-    User premiumUser = User.builder()
-        .id(GOOGLE_PREMIUM_USER.getUserId())
-        .externalId(GOOGLE_PREMIUM_USER.getExternalId())
-        .provider(GOOGLE)
-        .termsAndConditionsId(1000L)
-        .userDetails(UserDetails.builder()
-            .type(PREMIUM_USER)
-            .build())
-        .build();
+    ExternalUser premiumUser = new ExternalUser(
+        GOOGLE_PREMIUM_USER.getUserId(),
+        1000L,
+        GOOGLE,
+        UserDetails.builder().type(PREMIUM_USER).build(),
+        GOOGLE_PREMIUM_USER.getExternalId(),
+        true
+    );
 
     TermsAndConditions currentTnC = TermsAndConditions.builder().id(1000L).build();
 
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId())).willReturn(Optional.of(premiumUser));
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId())).willReturn(Optional.of(premiumUser));
     given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
 
     //when
-//    sut.authorizePrincipal(principal);
+    sut.findUserByToken(principal);
 
     //then
-    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    ArgumentCaptor<BaseUser> userCaptor = ArgumentCaptor.forClass(BaseUser.class);
 
     then(repository).should(times(0)).save(userCaptor.capture());
   }
@@ -145,7 +159,7 @@ class UserTokenAuthenticationServiceTest {
     //given
     String token = GOOGLE_NEW_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = tokenClaims("https://unknown-issuer.com");
+    Map<String, Object> claims = tokenClaims("https://unknown-issuer.com", GOOGLE_PREMIUM_USER);
 
     Jwt principal = Jwt.withTokenValue(token)
         .headers(h -> h.putAll(headers))
@@ -153,10 +167,10 @@ class UserTokenAuthenticationServiceTest {
         .build();
 
     //then
-//    assertThatThrownBy(() -> sut.authorizePrincipal(principal))
-//        .isInstanceOf(UnsupportedAuthenticationIssuerException.class)
-//        .hasMessageContaining("Unknown issuer")
-//        .hasMessageContaining("https://unknown-issuer.com")
+    assertThatThrownBy(() -> sut.findUserByToken(principal))
+        .isInstanceOf(UnsupportedAuthenticationIssuerException.class)
+        .hasMessageContaining("Unknown issuer")
+        .hasMessageContaining("https://unknown-issuer.com")
     ;
   }
 
@@ -174,9 +188,9 @@ class UserTokenAuthenticationServiceTest {
         .build();
 
     //then
-//    assertThatThrownBy(() -> sut.authorizePrincipal(principal))
-//        .isInstanceOf(InsufficientUserDetailsException.class)
-//        .hasMessageContaining("external user Id is missing")
+    assertThatThrownBy(() -> sut.findUserByToken(principal))
+        .isInstanceOf(InsufficientUserDetailsException.class)
+        .hasMessageContaining("external user Id is missing")
     ;
   }
 
@@ -184,40 +198,39 @@ class UserTokenAuthenticationServiceTest {
   @DisplayName("throw when user needs to approve new TermsAndConditions to get authorized")
   void throwWhenUserNeedsToApproveNewTermsAndConditionsToGetAuthorized() {
     //given
-    String token = GOOGLE_NEW_USER.getJwt();
+    String token = GOOGLE_PREMIUM_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = minimalClaims();
+    Map<String, Object> claims = minimalClaims(GOOGLE_PREMIUM_USER.getExternalId());
 
     Jwt principal = Jwt.withTokenValue(token)
         .headers(h -> h.putAll(headers))
         .claims(c -> c.putAll(claims))
         .build();
 
-    User premiumUser = User.builder()
-        .id(GOOGLE_PREMIUM_USER.getUserId())
-        .externalId(GOOGLE_PREMIUM_USER.getExternalId())
-        .provider(GOOGLE)
-        .termsAndConditionsId(1000L)
-        .userDetails(UserDetails.builder()
-            .type(PREMIUM_USER)
-            .build())
-        .build();
+    ExternalUser premiumUser = new ExternalUser(
+        GOOGLE_PREMIUM_USER.getUserId(),
+        1000L,
+        GOOGLE,
+        UserDetails.builder().type(PREMIUM_USER).build(),
+        GOOGLE_PREMIUM_USER.getExternalId(),
+        true
+    );
 
     TermsAndConditions currentTnC = TermsAndConditions.builder().id(1001L).build();
 
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId())).willReturn(Optional.of(premiumUser));
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId())).willReturn(Optional.of(premiumUser));
     given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
 
     //when
-//    assertThatThrownBy(() -> sut.authorizePrincipal(principal))
-//        .isInstanceOf(NewTermsAndConditionsNotApprovedException.class)
-//        .hasMessageContaining("New terms and conditions")
+    assertThatThrownBy(() -> sut.findUserByToken(principal))
+        .isInstanceOf(NewTermsAndConditionsNotApprovedException.class)
+        .hasMessageContaining("New terms and conditions")
     ;
   }
 
-  private Map<String, Object> tokenClaims(String issuer) {
+  private Map<String, Object> tokenClaims(String issuer, ExternalMockUser user) {
     return Map.ofEntries(
-        Map.entry("sub", GOOGLE_PREMIUM_USER.getExternalId()),
+        Map.entry("sub", user.getExternalId()),
         Map.entry("email_verified", true),
         Map.entry("iss", issuer),
         Map.entry("given_name", "Test"),
@@ -225,7 +238,7 @@ class UserTokenAuthenticationServiceTest {
         Map.entry("picture", "https://lh4.googleusercontent.com/-zRLIMvC5Mtg/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuckOdTV-W5W9ytoYjXw3Ojp-BfZ0Sg/s96-c/photo.jpg"),
         Map.entry("aud", 1),
         Map.entry("azp", "564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com"),
-        Map.entry("name", "Test Android1"),
+        Map.entry("name", user.getName()),
         Map.entry("exp", Instant.parse("2020-07-11T17:20:58Z")),
         Map.entry("family_name", "Android1"),
         Map.entry("iat", Instant.parse("2020-07-11T16:20:58Z")),
@@ -233,9 +246,9 @@ class UserTokenAuthenticationServiceTest {
     );
   }
 
-  private Map<String, Object> minimalClaims() {
+  private Map<String, Object> minimalClaims(String externalId) {
     return Map.ofEntries(
-        Map.entry("sub", GOOGLE_PREMIUM_USER.getExternalId()),
+        Map.entry("sub", externalId),
         Map.entry("iss", "https://accounts.google.com"),
         Map.entry("azp", "564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com"),
         Map.entry("exp", Instant.parse("2020-07-11T17:20:58Z")),
