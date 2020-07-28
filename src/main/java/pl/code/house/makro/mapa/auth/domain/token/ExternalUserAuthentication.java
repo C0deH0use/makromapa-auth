@@ -1,6 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
-import static org.springframework.security.oauth2.provider.ExternalUserAuthRequest.EXTERNAL_USER_ID;
+import static org.springframework.security.oauth2.provider.ExternalUserAuthRequest.USER_ID;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -22,6 +22,6 @@ public class ExternalUserAuthentication extends OAuth2Authentication {
 
   @Override
   public String getName() {
-    return super.getOAuth2Request().getRequestParameters().get(EXTERNAL_USER_ID);
+    return super.getOAuth2Request().getRequestParameters().get(USER_ID);
   }
 }

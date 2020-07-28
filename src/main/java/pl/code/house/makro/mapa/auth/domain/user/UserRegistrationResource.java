@@ -30,7 +30,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH + "/user", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+@RequestMapping(path = BASE_PATH + "/user-registration", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @PreAuthorize("hasAuthority('ROLE_REGISTER')")
 class UserRegistrationResource {
 

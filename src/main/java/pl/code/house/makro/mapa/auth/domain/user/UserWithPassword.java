@@ -14,6 +14,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 
 @Entity
 @Table(name = BaseUser.TABLE_NAME)
@@ -45,5 +46,20 @@ class UserWithPassword extends BaseUser {
   @Override
   UserDto toDto() {
     return new UserDto(getId(), null, getProvider(), getUserDetails().toDto(), getEnabled());
+  }
+
+  @Override
+  UserInfoDto toUserInfo() {
+    return UserInfoDto.builder()
+        .sub(this.getId())
+        .externalId(null)
+        .name(this.getUserDetails().getName())
+        .surname(this.getUserDetails().getSurname())
+        .email(this.getUserDetails().getEmail())
+        .picture(this.getUserDetails().getPicture())
+        .type(this.getUserDetails().getType())
+        .provider(this.getProvider())
+        .enabled(this.getEnabled())
+        .build();
   }
 }

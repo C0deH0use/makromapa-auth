@@ -1,0 +1,33 @@
+package pl.code.house.makro.mapa.auth.domain.user.dto;
+
+import java.io.Serializable;
+import java.util.UUID;
+import lombok.Builder;
+import lombok.Value;
+import pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider;
+import pl.code.house.makro.mapa.auth.domain.user.UserType;
+
+@Value
+@Builder
+public class UserInfoDto implements Serializable {
+
+  private static final long serialVersionUID = 5045615582527580736L;
+
+  UUID sub;
+
+  String externalId;
+
+  OAuth2Provider provider;
+
+  String name;
+
+  String surname;
+
+  String email;
+
+  String picture;
+
+  UserType type;
+
+  Boolean enabled;
+}

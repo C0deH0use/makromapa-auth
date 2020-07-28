@@ -35,7 +35,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     endpoints
         .tokenStore(tokenStore)
         .userApprovalHandler(userApprovalHandler)
-        .authenticationManager(authenticationManager);
+        .authenticationManager(authenticationManager)
+    ;
   }
 
   @Override
@@ -43,7 +44,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     oauthServer
         .realm("makromapa/client")
         .tokenKeyAccess("denyAll()")
-        .checkTokenAccess("isAuthenticated() and hasRole('MAKROMAPA_BACKEND')")
+        .checkTokenAccess("isAuthenticated() and hasAnyRole('MAKROMAPA_BACKEND', 'USER_INFO_AUTH')")
     ;
   }
 }

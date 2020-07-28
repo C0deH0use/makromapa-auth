@@ -1,11 +1,14 @@
 package pl.code.house.makro.mapa.auth.domain.user.dto;
 
+import java.io.Serializable;
 import java.util.UUID;
 import lombok.Value;
 import pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider;
 
 @Value
-public class UserDto {
+public class UserDto implements Serializable {
+
+  private static final long serialVersionUID = -8256154333316080006L;
 
   UUID id;
 

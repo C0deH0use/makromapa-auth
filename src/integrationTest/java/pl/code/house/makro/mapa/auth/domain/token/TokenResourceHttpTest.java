@@ -4,9 +4,11 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -51,7 +53,7 @@ class TokenResourceHttpTest {
         .param("grant_type", "password")
         .param("username", REG_USER.getName())
         .param("password", REG_USER.getPassword())
-        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
         .log().all(true)
 
@@ -59,14 +61,14 @@ class TokenResourceHttpTest {
         .post("/oauth/token")
 
         .then()
-        .log().ifValidationFails()
+        .log().all(true)
         .status(OK)
 
         .body("token_type", equalTo("bearer"))
         .body("scope", equalTo("USER"))
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
-        .body("expires_in", lessThanOrEqualTo(900))
+        .body("expires_in", greaterThanOrEqualTo(0))
     ;
   }
 
@@ -78,7 +80,7 @@ class TokenResourceHttpTest {
 
     given()
         .param("token", userAccessToken)
-        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
@@ -101,7 +103,7 @@ class TokenResourceHttpTest {
   void returnForbiddenWhenRequestingTokenDetailsByAnUnauthorizedUser() {
     given()
         .param("token", ACCESS_TOKEN)
-        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-admin", "secret", UTF_8)))
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-admin", "secret", UTF_8)))
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
@@ -119,7 +121,7 @@ class TokenResourceHttpTest {
     given()
         .param("token", "")
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
-        .header(new Header(HttpHeaders.AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
 
         .when()
         .get("/oauth/check_token")

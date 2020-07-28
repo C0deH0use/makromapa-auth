@@ -1,7 +1,11 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
+import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +18,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AnonymousAuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,6 +41,8 @@ import org.springframework.security.oauth2.provider.approval.TokenStoreUserAppro
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
@@ -57,7 +65,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
         new JwtIssuerValidator(issuer),
         new TokenSupplierValidator(trimClientIds(androidClientId))
     );
-    NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+    NimbusJwtDecoder decoder = withJwkSetUri(jwkSetUri).build();
     decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
     return decoder;
   }
@@ -68,7 +76,18 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver(
+  OAuth2ManagerResolver oauth2ManagerResolver(
+      ResourceServerTokenServices customResourceTokenService,
+      JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver) {
+    AuthenticationManager opaqueAuthenticationManager = new ProviderManager(
+        new AnonymousAuthenticationProvider(randomUUID().toString()),
+        new OpaqueInternalTokenAuthenticationProvider(customResourceTokenService)
+    );
+    return new OAuth2ManagerResolver(multiJwtAuthenticationManagerResolver, opaqueAuthenticationManager);
+  }
+
+  @Bean
+  JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver(
       JwtDecoder googleJwkDecoder,
       JwtDecoder appleIdJwkDecoder,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String googleIssuer,
@@ -82,7 +101,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   @Profile({"!integrationTest"})
-  public JwtDecoder googleJwkDecoder(
+  JwtDecoder googleJwkDecoder(
       @Value("${android.oauth2.client.client-id}") String androidClientId,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
@@ -109,7 +128,11 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-      http.csrf().disable();
+      http.csrf()
+          .disable()
+
+          .authorizeRequests().anyRequest().authenticated()
+      ;
     }
 
     @Override
@@ -119,6 +142,16 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
           .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE email = ?")
           .authoritiesByUsernameQuery("SELECT user_id::text, authority FROM user_authority WHERE user_id::text = ?")
       ;
+    }
+
+    @Bean
+    public ResourceServerTokenServices customResourceTokenService(TokenStore tokenStore, ClientDetailsService clientDetailsService) {
+      DefaultTokenServices tokenServices = new DefaultTokenServices();
+      tokenServices.setTokenStore(tokenStore);
+      tokenServices.setSupportRefreshToken(true);
+      tokenServices.setReuseRefreshToken(true);
+      tokenServices.setClientDetailsService(clientDetailsService);
+      return tokenServices;
     }
 
     @Bean
@@ -152,20 +185,29 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @Order(1)
   @Configuration
   @RequiredArgsConstructor
-  public static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
+  static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
-    private final JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver;
+
+    private final OAuth2ManagerResolver oauth2ManagerResolver;
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
       http
           .csrf().disable()
+
           .oauth2ResourceServer()
-          .authenticationManagerResolver(multiJwtAuthenticationManagerResolver)
+          .authenticationManagerResolver(oauth2ManagerResolver)
 
           .and()
-          .authorizeRequests().anyRequest().authenticated()
+          .authorizeRequests().antMatchers(EXTERNAL_AUTH_BASE_PATH + "/token/**").authenticated()
+
+          .and()
+          .authorizeRequests().antMatchers(BASE_PATH + "/user-registration").authenticated()
+
+          .and()
+          .authorizeRequests().antMatchers(BASE_PATH + "/user-info").authenticated()
 
           .and()
           .httpBasic()

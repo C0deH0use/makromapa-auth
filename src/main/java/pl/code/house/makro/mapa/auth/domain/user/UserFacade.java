@@ -50,6 +50,7 @@ public class UserFacade {
     log.info("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
 
     BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
+        .map(u -> u.updateWith(parseUserDetails(token)))
         .orElseGet(() -> createNewFreeUser(token));
 
     if (PREMIUM_USER == user.getUserDetails().getType()) {
@@ -111,19 +112,23 @@ public class UserFacade {
     String externalId = tryGetExternalUserId(jwtPrincipal);
     OAuth2Provider oauth2Provider = fromIssuer(jwtPrincipal.getClaim("iss"));
 
-    UserDetails userDetails = UserDetails.builder()
-        .type(FREE_USER)
-        .name(jwtPrincipal.getClaim("name"))
-        .email(jwtPrincipal.getClaim("email"))
-        .surname(jwtPrincipal.getClaim("family_name"))
-        .picture(jwtPrincipal.getClaim("picture"))
-        .build();
+    UserDetails userDetails = parseUserDetails(jwtPrincipal);
 
     log.info("Creating new FREE_USER `{}`. Authentication provider: {}", externalId, oauth2Provider);
 
     ExternalUser externalUser = userRepository.saveAndFlush(newUserFrom(oauth2Provider, userDetails, externalId));
     userAuthoritiesService.insertUserAuthorities(externalUser.getId(), FREE_USER);
     return externalUser;
+  }
+
+  private UserDetails parseUserDetails(Jwt jwtPrincipal) {
+    return UserDetails.builder()
+          .type(FREE_USER)
+          .name(jwtPrincipal.getClaim("name"))
+          .email(jwtPrincipal.getClaim("email"))
+          .surname(jwtPrincipal.getClaim("family_name"))
+          .picture(jwtPrincipal.getClaim("picture"))
+          .build();
   }
 
   private UserWithPassword createNewDraftUser(NewUserRequest userRequest) {

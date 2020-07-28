@@ -139,6 +139,7 @@ dependencies {
 
             'org.springframework.boot:spring-boot-starter-security',
             'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure',
+            'com.nimbusds:oauth2-oidc-sdk',
 
             'org.flywaydb:flyway-core',
             'org.postgresql:postgresql',

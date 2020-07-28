@@ -28,6 +28,7 @@ public class UserAuthoritiesService {
 
   public static List<GrantedAuthority> userAuthoritiesFor(UserType type) {
     List<GrantedAuthority> authorities = new ArrayList<>();
+    authorities.add(new SimpleGrantedAuthority("ROLE_FREE_USER"));
     if (PREMIUM_USER == type) {
       authorities.add(new SimpleGrantedAuthority("ROLE_PREMIUM_USER"));
     }

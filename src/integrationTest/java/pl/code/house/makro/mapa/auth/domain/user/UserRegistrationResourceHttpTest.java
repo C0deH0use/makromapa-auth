@@ -92,7 +92,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user")
+        .post(BASE_PATH + "/user-registration")
 
         .then()
         .log().all()
@@ -128,7 +128,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user")
+        .post(BASE_PATH + "/user-registration")
 
         .then()
         .log().all()
@@ -163,7 +163,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user")
+        .post(BASE_PATH + "/user-registration")
 
         .then()
         .log().all()
@@ -200,7 +200,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/activate/{code}", REG_DRAFT_USER.getActivationCode())
+        .post(BASE_PATH + "/user-registration/activate/{code}", REG_DRAFT_USER.getActivationCode())
 
         .then()
         .log().all()
@@ -221,7 +221,7 @@ class UserRegistrationResourceHttpTest {
     assertThat(user.getEnabled()).isTrue();
     assertThat(user.getUserDetails().getType()).isEqualTo(FREE_USER);
 
-    assertThat(authoritiesManager.userAuthorities(REG_DRAFT_USER.getUserId())).hasSize(0);
+    assertThat(authoritiesManager.userAuthorities(REG_DRAFT_USER.getUserId())).hasSize(1);
   }
 
   @Test
@@ -241,7 +241,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user")
+        .post(BASE_PATH + "/user-registration")
 
         .then()
         .log().all()
@@ -258,7 +258,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/activate/{code}", REG_DRAFT_USER_WITH_EXPIRED_CODE.getActivationCode())
+        .post(BASE_PATH + "/user-registration/activate/{code}", REG_DRAFT_USER_WITH_EXPIRED_CODE.getActivationCode())
 
         .then()
         .log().all()
@@ -275,7 +275,7 @@ class UserRegistrationResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/activate/{code}", REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
+        .post(BASE_PATH + "/user-registration/activate/{code}", REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
 
         .then()
         .log().all()

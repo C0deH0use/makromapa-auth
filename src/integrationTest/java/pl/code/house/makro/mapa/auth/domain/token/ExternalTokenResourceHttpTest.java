@@ -4,7 +4,6 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
@@ -69,8 +68,7 @@ class ExternalTokenResourceHttpTest {
         .body("token_type", equalTo("bearer"))
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
-        .body("expires_in", lessThanOrEqualTo(900))
-        .body("refresh_token", notNullValue())
+        .body("expires_in", greaterThanOrEqualTo(900))
     ;
     assertUserCount().isEqualTo(6);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(1);
@@ -102,8 +100,7 @@ class ExternalTokenResourceHttpTest {
         .body("token_type", equalTo("bearer"))
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
-        .body("expires_in", lessThanOrEqualTo(900))
-        .body("refresh_token", notNullValue())
+        .body("expires_in", greaterThanOrEqualTo(0))
     ;
     assertUserCount().isEqualTo(6);
     assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(1);
@@ -120,6 +117,7 @@ class ExternalTokenResourceHttpTest {
     assertUserCountByExternalId(GOOGLE_PREMIUM_USER.getExternalId()).isEqualTo(1);
 
     given()
+        .log().all()
         .param("grant_type", "external-token")
         .param("client_id", "makromapa-mobile")
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
@@ -129,16 +127,15 @@ class ExternalTokenResourceHttpTest {
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")
 
         .then()
-        .log().ifValidationFails()
+        .log().all(true)
         .status(OK)
         .body("token_type", equalTo("bearer"))
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(1))
-        .body("refresh_token", notNullValue())
     ;
 
-    assertAccessTokenCount().isEqualTo(2);
+    assertAccessTokenCount().isEqualTo(1);
   }
 
   @Test

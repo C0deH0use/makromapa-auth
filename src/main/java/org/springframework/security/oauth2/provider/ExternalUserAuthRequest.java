@@ -25,7 +25,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 @EqualsAndHashCode(callSuper = true)
 public class ExternalUserAuthRequest extends TokenRequest {
 
-  public static final String EXTERNAL_USER_ID = "external_user_id";
+  public static final String USER_ID = "user_id";
 
   private static final long serialVersionUID = 1791623350551969647L;
 
@@ -150,7 +150,7 @@ public class ExternalUserAuthRequest extends TokenRequest {
     modifiable.remove("client_secret");
     // Add grant type so it can be retrieved from OAuth2Request
     modifiable.put("grant_type", getGrantType());
-    modifiable.put(EXTERNAL_USER_ID, externalUser.getId().toString());
+    modifiable.put(USER_ID, externalUser.getId().toString());
 
     Set<String> scopes = new HashSet<>(this.getScope());
     UserType userType = externalUser.getUserDetails().getType();

@@ -5,6 +5,7 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.InheritanceType.SINGLE_TABLE;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
 import java.util.UUID;
@@ -23,6 +24,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DiscriminatorFormula;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 
 @Entity
 @Table(name = BaseUser.TABLE_NAME)
@@ -72,4 +74,18 @@ abstract class BaseUser extends AuditAwareEntity {
         .type(FREE_USER)
         .build();
   }
+
+  public BaseUser updateWith(UserDetails parseUserDetails) {
+    this.userDetails = UserDetails.builder()
+        .email(defaultIfEmpty(parseUserDetails.getEmail(), userDetails.getEmail()))
+        .name(defaultIfEmpty(parseUserDetails.getName(), userDetails.getName()))
+        .surname(defaultIfEmpty(parseUserDetails.getSurname(), userDetails.getSurname()))
+        .picture(defaultIfEmpty(parseUserDetails.getPicture(), userDetails.getPicture()))
+        .type(userDetails.getType())
+        .build();
+
+    return this;
+  }
+
+  abstract UserInfoDto toUserInfo();
 }
