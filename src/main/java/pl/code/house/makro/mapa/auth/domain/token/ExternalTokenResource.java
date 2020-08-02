@@ -44,7 +44,7 @@ class ExternalTokenResource {
   @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/token")
   ResponseEntity<OAuth2AccessToken> authorizeGoogleToken(@AuthenticationPrincipal JwtAuthenticationToken principal,
       @RequestParam Map<String, String> parameters) {
-    log.info("Authorizing user token ['{}']", principal.getName());
+    log.info("Authorizing user ['{}']", principal.getName());
 
     String clientId = getClientId(parameters);
     ClientDetails authenticatedClient = clientDetails.loadClientByClientId(clientId);

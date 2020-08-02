@@ -52,7 +52,6 @@ class UserWithPassword extends BaseUser {
   UserInfoDto toUserInfo() {
     return UserInfoDto.builder()
         .sub(this.getId())
-        .externalId(null)
         .name(this.getUserDetails().getName())
         .surname(this.getUserDetails().getSurname())
         .email(this.getUserDetails().getEmail())

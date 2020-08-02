@@ -90,6 +90,7 @@ class ExternalTokenResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(APPLE_NEW_USER.getAuthenticationHeader())
 
+        .log().all(true)
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")
 

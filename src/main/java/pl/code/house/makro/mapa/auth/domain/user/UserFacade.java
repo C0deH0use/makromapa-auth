@@ -47,7 +47,7 @@ public class UserFacade {
   public UserDto findUserByToken(Jwt token) {
     String externalUserId = tryGetExternalUserId(token);
     OAuth2Provider oauth2Provider = fromIssuer(token.getClaim("iss"));
-    log.info("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
+    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
 
     BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
         .map(u -> u.updateWith(parseUserDetails(token)))

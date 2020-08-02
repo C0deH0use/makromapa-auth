@@ -15,8 +15,6 @@ public class UserInfoDto implements Serializable {
 
   UUID sub;
 
-  String externalId;
-
   OAuth2Provider provider;
 
   String name;

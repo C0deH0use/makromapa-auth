@@ -44,7 +44,6 @@ class ExternalUser extends BaseUser {
   UserInfoDto toUserInfo() {
     return UserInfoDto.builder()
         .sub(this.getId())
-        .externalId(externalId)
         .name(this.getUserDetails().getName())
         .surname(this.getUserDetails().getSurname())
         .email(this.getUserDetails().getEmail())

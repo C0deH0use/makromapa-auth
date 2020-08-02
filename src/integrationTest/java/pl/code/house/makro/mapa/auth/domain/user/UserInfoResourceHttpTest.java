@@ -46,7 +46,6 @@ class UserInfoResourceHttpTest {
         .log().all(true)
         .status(OK)
         .body("sub", equalTo(GOOGLE_PREMIUM_USER.getUserId().toString()))
-        .body("externalId", equalTo(GOOGLE_PREMIUM_USER.getExternalId()))
         .body("provider", equalTo(GOOGLE.name()))
         .body("name", equalTo("Makromapa Test01"))
         .body("surname", equalTo("Test01"))
