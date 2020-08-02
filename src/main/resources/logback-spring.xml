@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+
+    <springProfile name="default, local, integrationTest, test, prod">
+      <encoder>
+        <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        <charset>utf8</charset>
+      </encoder>
+    </springProfile>
+
+  </appender>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        %d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="asyncConsole" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="console"/>
+    <discardingThreshold>0</discardingThreshold>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="asyncConsole"/>
+  </root>
+
+</configuration>
