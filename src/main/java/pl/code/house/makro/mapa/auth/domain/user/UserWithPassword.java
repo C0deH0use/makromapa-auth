@@ -43,6 +43,16 @@ class UserWithPassword extends BaseUser {
         userDetails);
   }
 
+  static UserWithPassword userFrom(String encryptedPassword, BaseUser oldUser) {
+    return new UserWithPassword(
+        oldUser.getId(),
+        encryptedPassword,
+        oldUser.getEnabled(),
+        oldUser.getTermsAndConditionsId(),
+        oldUser.getProvider(),
+        oldUser.getUserDetails());
+  }
+
   @Override
   UserDto toDto() {
     return new UserDto(getId(), null, getProvider(), getUserDetails().toDto(), getEnabled());

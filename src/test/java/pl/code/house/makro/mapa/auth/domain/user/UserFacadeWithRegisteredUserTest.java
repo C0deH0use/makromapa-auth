@@ -4,13 +4,17 @@ import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
+import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
+import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.NEW_REG_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_DRAFT_USER;
+import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
@@ -27,9 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.PasswordMockUser;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationCodeDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
+import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
 import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 
@@ -50,7 +55,7 @@ class UserFacadeWithRegisteredUserTest {
   private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Mock
-  private DraftActivationCodeService activationCodeService;
+  private VerificationCodeService activationCodeService;
 
   @Mock
   private UserAuthoritiesService userAuthoritiesService;
@@ -73,7 +78,7 @@ class UserFacadeWithRegisteredUserTest {
     then(repository).should(times(1)).saveAndFlush(any(UserWithPassword.class));
 
     ArgumentCaptor<UserWithPassword> draftUserCaptor = ArgumentCaptor.forClass(UserWithPassword.class);
-    then(activationCodeService).should(only()).sendActivationCodeToDraftUser(draftUserCaptor.capture());
+    then(activationCodeService).should(only()).sendVerificationCodeToDraftUser(draftUserCaptor.capture());
 
     assertThat(draftUserCaptor.getValue().getId()).isEqualTo(DRAFT_USER_ID);
     assertThat(draftUserCaptor.getValue().getProvider()).isEqualTo(BASIC_AUTH);
@@ -85,12 +90,12 @@ class UserFacadeWithRegisteredUserTest {
 
   @Test
   @DisplayName("should send new activation code for draft user if the old code is no longer valid")
-  void shouldSendNewActivationCodeForDraftUserIfTheOldCodeIsNoLongerValid() {
+  void shouldSendNewVerificationCodeForDraftUserIfTheOldCodeIsNoLongerValid() {
     //given
     NewUserRequest request = new NewUserRequest("token", "clientId", REG_DRAFT_USER.getName(), REG_DRAFT_USER.getPassword());
     given(repository.findUserWithPasswordByUserEmail(REG_DRAFT_USER.getName())).willReturn(of(savedUser(REG_DRAFT_USER.getUserId(), REG_DRAFT_USER, DRAFT_USER, false)));
 
-    given(activationCodeService.findActivationCode(REG_DRAFT_USER.getUserId())).willReturn(Optional.empty());
+    given(activationCodeService.findVerificationCode(REG_DRAFT_USER.getUserId(), REGISTRATION)).willReturn(Optional.empty());
 
     //when
     sut.registerNewUser(request);
@@ -99,7 +104,7 @@ class UserFacadeWithRegisteredUserTest {
     then(repository).should(times(0)).saveAndFlush(any(UserWithPassword.class));
 
     ArgumentCaptor<UserWithPassword> draftUserCaptor = ArgumentCaptor.forClass(UserWithPassword.class);
-    then(activationCodeService).should(times(1)).sendActivationCodeToDraftUser(draftUserCaptor.capture());
+    then(activationCodeService).should(times(1)).sendVerificationCodeToDraftUser(draftUserCaptor.capture());
 
     assertThat(draftUserCaptor.getValue().getId()).isEqualTo(REG_DRAFT_USER.getUserId());
     assertThat(draftUserCaptor.getValue().getProvider()).isEqualTo(BASIC_AUTH);
@@ -139,26 +144,26 @@ class UserFacadeWithRegisteredUserTest {
 
   @Test
   @DisplayName("throw if registering user when draft already exists and activation code is valid")
-  void throwIfRegisteringUserWhenDraftAlreadyExistsAndActivationCodeIsValid() {
+  void throwIfRegisteringUserWhenDraftAlreadyExistsAndVerificationCodeIsValid() {
     //given
     NewUserRequest request = new NewUserRequest("token", "clientId", REG_DRAFT_USER.getName(), REG_DRAFT_USER.getPassword());
     given(repository.findUserWithPasswordByUserEmail(REG_DRAFT_USER.getName())).willReturn(of(savedUser(REG_DRAFT_USER.getUserId(), REG_DRAFT_USER, DRAFT_USER, false)));
 
-    given(activationCodeService.findActivationCode(REG_DRAFT_USER.getUserId())).willReturn(Optional.of(validCode()));
+    given(activationCodeService.findVerificationCode(REG_DRAFT_USER.getUserId(), REGISTRATION)).willReturn(Optional.of(validCode()));
 
     //when
     assertThatThrownBy(() -> sut.registerNewUser(request))
         .isInstanceOf(UserAlreadyExistsException.class)
-        .hasMessageContaining("has valid activation_code");
+        .hasMessageContaining("has valid verification_code");
   }
 
   @Test
-  @DisplayName("should correctly activate draft user with activation_code")
-  void shouldCorrectlyActivateDraftUserWithActivationCode() {
+  @DisplayName("should correctly activate draft user with verification_code")
+  void shouldCorrectlyActivateDraftUserWithVerificationCode() {
     //given
     String clientId = "client_id";
 
-    given(activationCodeService.findActivationCode(code)).willReturn(validCode());
+    given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
     given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedDraft(NEW_REG_USER)));
 
     //when
@@ -173,12 +178,58 @@ class UserFacadeWithRegisteredUserTest {
   }
 
   @Test
-  @DisplayName("throw if user assigned to activation_code is not a draft")
-  void throwIfUserAssignedToActivationCodeIsNotADraft() {
+  @DisplayName("should correctly issue a reset password verification_code")
+  void shouldCorrectlyIssueAResetPasswordVerificationCode() {
+      //given
+    String clientId = "client_id";
+    String userEmail = REG_USER.getName();
+    UserWithPassword savedUser = savedUser();
+
+    given(repository.findUserWithPasswordByUserEmail(userEmail)).willReturn(of(savedUser));
+
+    //when
+    sut.resetPasswordFor(userEmail);
+
+    //then
+    ArgumentCaptor<UserWithPassword> user = ArgumentCaptor.forClass(UserWithPassword.class);
+
+    then(activationCodeService).should(times(1)).sendResetPasswordToActiveUser(user.capture());
+
+    assertThat(user.getValue().getId()).isEqualTo(REG_USER.getUserId());
+    assertThat(user.getValue().getProvider()).isEqualTo(BASIC_AUTH);
+    assertThat(user.getValue().getPassword()).isEqualTo(REG_USER.getPassword());
+    assertThat(user.getValue().getTermsAndConditionsId()).isNull();
+    assertThat(user.getValue().getUserDetails().getEmail()).isEqualTo(REG_USER.getName());
+    assertThat(user.getValue().getUserDetails().getType()).isEqualTo(FREE_USER);
+  }
+
+  @Test
+  @DisplayName("should correctly change password for user with valid verification_code")
+  void shouldCorrectlyChangePasswordForUserWithValidVerificationCode() {
+    //given
+    String newPassword = "NEW_PASSWORD";
+    UserWithPassword savedUser = savedUser();
+    given(activationCodeService.findVerificationCode(code, RESET_PASSWORD)).willReturn(validResetPasswordCode());
+    given(repository.findUserWithPasswordByUserEmail(REG_USER.getName())).willReturn(of(savedUser));
+
+    //when
+    sut.changeUserPassword(REG_USER.getName(), code, newPassword);
+
+    //then
+    ArgumentCaptor<String> newPasswordCaptor = ArgumentCaptor.forClass(String.class);
+    then(activationCodeService).should(times(1)).useCode(ACTIVATION_CODE_ID);
+    then(repository).should(times(1)).updateUserPassword(eq(REG_USER.getUserId()), newPasswordCaptor.capture());
+
+    assertThat(passwordEncoder.matches(newPassword, newPasswordCaptor.getValue())).isTrue();
+  }
+
+  @Test
+  @DisplayName("throw if user assigned to verification_code is not a draft")
+  void throwIfUserAssignedToVerificationCodeIsNotADraft() {
     //given
     String clientId = "client_id";
 
-    given(activationCodeService.findActivationCode(code)).willReturn(validCode());
+    given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
     given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedUser(NEW_REG_USER.getUserId(), NEW_REG_USER, FREE_USER, false)));
 
     //when
@@ -190,12 +241,29 @@ class UserFacadeWithRegisteredUserTest {
   }
 
   @Test
-  @DisplayName("throw if user assigned to activation_code is enabled")
-  void throwIfUserAssignedToActivationCodeIsEnabled() {
+  @DisplayName("throw if using code assigned to different user")
+  void throwIfUsingCodeAssignedToDifferentUser() {
+      //given
+    String clientId = "client_id";
+
+    given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
+    UserWithPassword savedUser = savedUser(UUID.randomUUID(), NEW_REG_USER, DRAFT_USER, false);
+    given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedUser));
+
+    //when
+    assertThatThrownBy(() -> sut.activateDraftBy(code, clientId))
+        .isInstanceOf(UserRegistrationException.class)
+        .hasMessageContaining("Validation Code is assigned to different user")
+        ;
+  }
+
+  @Test
+  @DisplayName("throw if user assigned to verification_code is enabled")
+  void throwIfUserAssignedToVerificationCodeIsEnabled() {
     //given
     String clientId = "client_id";
 
-    given(activationCodeService.findActivationCode(code)).willReturn(validCode());
+    given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
     given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedUser(NEW_REG_USER.getUserId(), NEW_REG_USER, DRAFT_USER, true)));
 
     //when
@@ -206,18 +274,65 @@ class UserFacadeWithRegisteredUserTest {
         .hasMessageContaining("was not found")
     ;
   }
+  
+  @Test
+  @DisplayName("throw if user passed for reset password is a draft")
+  void throwIfUserPassedForResetPasswordIsADraft() {
+    //given
+    String clientId = "client_id";
+    String userEmail = REG_USER.getName();
+    UserWithPassword savedUser = savedUser(REG_USER.getUserId(), REG_USER, DRAFT_USER, false);
 
-  private ActivationCodeDto validCode() {
-    return ActivationCodeDto.builder()
+    given(repository.findUserWithPasswordByUserEmail(userEmail)).willReturn(of(savedUser));
+
+    //when
+    assertThatThrownBy( () -> sut.resetPasswordFor(userEmail))
+        .isInstanceOf(PasswordResetException.class)
+        .hasMessageContaining("Cannot reset password for DRAFT");
+  }
+
+  @Test
+  @DisplayName("throw if requesting password with code assigned to different user")
+  void throwIfRequestingPasswordWithCodeAssignedToDifferentUser() {
+    //given
+    String newPassword = "NEW_PASSWORD";
+    UserWithPassword savedUser = savedUser(UUID.randomUUID(), NEW_REG_USER, FREE_USER, true);
+    given(activationCodeService.findVerificationCode(code, RESET_PASSWORD)).willReturn(validResetPasswordCode());
+    given(repository.findUserWithPasswordByUserEmail(NEW_REG_USER.getName())).willReturn(of(savedUser));
+
+    //when
+    assertThatThrownBy(() -> sut.changeUserPassword(NEW_REG_USER.getName(), code, newPassword))
+        .isInstanceOf(PasswordResetException.class)
+        .hasMessageContaining("Validation Code is assigned to different user")
+    ;
+  }
+
+  private VerificationCodeDto validCode() {
+    return VerificationCodeDto.builder()
         .id(ACTIVATION_CODE_ID)
         .code(code)
         .enabled(true)
-        .draftUser(savedDraft(NEW_REG_USER).toDto())
+        .user(savedDraft(NEW_REG_USER).toDto())
+        .codeType(REGISTRATION)
+        .build();
+  }
+
+  private VerificationCodeDto validResetPasswordCode() {
+    return VerificationCodeDto.builder()
+        .id(ACTIVATION_CODE_ID)
+        .code(code)
+        .enabled(true)
+        .user(savedUser().toDto())
+        .codeType(RESET_PASSWORD)
         .build();
   }
 
   private UserWithPassword savedDraft(PasswordMockUser user) {
     return savedUser(DRAFT_USER_ID, user, DRAFT_USER, false);
+  }
+
+  private UserWithPassword savedUser() {
+    return savedUser(REG_USER.getUserId(), REG_USER, FREE_USER, true);
   }
 
   private UserWithPassword savedUser(UUID userId, PasswordMockUser user, UserType userType, boolean enabled) {

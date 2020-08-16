@@ -5,15 +5,15 @@ import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(PRECONDITION_FAILED)
-public class UserRegistrationException extends RuntimeException {
+public class PasswordResetException extends RuntimeException {
 
-  private static final long serialVersionUID = -3397486044321890759L;
+  private static final long serialVersionUID = 3122020331182606901L;
 
   private final UserOperationError error;
 
-  public UserRegistrationException(UserOperationError error, String message) {
+  public PasswordResetException(UserOperationError userNotFound, String message) {
     super(message);
-    this.error = error;
+    this.error = userNotFound;
   }
 
   public UserOperationError getError() {

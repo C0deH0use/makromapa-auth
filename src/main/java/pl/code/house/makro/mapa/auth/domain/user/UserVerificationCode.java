@@ -1,15 +1,17 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static javax.persistence.AccessType.FIELD;
+import static javax.persistence.EnumType.STRING;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
-import static pl.code.house.makro.mapa.auth.domain.user.UserActivationCode.TABLE_NAME;
+import static pl.code.house.makro.mapa.auth.domain.user.UserVerificationCode.TABLE_NAME;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -20,7 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationCodeDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 
 @Entity
 @Table(name = TABLE_NAME)
@@ -30,16 +32,16 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationCodeDto;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PACKAGE)
-class UserActivationCode extends AuditAwareEntity {
+class UserVerificationCode extends AuditAwareEntity {
 
-  static final String TABLE_NAME = "user_activation_code";
+  static final String TABLE_NAME = "user_verification_code";
 
   @Id
   private UUID id;
 
   @OneToOne
-  @JoinColumn(name = "draft_user_id", updatable = false, nullable = false)
-  private BaseUser draftUser;
+  @JoinColumn(name = "user_id", updatable = false, nullable = false)
+  private BaseUser user;
 
   @Column(name = "enabled", nullable = false)
   private Boolean enabled;
@@ -47,15 +49,20 @@ class UserActivationCode extends AuditAwareEntity {
   @Column(name = "code", updatable = false, nullable = false)
   private String code;
 
+  @Enumerated(STRING)
+  @Column(name = "code_type", updatable = false, nullable = false)
+  private CodeType codeType;
+
   @Column(name = "expires_on", updatable = false, nullable = false)
   private ZonedDateTime expiresOn;
 
-  ActivationCodeDto toDto() {
-    return ActivationCodeDto.builder()
+  VerificationCodeDto toDto() {
+    return VerificationCodeDto.builder()
         .id(id)
         .code(code)
-        .draftUser(draftUser.toDto())
+        .user(user.toDto())
         .enabled(enabled)
+        .codeType(codeType)
         .expiresOn(expiresOn)
         .build();
   }

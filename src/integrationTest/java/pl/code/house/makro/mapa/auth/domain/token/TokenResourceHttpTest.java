@@ -53,7 +53,7 @@ class TokenResourceHttpTest {
         .param("grant_type", "password")
         .param("username", REG_USER.getName())
         .param("password", REG_USER.getPassword())
-        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-mobile", "secret", UTF_8)))
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
         .log().all(true)
 
@@ -67,7 +67,6 @@ class TokenResourceHttpTest {
         .body("token_type", equalTo("bearer"))
         .body("scope", equalTo("USER"))
         .body("access_token", notNullValue())
-        .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(0))
     ;
   }

@@ -3,6 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,8 @@ interface UserRepository extends JpaRepository<BaseUser, UUID> {
       + "AND u.userDetails.email = :userEmail "
       + "AND (u.userDetails.type = 'DRAFT_USER' OR u.userDetails.type = 'FREE_USER')")
   Optional<BaseUser> findUserWithPasswordByUserEmail(@Param("userEmail") String userEmail);
+
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE UserWithPassword u SET u.password = :newPassword WHERE u.id = :userId")
+  int updateUserPassword(@Param("userId") UUID userId, @Param("newPassword") String newPassword);
 }

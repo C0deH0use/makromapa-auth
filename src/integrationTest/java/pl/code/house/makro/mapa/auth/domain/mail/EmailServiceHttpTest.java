@@ -49,8 +49,7 @@ class EmailServiceHttpTest {
   void shouldSendProperRegistrationEmail() throws MessagingException {
     //given
     Context ctx = new Context();
-    ctx.setVariable("name", "TEST_NAME");
-    ctx.setVariable("activation_code", ACTIVATION_CODE);
+    ctx.setVariable("verification_code", ACTIVATION_CODE);
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, EXPECTED_RECEIVER, ctx);
 
     //when
@@ -76,8 +75,7 @@ class EmailServiceHttpTest {
   void throwIfMessageDoesNotHaveAValidSubject() {
     //given
     Context ctx = new Context();
-    ctx.setVariable("name", "TEST_NAME");
-    ctx.setVariable("activation_code", ACTIVATION_CODE);
+    ctx.setVariable("verification_code", ACTIVATION_CODE);
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(null, EXPECTED_RECEIVER, ctx);
 
     //when & then
@@ -93,7 +91,7 @@ class EmailServiceHttpTest {
     //given
     Context ctx = new Context();
     ctx.setVariable("name", "TEST_NAME");
-    ctx.setVariable("activation_code", ACTIVATION_CODE);
+    ctx.setVariable("verification_code", ACTIVATION_CODE);
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, null, ctx);
 
     //when & then
@@ -104,17 +102,18 @@ class EmailServiceHttpTest {
   }
 
   @Test
-  @DisplayName("throw if message does not have activation_code")
-  void throwIfMessageDoesNotHaveActivationCode() {
+  @DisplayName("throw if message does not have verification_code")
+  void throwIfMessageDoesNotHaveVerificationCode() {
     //given
     Context ctx = new Context();
     ctx.setVariable("name", "TEST_NAME");
-    RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, null, ctx);
+
+    RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, EXPECTED_RECEIVER, ctx);
 
     //when & then
     assertThatThrownBy(() -> sut.sendHtmlMail(messageDetails))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("should be addressed to someone")
+        .hasMessageContaining("should contain the `verification_code`")
     ;
   }
 }

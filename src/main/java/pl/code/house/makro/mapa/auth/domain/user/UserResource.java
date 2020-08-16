@@ -22,24 +22,26 @@ import org.springframework.security.oauth2.common.exceptions.InvalidGrantExcepti
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationLinkDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.NewPasswordRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH + "/user-registration", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+@RequestMapping(path = BASE_PATH + "/user", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @PreAuthorize("hasAuthority('ROLE_REGISTER')")
-class UserRegistrationResource {
+class UserResource {
 
   private static final String EXTERNAL_TOKEN = "external-token";
 
   private final UserFacade facade;
 
-  @PostMapping
-  ResponseEntity<ActivationLinkDto> registerNewDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
+  @PostMapping("/registration")
+  ResponseEntity<CommunicationDto> registerNewDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
     log.info("Request to register new user `{}` by {}", newUserRequest.getEmail(), principal.getPrincipal());
 
     String clientId = getClientId(principal);
@@ -58,7 +60,7 @@ class UserRegistrationResource {
       throw new InvalidGrantException("Implicit grant type not supported from user registration endpoint");
     }
 
-    ActivationLinkDto draftDto = facade.registerNewUser(newUserRequest);
+    CommunicationDto draftDto = facade.registerNewUser(newUserRequest);
     return status(CREATED).body(draftDto);
   }
 
@@ -71,6 +73,24 @@ class UserRegistrationResource {
     UserDto userDto = facade.activateDraftBy(activationCode, clientId);
 
     return ok(userDto);
+  }
+
+  @PostMapping("/password/reset")
+  ResponseEntity<CommunicationDto> resetUserPassword(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
+      @RequestParam("email") String email) {
+    log.info("Registered request from {} to reset password for user `{}`", principal.getName(), email);
+
+    CommunicationDto communicationDto = facade.resetPasswordFor(email);
+    return status(CREATED).body(communicationDto);
+  }
+
+  @PostMapping("/password/change")
+  ResponseEntity changeUserPassword(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
+      NewPasswordRequest newPasswordRequest) {
+    log.info("Registered request from {} to reset password for user `{}`", principal.getName(), newPasswordRequest.getNewPassword());
+
+    facade.changeUserPassword(newPasswordRequest.getEmail(), newPasswordRequest.getCode(), newPasswordRequest.getNewPassword());
+    return ok().build();
   }
 
   private String getClientId(Principal principal) {

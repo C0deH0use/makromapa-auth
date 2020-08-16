@@ -45,7 +45,7 @@ class UserFacadeWithExternalUserTest {
   private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Mock
-  private DraftActivationCodeService activationCodeService;
+  private VerificationCodeService activationCodeService;
 
   @Mock
   private UserAuthoritiesService userAuthoritiesService;

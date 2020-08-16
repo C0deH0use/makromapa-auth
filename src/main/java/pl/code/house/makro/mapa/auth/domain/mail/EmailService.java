@@ -59,7 +59,7 @@ public class EmailService {
 
   private void validateByType(MessageDetails details) {
     if (REGISTRATION == details.getType()) {
-      isTrue(details.getContext().containsVariable("activation_code"), "Registration email message should contain the `activation_code`");
+      isTrue(details.getContext().containsVariable("verification_code"), "Registration email message should contain the `verification_code`");
     }
   }
 }

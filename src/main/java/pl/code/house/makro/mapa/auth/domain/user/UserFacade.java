@@ -3,6 +3,8 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static java.util.function.Predicate.not;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.Assert.hasText;
+import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
+import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.ExternalUser.newUserFrom;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.fromIssuer;
@@ -10,7 +12,9 @@ import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserWithPassword.newDraftFrom;
-import static pl.code.house.makro.mapa.auth.error.UserRegistrationError.DRAFT_NOT_FOUND;
+import static pl.code.house.makro.mapa.auth.error.UserOperationError.DRAFT_NOT_FOUND;
+import static pl.code.house.makro.mapa.auth.error.UserOperationError.USER_NOT_FOUND;
+import static pl.code.house.makro.mapa.auth.error.UserOperationError.VALIDATION_CODE_NOT_VALID;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +23,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationCodeDto;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ActivationLinkDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
 import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
+import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
 import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 
@@ -41,7 +46,7 @@ public class UserFacade {
 
   private final TermsAndConditionsRepository termsRepository;
 
-  private final DraftActivationCodeService activationCodeService;
+  private final VerificationCodeService verificationCodeService;
 
   @Transactional
   public UserDto findUserByToken(Jwt token) {
@@ -65,7 +70,7 @@ public class UserFacade {
   }
 
   @Transactional
-  public ActivationLinkDto registerNewUser(NewUserRequest newUserRequest) {
+  public CommunicationDto registerNewUser(NewUserRequest newUserRequest) {
     log.info("Registering new DRAFT User `{}` as BASIC_AUTH authentication provider", newUserRequest.getEmail());
 
     Optional<BaseUser> userByEmail = userRepository.findUserWithPasswordByUserEmail(newUserRequest.getEmail());
@@ -75,14 +80,14 @@ public class UserFacade {
       }
 
       UserWithPassword existingDraft = (UserWithPassword) userByEmail.get();
-      if (activationCodeService.findActivationCode(existingDraft.getId()).isPresent()) {
-        throw new UserAlreadyExistsException("Following BASIC_AUTH user with email has valid activation_code.");
+      if (verificationCodeService.findVerificationCode(existingDraft.getId(), REGISTRATION).isPresent()) {
+        throw new UserAlreadyExistsException("Following BASIC_AUTH user with email has valid verification_code.");
       }
-      return activationCodeService.sendActivationCodeToDraftUser(existingDraft);
+      return verificationCodeService.sendVerificationCodeToDraftUser(existingDraft);
 
     } else {
       UserWithPassword newDraft = createNewDraftUser(newUserRequest);
-      return activationCodeService.sendActivationCodeToDraftUser(newDraft);
+      return verificationCodeService.sendVerificationCodeToDraftUser(newDraft);
     }
   }
 
@@ -91,21 +96,64 @@ public class UserFacade {
     hasText(code, "Activation code must be valid");
     hasText(clientId, "Client Id must be valid");
 
-    ActivationCodeDto activationCode = activationCodeService.findActivationCode(code);
+    VerificationCodeDto verificationCode = verificationCodeService.findVerificationCode(code, REGISTRATION);
 
-    BaseUser user = userRepository.findById(activationCode.getDraftUser().getId())
+    BaseUser user = userRepository.findById(verificationCode.getUser().getId())
         .filter(u -> DRAFT_USER == u.getUserDetails().getType())
         .filter(not(BaseUser::getEnabled))
         .orElseThrow(() -> new UserRegistrationException(DRAFT_NOT_FOUND, "Disabled DRAFT user that was assigned to the Activation Code was not found."));
+
+    if (!verificationCode.getUser().getId().equals(user.getId())) {
+      throw new UserRegistrationException(VALIDATION_CODE_NOT_VALID, "Validation Code is assigned to different user");
+    }
 
     log.info("Received request from `{}` activate DRAFT User `{}`", clientId, user.getId());
 
     user.activate();
     userAuthoritiesService.insertUserAuthorities(user.getId(), FREE_USER);
-    activationCodeService.useCode(activationCode.getId());
+    verificationCodeService.useCode(verificationCode.getId());
 
     log.info("User `{}` is now active and can no login to the system via BASIC_AUTH protocol", user.getId());
     return user.toDto();
+  }
+
+  @Transactional
+  public CommunicationDto resetPasswordFor(String email) {
+    log.info("User `{}` requests Password Reset", email);
+    hasText(email, "Email must be valid");
+
+    UserWithPassword user = (UserWithPassword) userRepository.findUserWithPasswordByUserEmail(email)
+        .filter(u -> DRAFT_USER != u.getUserDetails().getType())
+        .filter(BaseUser::getEnabled)
+        .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot reset password for DRAFT user. Please register first."));
+
+    log.info("Request received to reset BASIC_AUTH user ({} - {}) password.", email, user.getId());
+    return verificationCodeService.sendResetPasswordToActiveUser(user);
+  }
+
+  @Transactional
+  public void changeUserPassword(String email, String code, String newPassword) {
+    log.info("User `{}` tries to change password with verification_code", email);
+
+    hasText(email, "Email is required!");
+    hasText(code, "Verification_Code is required!");
+    hasText(newPassword, "New Password is required!");
+
+    UserWithPassword user = (UserWithPassword) userRepository.findUserWithPasswordByUserEmail(email)
+        .filter(u -> DRAFT_USER != u.getUserDetails().getType())
+        .filter(BaseUser::getEnabled)
+        .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot reset password for DRAFT user. Please register first."));
+
+    VerificationCodeDto verificationCode = verificationCodeService.findVerificationCode(code, RESET_PASSWORD);
+
+    if (!verificationCode.getUser().getId().equals(user.getId())) {
+      throw new PasswordResetException(VALIDATION_CODE_NOT_VALID, "Validation Code is assigned to different user");
+    }
+
+    userRepository.updateUserPassword(user.getId(), passwordEncoder.encode(newPassword));
+    verificationCodeService.useCode(verificationCode.getId());
+
+    log.info("User `{}` have successfully changed it's password. Verification Code with id {} is marked as used", email, verificationCode.getId());
   }
 
   private ExternalUser createNewFreeUser(Jwt jwtPrincipal) {
@@ -123,12 +171,12 @@ public class UserFacade {
 
   private UserDetails parseUserDetails(Jwt jwtPrincipal) {
     return UserDetails.builder()
-          .type(FREE_USER)
-          .name(jwtPrincipal.getClaim("name"))
-          .email(jwtPrincipal.getClaim("email"))
-          .surname(jwtPrincipal.getClaim("family_name"))
-          .picture(jwtPrincipal.getClaim("picture"))
-          .build();
+        .type(FREE_USER)
+        .name(jwtPrincipal.getClaim("name"))
+        .email(jwtPrincipal.getClaim("email"))
+        .surname(jwtPrincipal.getClaim("family_name"))
+        .picture(jwtPrincipal.getClaim("picture"))
+        .build();
   }
 
   private UserWithPassword createNewDraftUser(NewUserRequest userRequest) {
