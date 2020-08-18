@@ -34,6 +34,7 @@ steps:
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
     env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev',
+           "-XX:MaxDirectMemorySize=100MB" ]
     waitFor:
       - postgres_db
 
