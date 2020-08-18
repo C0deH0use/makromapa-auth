@@ -22,21 +22,21 @@ steps:
   #
   # integration tests
   #
-#  - name: 'docker/compose:1.25.5'
-#    id: postgres_db
-#    args: ['-f', 'builder/docker-compose.cicd.dependencies.yml', "up", "-d"]
-#    env:
-#      - 'PROJECT_ID=$PROJECT_ID'
-#    waitFor:
-#      - unit_test
+  - name: 'docker/compose:1.25.5'
+    id: postgres_db
+    args: ['-f', 'builder/docker-compose.cicd.dependencies.yml', "up", "-d"]
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+    waitFor:
+      - unit_test
 
-#  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
-#    id: integration_test
-#    args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
-#    env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev',
-#           "-XX:MaxDirectMemorySize=100MB" ]
-#    waitFor:
-#      - postgres_db
+  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+    id: integration_test
+    args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
+    env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev',
+           "-XX:MaxDirectMemorySize=100MB" ]
+    waitFor:
+      - postgres_db
 
 
   #
@@ -51,8 +51,7 @@ steps:
         ./project-version.sh
         docker build -t "gcr.io/$PROJECT_ID/makromapa-auth-api" -t "gcr.io/$PROJECT_ID/makromapa-auth-api:0.0.1" .
     waitFor:
-#      - integration_test
-      - unit_test
+      - integration_test
 
   #
   # Push image
