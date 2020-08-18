@@ -15,6 +15,7 @@ import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,7 +59,7 @@ class VerificationCodeService {
 
     findVerificationCode(draftUser.getId(), REGISTRATION)
         .map(VerificationCodeDto::getId)
-        .ifPresent(repository::deleteById);
+        .ifPresent(this::deleteCode);
 
     UserVerificationCode verificationCode = buildVerificationCodeWith(draftUser, REGISTRATION);
 
@@ -78,7 +79,7 @@ class VerificationCodeService {
 
     findVerificationCode(user.getId(), RESET_PASSWORD)
         .map(VerificationCodeDto::getId)
-        .ifPresent(repository::deleteById);
+        .ifPresent(this::deleteCode);
 
     UserVerificationCode verificationCode = buildVerificationCodeWith(user, RESET_PASSWORD);
 
@@ -87,6 +88,11 @@ class VerificationCodeService {
     log.debug("Storing verificationCode `{}` ... with expiry date set to {}", verificationCode.getCode(), verificationCode.getExpiresOn());
     repository.save(verificationCode);
     return new CommunicationDto(user.getId(), RESET_PASSWORD, user.getUserDetails().getEmail(), EMAIL);
+  }
+
+  private void deleteCode(UUID codeId) {
+    log.info("Removing existing VerificationCode with id - {}", codeId.toString());
+    repository.deleteById(codeId);
   }
 
   Optional<VerificationCodeDto> findVerificationCode(UUID userId, CodeType codeType) {

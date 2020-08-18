@@ -49,7 +49,7 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("return access token when requested by new user ")
   void returnAccessTokenWhenRequestedByNewUser() {
     //given
-    assertUserCount().isEqualTo(5);
+    assertUserCount().isEqualTo(6);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(0);
 
     given()
@@ -70,7 +70,7 @@ class ExternalTokenResourceHttpTest {
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(900))
     ;
-    assertUserCount().isEqualTo(6);
+    assertUserCount().isEqualTo(7);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(1);
 
     assertAccessTokenCount().isEqualTo(2);

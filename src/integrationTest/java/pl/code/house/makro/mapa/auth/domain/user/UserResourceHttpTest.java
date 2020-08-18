@@ -340,8 +340,30 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @DisplayName("return BAD_REQUEST if requesting password reset for draft user")
-  void returnBadRequestIfRequestingPasswordResetForDraftUser() {
+  @DisplayName("return PRECONDITION_FAILED when updating password with verification code assigned to different user")
+  void returnPreconditionFailedWhenUpdatingPasswordWithVerificationCodeAssignedToDifferentUser() {
+    //given
+    String newPassword = "NEW_PaSSW0RD";
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+        .param("code", CODE)
+        .param("email", REG_USER_2.getName())
+        .param("newPassword", newPassword)
+
+        .when()
+        .post(BASE_PATH + "/user/password/change")
+
+        .then()
+        .log().all()
+        .status(PRECONDITION_FAILED)
+        .body("error", containsString("assigned to different user"))
+    ;
+  }
+
+  @Test
+  @DisplayName("return PRECONDITION_FAILED if requesting password reset for draft user")
+  void returnPreconditionFailedIfRequestingPasswordResetForDraftUser() {
     //given
     given()
         .contentType(APPLICATION_JSON_VALUE)

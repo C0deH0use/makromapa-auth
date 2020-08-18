@@ -3,23 +3,18 @@ package pl.code.house.makro.mapa.auth.domain.user.dto;
 import lombok.Value;
 
 @Value
-@SuppressWarnings({"PMD.FormalParameterNamingConventions", "ParameterName"})
-public class NewUserRequest {
+public class NewPasswordRequest {
 
-  String grantType;
-  String clientId;
+  String code;
   String email;
-  String password;
+  String newPassword;
 
-  public NewUserRequest(
-      String grant_type,
-      String client_id,
-      String username,
-      String password
-  ) {
-    this.grantType = grant_type;
-    this.clientId = client_id;
-    this.email = username;
-    this.password = password;
+  public NewPasswordRequest(
+      String code,
+      String email,
+      String newPassword) {
+    this.code = code;
+    this.email = email;
+    this.newPassword = newPassword;
   }
 }

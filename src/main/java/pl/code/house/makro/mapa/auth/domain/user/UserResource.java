@@ -81,7 +81,7 @@ class UserResource {
     log.info("Registered request from {} to reset password for user `{}`", principal.getName(), email);
 
     CommunicationDto communicationDto = facade.resetPasswordFor(email);
-    return status(CREATED).body(communicationDto);
+    return ok(communicationDto);
   }
 
   @PostMapping("/password/change")
