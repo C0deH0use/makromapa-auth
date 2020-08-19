@@ -265,7 +265,7 @@ class UserResourceHttpTest {
 
         .then()
         .log().all()
-        .status(CREATED)
+        .status(OK)
         .body("codeType", equalTo("RESET_PASSWORD"))
         .body("communicationChannel", equalTo("EMAIL"))
         .body("communicationTarget", equalTo(REG_USER_2.getName()))
@@ -300,7 +300,7 @@ class UserResourceHttpTest {
 
         .then()
         .log().all()
-        .status(CREATED)
+        .status(OK)
         .body("codeType", equalTo("RESET_PASSWORD"))
         .body("communicationChannel", equalTo("EMAIL"))
         .body("communicationTarget", equalTo(REG_USER.getName()))
