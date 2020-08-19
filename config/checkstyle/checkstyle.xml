@@ -18,10 +18,10 @@
 <module name="Checker">
   <property name="charset" value="UTF-8"/>
 
+  <module name="SuppressWarningsFilter" />
   <module name="SuppressionFilter">
     <property name="file" value="${config_loc}/suppressions.xml"/>
   </module>
-
   <property name="severity" value="warning"/>
 
   <property name="fileExtensions" value="java, properties, xml"/>
@@ -32,6 +32,8 @@
   </module>
 
   <module name="TreeWalker">
+    <module name="SuppressWarningsHolder" />
+
     <module name="OuterTypeFilename"/>
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>

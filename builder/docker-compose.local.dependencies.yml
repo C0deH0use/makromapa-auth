@@ -12,7 +12,7 @@ services:
 
     environment:
       - POSTGRES_DB=makromapa-db-auth
-      - POSTGRES_USER=makromapa-db-user
+      - POSTGRES_USER=makromapa-auth-user
       - POSTGRES_PASSWORD=mysecretpassword
 
     networks:
