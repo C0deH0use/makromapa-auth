@@ -22,8 +22,8 @@ public class TestUser {
   //info@code-house.pl
   public static final String APPLE_USER_TOKEN = "eyJraWQiOiJlWGF1bm1MIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoicGwuY29kZWhvdXNlLm1ha3JvLm1hcGEubW9iaWxlIiwiZXhwIjoxNTk3Njk1NzA4LCJpYXQiOjE1OTc2OTUxMDgsInN1YiI6IjAwMDk2Ny5iNWI5NjU2OGE2NGM0YmQyOGFlYzU5ZDYxODYzOTllMS4wODM3IiwiY19oYXNoIjoiV1hTMUFEUFREd0lxODd2NE9PeWw2dyIsImF1dGhfdGltZSI6MTU5NzY5NTEwOCwibm9uY2Vfc3VwcG9ydGVkIjp0cnVlfQ.pptJ_oeF-AJi8f0EWbhqJCZpqvRrGjzNGH73tvcmobiJ7suEVPLBjHwFNKechx56SRQr6QgS9qoQqKw-QXgcbgZaPFvqrcyKcAb6DGhLeGAvIUh-L8a_IFyoHxdwQU0iglVXb9LSP4vzpNNUP2BWPDNucQ_Gk_kqatEUy0mRTVHfeT5gzgk1TOgsCMQDLz3cSFflktKk5jxeCFXjy-Tc2Qqk0IkwNQjfYg262HNAlrzTKFoLCr47xMvok9FCYMIJf4PsC7hpKUwFSbUx0LiG68_taRXH0dq0ODWjnxmpjk8gjQOJUKbkbQiiwNO9V843CEvJaAQfv8vsCcO89MPwiA";
 
-  //Marek00Malik@
-  public static final String FACEBOOK_USER_ACCESS_CODE = "EAAIyey5GNe0BAI73ANTnr6cSgb4XJ6hFZBOfoD0swDbjZC4jyXdsmd7tZANZBjdgepaYVndgKlROOjx2ClVZA90x98RAGhlALyOBQEghhHijVqz1toOhVPRMJO84CwLveilbRNZCegosKri58rY3aCdj1pZBzMdNwGojdCxVZArMm2MX3xjZCEbCfZBDweS4CIJuA5smvv7h8zZCgZDZD";
+  //test.makro01@gmail.com
+  public static final String FACEBOOK_USER_ACCESS_CODE = "EAAIyey5GNe0BAMWEtmKSysljdZBnUMobjZB9kn5njYKZCE0iXynUzJRhqyCJT7mgxWoPHdlYjTaX5vGZCgviWBPzobqh7T6h5ZATYerqq119oh5gklHt5slLBf4vYRkYPdZBew8CIBhVg15PMOZBcY2rjZA366oWYbrHhQRsfUrkeO8KareNKCEJpfFgpxQ7J9Ex2YfxheQM1aexZAZBJC8ZBXXStYNUTXgzi0ZD";
 
   // -- External(JWT) UserDetails
   public static ExternalMockUser GOOGLE_NEW_USER = new ExternalMockUser(null, "Makro Mapa", "104796865881481034300", NEW_USER_TOKEN, null);
@@ -32,7 +32,7 @@ public class TestUser {
 
   public static ExternalMockUser APPLE_NEW_USER = new ExternalMockUser(null, null, "000967.b5b96568a64c4bd28aec59d6186399e1.0837", APPLE_USER_TOKEN, null);
 
-  public static ExternalMockUser FACEBOOK_NEW_USER = new ExternalMockUser(null, null, "10221421846442911", FACEBOOK_USER_ACCESS_CODE, null);
+  public static ExternalMockUser FACEBOOK_NEW_USER = new ExternalMockUser(null, null, "103132744850547", FACEBOOK_USER_ACCESS_CODE, null);
 
 
   // -- Email&Password UserDetails

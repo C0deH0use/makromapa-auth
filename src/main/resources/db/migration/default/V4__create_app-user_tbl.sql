@@ -8,7 +8,7 @@ CREATE TABLE app_user
 
     name                    VARCHAR(255),
     surname                 VARCHAR(255),
-    email                   VARCHAR(255) UNIQUE,
+    email                   VARCHAR(255),
     picture                 VARCHAR(255),
     type                    VARCHAR(255),
 
@@ -26,4 +26,4 @@ ALTER TABLE app_user
             );
 
 CREATE UNIQUE INDEX idx_user_provider_external_id on app_user (provider, external_id);
-CREATE UNIQUE INDEX idx_user_email on app_user (email);
+CREATE UNIQUE INDEX idx_user_email on app_user (email, provider);
