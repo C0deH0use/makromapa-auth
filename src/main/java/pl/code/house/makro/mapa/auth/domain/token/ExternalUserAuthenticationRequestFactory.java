@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ExternalUserAuthRequest;
+import org.springframework.security.oauth2.provider.FacebookUserAuthRequest;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @RequiredArgsConstructor
@@ -25,6 +26,17 @@ class ExternalUserAuthenticationRequestFactory {
     ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 
     ExternalUserAuthRequest authRequest = new ExternalUserAuthRequest(requestParameters, clientId, scopes, responseTypes, principal);
+    authRequest.setResourceIdsAndAuthoritiesFromClientDetails(clientDetails);
+    return authRequest;
+  }
+
+  FacebookUserAuthRequest createFacebookUserAuthRequest(Map<String, String> requestParameters, FacebookAuthentication principal) {
+    String clientId = requestParameters.get(CLIENT_ID);
+    Set<String> scopes = extractScopes(requestParameters, clientId);
+    Set<String> responseTypes = parseParameterList(requestParameters.get(RESPONSE_TYPE));
+    ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
+
+    FacebookUserAuthRequest authRequest = new FacebookUserAuthRequest(requestParameters, clientId, scopes, responseTypes, principal);
     authRequest.setResourceIdsAndAuthoritiesFromClientDetails(clientDetails);
     return authRequest;
   }

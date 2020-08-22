@@ -136,6 +136,8 @@ dependencies {
 
             'org.springframework.security:spring-security-oauth2-jose',
             'org.springframework.security:spring-security-oauth2-resource-server',
+            "org.springframework.social:spring-social-facebook:2.0.3.RELEASE",
+            "org.springframework.social:spring-social-web:1.1.4.RELEASE",
 
             'org.springframework.boot:spring-boot-starter-security',
             'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure',

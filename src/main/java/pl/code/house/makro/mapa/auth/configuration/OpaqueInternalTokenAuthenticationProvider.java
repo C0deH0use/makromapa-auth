@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -8,6 +9,7 @@ import org.springframework.security.oauth2.common.exceptions.InvalidTokenExcepti
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 
+@Slf4j
 @RequiredArgsConstructor
 public class OpaqueInternalTokenAuthenticationProvider implements AuthenticationProvider {
 
@@ -18,7 +20,8 @@ public class OpaqueInternalTokenAuthenticationProvider implements Authentication
     BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
     OAuth2AccessToken token = resourceServerTokenServices.readAccessToken(bearer.getToken());
     if (token == null) {
-      throw new InvalidTokenException("Token was not recognised");
+      log.error("Token passed for validation was not recognize as a JWT token. Passing to next authentication provider.");
+      return null;
     }
 
     if (token.isExpired()) {

@@ -4,24 +4,24 @@ import java.util.Map;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import pl.code.house.makro.mapa.auth.domain.token.FacebookAuthentication;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-public class ExternalUserAuthRequest extends AbstractUserAuthRequest {
+public class FacebookUserAuthRequest extends AbstractUserAuthRequest {
+  private static final long serialVersionUID = -7506443813950006936L;
 
-  private static final long serialVersionUID = 1791623350551969647L;
+  FacebookAuthentication principal;
 
-  JwtAuthenticationToken principal;
-
-  public ExternalUserAuthRequest(
+  public FacebookUserAuthRequest(
       Map<String, String> requestParameters,
       String clientId,
       Set<String> scopes,
       Set<String> responseTypes,
-      JwtAuthenticationToken principal) {
+      FacebookAuthentication principal) {
     super(requestParameters, clientId, scopes, responseTypes);
     this.principal = principal;
   }
+
 
 }

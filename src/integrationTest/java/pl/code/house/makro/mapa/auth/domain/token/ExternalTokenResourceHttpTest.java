@@ -14,6 +14,7 @@ import static org.springframework.test.jdbc.JdbcTestUtils.countRowsInTable;
 import static org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.APPLE_NEW_USER;
+import static pl.code.house.makro.mapa.auth.domain.user.TestUser.FACEBOOK_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
@@ -108,6 +109,40 @@ class ExternalTokenResourceHttpTest {
 
     assertAccessTokenCount().isEqualTo(2);
   }
+
+  @Test
+  @Transactional
+  @DisplayName("return access token when requesting with FaceBook AccessCode")
+  void returnAccessTokenWhenRequestingWithFaceBookAccessCode() {
+    //given
+    assertUserCount().isEqualTo(6);
+    assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isEqualTo(0);
+
+    given()
+        .param("grant_type", "external-token")
+        .param("client_id", "makromapa-mobile")
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(FACEBOOK_NEW_USER.getAuthenticationHeader())
+
+        .log().all(true)
+        .when()
+        .post(EXTERNAL_AUTH_BASE_PATH + "/code")
+
+        .then()
+        .log().all()
+        .status(OK)
+
+        .body("token_type", equalTo("bearer"))
+        .body("access_token", notNullValue())
+        .body("refresh_token", notNullValue())
+        .body("expires_in", greaterThanOrEqualTo(0))
+    ;
+    assertUserCount().isEqualTo(7);
+    assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isEqualTo(1);
+
+    assertAccessTokenCount().isEqualTo(2);
+  }
+
 
   @Test
   @Transactional
