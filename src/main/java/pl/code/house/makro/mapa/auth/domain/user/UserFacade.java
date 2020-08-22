@@ -7,6 +7,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.ExternalUser.newUserFrom;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
+import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.FACEBOOK;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.fromIssuer;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.social.facebook.api.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
@@ -56,17 +58,22 @@ public class UserFacade {
 
     BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
         .map(u -> u.updateWith(parseUserDetails(token)))
-        .orElseGet(() -> createNewFreeUser(token));
+        .orElseGet(() -> createNewExternalUser(token));
 
-    if (PREMIUM_USER == user.getUserDetails().getType()) {
-      TermsAndConditions latestTnC = termsRepository.findFirstByOrderByLastUpdatedDesc();
-      boolean userNotApprovedLatestTnC = latestTnC.getId().equals(user.getTermsAndConditionsId());
+    return checkTcAndReturnDto(user);
+  }
 
-      if (!userNotApprovedLatestTnC) {
-        throw new NewTermsAndConditionsNotApprovedException("New terms and conditions are required for user approval");
-      }
-    }
-    return user.toDto();
+  @Transactional
+  public UserDto findUserByProfile(User userProfile) {
+    String externalUserId = userProfile.getId();
+    OAuth2Provider oauth2Provider = FACEBOOK;
+    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
+
+    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
+        .map(u -> u.updateWith(parseUserDetails(userProfile)))
+        .orElseGet(() -> createNewFacebookUser(userProfile));
+
+    return checkTcAndReturnDto(user);
   }
 
   @Transactional
@@ -156,12 +163,36 @@ public class UserFacade {
     log.info("User `{}` have successfully changed it's password. Verification Code with id {} is marked as used", email, verificationCode.getId());
   }
 
-  private ExternalUser createNewFreeUser(Jwt jwtPrincipal) {
+  private UserDto checkTcAndReturnDto(BaseUser user) {
+    if (PREMIUM_USER == user.getUserDetails().getType()) {
+      TermsAndConditions latestTnC = termsRepository.findFirstByOrderByLastUpdatedDesc();
+      boolean userNotApprovedLatestTnC = latestTnC.getId().equals(user.getTermsAndConditionsId());
+
+      if (!userNotApprovedLatestTnC) {
+        throw new NewTermsAndConditionsNotApprovedException("New terms and conditions are required for user approval");
+      }
+    }
+    return user.toDto();
+  }
+
+  private ExternalUser createNewExternalUser(Jwt jwtPrincipal) {
     String externalId = tryGetExternalUserId(jwtPrincipal);
     OAuth2Provider oauth2Provider = fromIssuer(jwtPrincipal.getClaim("iss"));
 
     UserDetails userDetails = parseUserDetails(jwtPrincipal);
 
+    return createNewFreeUser(externalId, oauth2Provider, userDetails);
+  }
+
+  private ExternalUser createNewFacebookUser(User profile) {
+    String externalId = profile.getId();
+    OAuth2Provider oauth2Provider = FACEBOOK;
+
+    UserDetails userDetails = parseUserDetails(profile);
+    return createNewFreeUser(externalId, oauth2Provider, userDetails);
+  }
+
+  private ExternalUser createNewFreeUser(String externalId, OAuth2Provider oauth2Provider, UserDetails userDetails) {
     log.info("Creating new FREE_USER `{}`. Authentication provider: {}", externalId, oauth2Provider);
 
     ExternalUser externalUser = userRepository.saveAndFlush(newUserFrom(oauth2Provider, userDetails, externalId));
@@ -176,6 +207,16 @@ public class UserFacade {
         .email(jwtPrincipal.getClaim("email"))
         .surname(jwtPrincipal.getClaim("family_name"))
         .picture(jwtPrincipal.getClaim("picture"))
+        .build();
+  }
+
+  private UserDetails parseUserDetails(User profile) {
+    return UserDetails.builder()
+        .type(FREE_USER)
+        .name(profile.getFirstName())
+        .email(profile.getEmail())
+        .surname(profile.getLastName())
+        .picture(profile.getFirstName())
         .build();
   }
 

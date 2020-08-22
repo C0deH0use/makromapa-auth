@@ -78,10 +78,12 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @Bean
   OAuth2ManagerResolver oauth2ManagerResolver(
       ResourceServerTokenServices customResourceTokenService,
-      JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver) {
+      JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver,
+      FacebookAccessCodeAuthenticationProvider facebookAccessCodeAuthenticationProvider) {
     AuthenticationManager opaqueAuthenticationManager = new ProviderManager(
         new AnonymousAuthenticationProvider(randomUUID().toString()),
-        new OpaqueInternalTokenAuthenticationProvider(customResourceTokenService)
+        new OpaqueInternalTokenAuthenticationProvider(customResourceTokenService),
+        facebookAccessCodeAuthenticationProvider
     );
     return new OAuth2ManagerResolver(multiJwtAuthenticationManagerResolver, opaqueAuthenticationManager);
   }
@@ -98,6 +100,14 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     );
     return new JwtIssuerAuthenticationManagerResolver(new CustomIssuerJwtAuthenticationManagerResolver(jwtDecoders));
   }
+
+  @Bean
+  FacebookAccessCodeAuthenticationProvider facebookAccessCodeAuthenticationProvider(
+      @Value("${spring.security.facebook.opaque.app-id}") String appId,
+      @Value("${spring.security.facebook.opaque.app-namespace}") String appNamespace) {
+    return new FacebookAccessCodeAuthenticationProvider(appId, appNamespace);
+  }
+
 
   @Bean
   @Profile({"!integrationTest"})

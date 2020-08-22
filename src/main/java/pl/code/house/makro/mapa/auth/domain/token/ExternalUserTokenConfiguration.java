@@ -27,6 +27,7 @@ class ExternalUserTokenConfiguration {
     OAuth2RequestFactory factory = new DefaultOAuth2RequestFactory(clientDetails);
     return List.of(
         new RefreshTokenGranter(tokenService, clientDetails, factory),
+        new FacebookUserTokenGranter(userFacade, tokenService, clientDetails),
         new ExternalUserTokenGranter(userFacade, tokenService, clientDetails)
     );
   }

@@ -42,7 +42,7 @@ class ExternalTokenResource {
   private final ExternalUserCompositeTokenGranter tokenGranter;
 
   @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/token")
-  ResponseEntity<OAuth2AccessToken> authorizeGoogleToken(@AuthenticationPrincipal JwtAuthenticationToken principal,
+  ResponseEntity<OAuth2AccessToken> authorizeJwtToken(@AuthenticationPrincipal JwtAuthenticationToken principal,
       @RequestParam Map<String, String> parameters) {
     log.info("Authorizing user ['{}']", principal.getName());
 
@@ -54,6 +54,37 @@ class ExternalTokenResource {
     }
 
     TokenRequest tokenRequest = externalUserAuthRequestFactory().createExternalUserAuthRequest(parameters, principal);
+
+    requestValidator.validateScope(tokenRequest, authenticatedClient);
+
+    if (!StringUtils.hasText(tokenRequest.getGrantType())) {
+      throw new InvalidRequestException("Missing grant type");
+    }
+
+    OAuth2AccessToken tokenDto = tokenGranter.grant(tokenRequest.getGrantType(), tokenRequest);
+
+    if (tokenDto == null) {
+      throw new UnsupportedGrantTypeException("Unsupported grant type: " + tokenRequest.getGrantType());
+    }
+
+    return ok()
+        .cacheControl(noStore())
+        .header(PRAGMA, "no-cache")
+        .body(tokenDto);
+  }
+
+  @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/code")
+  ResponseEntity<OAuth2AccessToken> authorizeAccessCode(@AuthenticationPrincipal FacebookAuthentication principal,
+      @RequestParam Map<String, String> parameters) {
+    log.info("Authorizing user ['{}']", principal.getName());
+
+    String clientId = getClientId(parameters);
+    ClientDetails authenticatedClient = clientDetails.loadClientByClientId(clientId);
+
+    if (!clientId.equals(authenticatedClient.getClientId())) {
+      throw new InvalidClientException("Given client ID does not match authenticated client");
+    }
+    TokenRequest tokenRequest = externalUserAuthRequestFactory().createFacebookUserAuthRequest(parameters, principal);
 
     requestValidator.validateScope(tokenRequest, authenticatedClient);
 
