@@ -44,7 +44,7 @@ class ExternalTokenResource {
   @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/token")
   ResponseEntity<OAuth2AccessToken> authorizeJwtToken(@AuthenticationPrincipal JwtAuthenticationToken principal,
       @RequestParam Map<String, String> parameters) {
-    log.info("Authorizing user ['{}']", principal.getName());
+    log.info("Authorizing user ['{}'] token", principal.getName());
 
     String clientId = getClientId(parameters);
     ClientDetails authenticatedClient = clientDetails.loadClientByClientId(clientId);
@@ -76,7 +76,7 @@ class ExternalTokenResource {
   @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/code")
   ResponseEntity<OAuth2AccessToken> authorizeAccessCode(@AuthenticationPrincipal FacebookAuthentication principal,
       @RequestParam Map<String, String> parameters) {
-    log.info("Authorizing user ['{}']", principal.getName());
+    log.info("Authorizing user ['{}'] access code", principal.getName());
 
     String clientId = getClientId(parameters);
     ClientDetails authenticatedClient = clientDetails.loadClientByClientId(clientId);
