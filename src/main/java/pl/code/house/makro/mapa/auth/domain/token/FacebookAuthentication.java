@@ -1,22 +1,31 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
+import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.userAuthoritiesFor;
+
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.social.facebook.api.User;
+import pl.code.house.makro.mapa.auth.domain.user.UserType;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class FacebookAuthentication extends AbstractAuthenticationToken {
 
-  private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
+  private static final long serialVersionUID = 1191701135435410597L;
 
   User userProfile;
 
   public FacebookAuthentication(User userProfile) {
-    super(null);
+    super(userAuthoritiesFor(UserType.FREE_USER));
     this.userProfile = userProfile;
+    this.setAuthenticated(true);
+  }
+
+  public FacebookAuthentication(User userProfile, UserType userType) {
+    super(userAuthoritiesFor(userType));
+    this.userProfile = userProfile;
+    this.setAuthenticated(true);
   }
 
   @Override

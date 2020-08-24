@@ -12,8 +12,8 @@ public class PasswordGenerator {
   @DisplayName("generate password")
   void generatePassword() {
     //given
-//    String password = RandomStringUtils.randomAlphanumeric(10);
-    String password = "P@ssw0rd1";
+    String password = RandomStringUtils.randomAlphanumeric(10);
+//    String password = "P@ssw0rd1";
     PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     //then

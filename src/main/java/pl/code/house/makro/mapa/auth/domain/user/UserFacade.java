@@ -66,8 +66,7 @@ public class UserFacade {
   @Transactional
   public UserDto findUserByProfile(User userProfile) {
     String externalUserId = userProfile.getId();
-    OAuth2Provider oauth2Provider = FACEBOOK;
-    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
+    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", FACEBOOK, externalUserId);
 
     BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
         .map(u -> u.updateWith(parseUserDetails(userProfile)))
@@ -216,7 +215,6 @@ public class UserFacade {
         .name(profile.getFirstName())
         .email(profile.getEmail())
         .surname(profile.getLastName())
-        .picture(profile.getFirstName())
         .build();
   }
 

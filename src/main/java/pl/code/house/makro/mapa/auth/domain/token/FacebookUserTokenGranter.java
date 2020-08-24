@@ -54,11 +54,10 @@ class FacebookUserTokenGranter implements TokenGranter {
   }
 
   private OAuth2Authentication getOAuth2Authentication(ClientDetails client, FacebookUserAuthRequest tokenRequest) {
-    FacebookAuthentication userAuth = tokenRequest.getPrincipal();
-
-    UserDto userDto = userFacade.findUserByProfile(userAuth.getUserProfile());
+    UserDto userDto = userFacade.findUserByProfile(tokenRequest.getPrincipal().getUserProfile());
     tokenRequest.setExternalUserId(userDto);
 
+    FacebookAuthentication userAuth = new FacebookAuthentication(tokenRequest.getPrincipal().getUserProfile(), userDto.getUserDetails().getType());
     OAuth2Request auth2Request = tokenRequest.createOAuth2Request(client);
     return new ExternalUserAuthentication(auth2Request, userAuth);
   }
