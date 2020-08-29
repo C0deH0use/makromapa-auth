@@ -11,8 +11,8 @@ class UserActivationProperties {
   String mailSubject;
 
   UserActivationProperties(
-      @Value("${user.activation.code.expiresOn.hours}") long expiresOn,
-      @Value("${user.activation.code.mail.subject}") String mailSubject
+      @Value("${mails.registration.verification.code.expiresOn.hours}") long expiresOn,
+      @Value("${mails.registration.verification.code.mail.subject}") String mailSubject
   ) {
     this.expiresOn = expiresOn;
     this.mailSubject = mailSubject;

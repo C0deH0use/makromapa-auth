@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.PasswordMockUser;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
@@ -162,12 +163,13 @@ class UserFacadeWithRegisteredUserTest {
   void shouldCorrectlyActivateDraftUserWithVerificationCode() {
     //given
     String clientId = "client_id";
+    ActivateUserRequest request = new ActivateUserRequest(NEW_REG_USER.getName(), code);
 
     given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
-    given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedDraft(NEW_REG_USER)));
+    given(repository.findUserWithPasswordByUserEmail(NEW_REG_USER.getName())).willReturn(of(savedDraft(NEW_REG_USER)));
 
     //when
-    UserDto userDto = sut.activateDraftBy(code, clientId);
+    UserDto userDto = sut.activateDraftBy(request, clientId);
 
     //then
     assertThat(userDto.getId()).isEqualTo(DRAFT_USER_ID);
@@ -228,15 +230,15 @@ class UserFacadeWithRegisteredUserTest {
   void throwIfUserAssignedToVerificationCodeIsNotADraft() {
     //given
     String clientId = "client_id";
+    ActivateUserRequest request = new ActivateUserRequest(NEW_REG_USER.getName(), code);
 
     given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
-    given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedUser(NEW_REG_USER.getUserId(), NEW_REG_USER, FREE_USER, false)));
+    given(repository.findUserWithPasswordByUserEmail(NEW_REG_USER.getName())).willReturn(of(savedUser(NEW_REG_USER.getUserId(), NEW_REG_USER, FREE_USER, false)));
 
     //when
-    assertThatThrownBy(() -> sut.activateDraftBy(code, clientId))
+    assertThatThrownBy(() -> sut.activateDraftBy(request, clientId))
         .isInstanceOf(UserRegistrationException.class)
-        .hasMessageContaining("DRAFT user")
-        .hasMessageContaining("was not found")
+        .hasMessageContaining("Could not find any eligible draft")
     ;
   }
 
@@ -245,13 +247,14 @@ class UserFacadeWithRegisteredUserTest {
   void throwIfUsingCodeAssignedToDifferentUser() {
       //given
     String clientId = "client_id";
+    ActivateUserRequest request = new ActivateUserRequest(NEW_REG_USER.getName(), code);
 
     given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
     UserWithPassword savedUser = savedUser(UUID.randomUUID(), NEW_REG_USER, DRAFT_USER, false);
-    given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedUser));
+    given(repository.findUserWithPasswordByUserEmail(NEW_REG_USER.getName())).willReturn(of(savedUser));
 
     //when
-    assertThatThrownBy(() -> sut.activateDraftBy(code, clientId))
+    assertThatThrownBy(() -> sut.activateDraftBy(request, clientId))
         .isInstanceOf(UserRegistrationException.class)
         .hasMessageContaining("Validation Code is assigned to different user")
         ;
@@ -262,16 +265,15 @@ class UserFacadeWithRegisteredUserTest {
   void throwIfUserAssignedToVerificationCodeIsEnabled() {
     //given
     String clientId = "client_id";
+    ActivateUserRequest request = new ActivateUserRequest(NEW_REG_USER.getName(), code);
 
     given(activationCodeService.findVerificationCode(code, REGISTRATION)).willReturn(validCode());
-    given(repository.findById(DRAFT_USER_ID)).willReturn(of(savedUser(NEW_REG_USER.getUserId(), NEW_REG_USER, DRAFT_USER, true)));
+    given(repository.findUserWithPasswordByUserEmail(NEW_REG_USER.getName())).willReturn(of(savedUser(NEW_REG_USER.getUserId(), NEW_REG_USER, DRAFT_USER, true)));
 
     //when
-    assertThatThrownBy(() -> sut.activateDraftBy(code, clientId))
+    assertThatThrownBy(() -> sut.activateDraftBy(request, clientId))
         .isInstanceOf(UserRegistrationException.class)
-        .hasMessageContaining("Disabled")
-        .hasMessageContaining("user")
-        .hasMessageContaining("was not found")
+        .hasMessageContaining("Could not find any eligible draft")
     ;
   }
   

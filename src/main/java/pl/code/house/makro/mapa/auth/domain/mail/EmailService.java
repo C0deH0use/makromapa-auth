@@ -1,11 +1,13 @@
 package pl.code.house.makro.mapa.auth.domain.mail;
 
-import static org.apache.commons.lang3.StringUtils.indexOf;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isTrue;
 import static org.springframework.util.Assert.notNull;
 import static pl.code.house.makro.mapa.auth.domain.mail.EmailType.REGISTRATION;
+import static pl.code.house.makro.mapa.auth.domain.mail.EmailType.RESET_PASSWORD;
+import static pl.code.house.makro.mapa.auth.domain.user.UserFacade.maskEmail;
 
+import java.util.List;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -31,20 +33,15 @@ public class EmailService {
     hasText(details.getSubject(), "Email should have subject");
     notNull(details.getType(), "Email should be of proper type");
     validateByType(details);
-    log.info("Sending {} message titled {} to - {}", details.getType(), details.getSubject(), maskSubject(details.getReceiver()));
+    log.info("Sending {} message titled {} to - {}", details.getType(), details.getSubject(), maskEmail(details.getReceiver()));
     trySendMessage(details);
-  }
-
-  private String maskSubject(String receiver) {
-    int indexOfAtSign = indexOf(receiver, "@");
-
-    return receiver.substring(0, indexOfAtSign) + "*".repeat(receiver.length() - indexOfAtSign);
   }
 
   private void trySendMessage(MessageDetails details) {
     try {
       MimeMessage msg = mailSender.createMimeMessage();
       MimeMessageHelper message = new MimeMessageHelper(msg, true, "UTF-8"); // true = multipart
+      message.setFrom("noreply@makromapa.pl");
       message.setSubject(details.getSubject());
       message.setTo(details.getReceiver());
 
@@ -58,8 +55,9 @@ public class EmailService {
   }
 
   private void validateByType(MessageDetails details) {
-    if (REGISTRATION == details.getType()) {
-      isTrue(details.getContext().containsVariable("verification_code"), "Registration email message should contain the `verification_code`");
+    if (List.of(REGISTRATION, RESET_PASSWORD).contains(details.getType())) {
+      isTrue(details.getContext().containsVariable("expiry_date"), "Email message context should contain the `expiry_date` variable");
+      isTrue(details.getContext().containsVariable("verification_code"), "Email message context should contain the `verification_code` variable");
     }
   }
 }

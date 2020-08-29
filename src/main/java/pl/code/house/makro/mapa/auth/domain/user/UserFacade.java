@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.social.facebook.api.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
@@ -49,6 +50,10 @@ public class UserFacade {
   private final TermsAndConditionsRepository termsRepository;
 
   private final VerificationCodeService verificationCodeService;
+
+  public static String maskEmail(String email) {
+    return email.replaceAll("(^[^@]{3}|(?!^)\\G)[^@]", "$1*");
+  }
 
   @Transactional
   public UserDto findUserByToken(Jwt token) {
@@ -98,34 +103,35 @@ public class UserFacade {
   }
 
   @Transactional
-  public UserDto activateDraftBy(String code, String clientId) {
-    hasText(code, "Activation code must be valid");
+  public UserDto activateDraftBy(ActivateUserRequest request, String clientId) {
+    hasText(request.getEmail(), "Draft email is mandatory");
+    hasText(request.getVerificationCode(), "Verification code must be valid");
     hasText(clientId, "Client Id must be valid");
 
-    VerificationCodeDto verificationCode = verificationCodeService.findVerificationCode(code, REGISTRATION);
+    VerificationCodeDto verificationCode = verificationCodeService.findVerificationCode(request.getVerificationCode(), REGISTRATION);
 
-    BaseUser user = userRepository.findById(verificationCode.getUser().getId())
+    BaseUser user = userRepository.findUserWithPasswordByUserEmail(request.getEmail())
         .filter(u -> DRAFT_USER == u.getUserDetails().getType())
         .filter(not(BaseUser::getEnabled))
-        .orElseThrow(() -> new UserRegistrationException(DRAFT_NOT_FOUND, "Disabled DRAFT user that was assigned to the Activation Code was not found."));
+        .orElseThrow(() -> new UserRegistrationException(DRAFT_NOT_FOUND, "Could not find any eligible draft user with the following email"));
 
     if (!verificationCode.getUser().getId().equals(user.getId())) {
       throw new UserRegistrationException(VALIDATION_CODE_NOT_VALID, "Validation Code is assigned to different user");
     }
 
-    log.info("Received request from `{}` activate DRAFT User `{}`", clientId, user.getId());
+    log.info("Received request from `{}` client to activate DRAFT User `{}`", clientId, user.getId());
 
     user.activate();
     userAuthoritiesService.insertUserAuthorities(user.getId(), FREE_USER);
     verificationCodeService.useCode(verificationCode.getId());
 
-    log.info("User `{}` is now active and can no login to the system via BASIC_AUTH protocol", user.getId());
+    log.info("User `{}` is now active and can now login to the system via BASIC_AUTH protocol", user.getId());
     return user.toDto();
   }
 
   @Transactional
   public CommunicationDto resetPasswordFor(String email) {
-    log.info("User `{}` requests Password Reset", email);
+    log.info("User `{}` requests Password Reset", maskEmail(email));
     hasText(email, "Email must be valid");
 
     UserWithPassword user = (UserWithPassword) userRepository.findUserWithPasswordByUserEmail(email)
@@ -133,13 +139,13 @@ public class UserFacade {
         .filter(BaseUser::getEnabled)
         .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot reset password for DRAFT user. Please register first."));
 
-    log.info("Request received to reset BASIC_AUTH user ({} - {}) password.", email, user.getId());
+    log.info("Request received to reset BASIC_AUTH user ({} - {}) password.", maskEmail(email), user.getId());
     return verificationCodeService.sendResetPasswordToActiveUser(user);
   }
 
   @Transactional
   public void changeUserPassword(String email, String code, String newPassword) {
-    log.info("User `{}` tries to change password with verification_code", email);
+    log.info("User `{}` tries to change password with verification_code", maskEmail(email));
 
     hasText(email, "Email is required!");
     hasText(code, "Verification_Code is required!");
@@ -159,7 +165,7 @@ public class UserFacade {
     userRepository.updateUserPassword(user.getId(), passwordEncoder.encode(newPassword));
     verificationCodeService.useCode(verificationCode.getId());
 
-    log.info("User `{}` have successfully changed it's password. Verification Code with id {} is marked as used", email, verificationCode.getId());
+    log.info("User `{}` have successfully changed it's password. Verification Code with id {} is marked as used", maskEmail(email), verificationCode.getId());
   }
 
   private UserDto checkTcAndReturnDto(BaseUser user) {
@@ -238,4 +244,5 @@ public class UserFacade {
 
     return externalId;
   }
+
 }

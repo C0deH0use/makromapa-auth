@@ -33,10 +33,12 @@ import com.icegreen.greenmail.util.GreenMail;
 import io.restassured.http.Header;
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,7 +74,7 @@ class UserResourceHttpTest {
   @Autowired
   private Clock clock;
 
-  @Value("${user.activation.code.expiresOn.hours}")
+  @Value("${mails.registration.verification.code.expiresOn.hours}")
   private Long expiresOn;
 
   private GreenMail greenMail;
@@ -217,9 +219,11 @@ class UserResourceHttpTest {
     given()
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+        .param("email", REG_DRAFT_USER.getName())
+        .param("verificationCode", REG_DRAFT_USER.getActivationCode())
 
         .when()
-        .post(BASE_PATH + "/user/activate/{code}", REG_DRAFT_USER.getActivationCode())
+        .post(BASE_PATH + "/user/activate")
 
         .then()
         .log().all()
@@ -414,8 +418,11 @@ class UserResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
 
+        .param("email",  REG_DRAFT_USER_WITH_DISABLED_CODE.getName())
+        .param("verificationCode",  REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
+
         .when()
-        .post(BASE_PATH + "/user/activate/{code}", REG_DRAFT_USER_WITH_EXPIRED_CODE.getActivationCode())
+        .post(BASE_PATH + "/user/activate")
 
         .then()
         .log().all()
@@ -431,8 +438,11 @@ class UserResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
 
+        .param("email",  REG_DRAFT_USER_WITH_DISABLED_CODE.getName())
+        .param("verificationCode",  REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
+
         .when()
-        .post(BASE_PATH + "/user/activate/{code}", REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
+        .post(BASE_PATH + "/user/activate")
 
         .then()
         .log().all()

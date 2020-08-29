@@ -7,10 +7,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import javax.mail.Address;
-import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +24,7 @@ class EmailServiceHttpTest {
   public static final String EXPECTED_GREETINGS = "Witamy w MakroMapie";
   public static final String EXPECTED_SUBJECT = "REGISTRATION_SUBJECT";
   public static final String ACTIVATION_CODE = "ACTIVATION_CODE";
+  public static final String EXPIRY_DATE = "EXPIRY_DATE";
   public static final String EXPECTED_RECEIVER = "email@test.com";
   @Autowired
   private EmailService sut;
@@ -50,6 +49,7 @@ class EmailServiceHttpTest {
     //given
     Context ctx = new Context();
     ctx.setVariable("verification_code", ACTIVATION_CODE);
+    ctx.setVariable("expiry_date", EXPIRY_DATE);
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, EXPECTED_RECEIVER, ctx);
 
     //when
@@ -76,6 +76,7 @@ class EmailServiceHttpTest {
     //given
     Context ctx = new Context();
     ctx.setVariable("verification_code", ACTIVATION_CODE);
+    ctx.setVariable("expiry_date", EXPIRY_DATE);
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(null, EXPECTED_RECEIVER, ctx);
 
     //when & then
@@ -90,8 +91,9 @@ class EmailServiceHttpTest {
   void throwIfMessageDoesNotHaveValidReceiverValue() {
     //given
     Context ctx = new Context();
-    ctx.setVariable("name", "TEST_NAME");
     ctx.setVariable("verification_code", ACTIVATION_CODE);
+    ctx.setVariable("expiry_date", EXPIRY_DATE);
+
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, null, ctx);
 
     //when & then
@@ -106,7 +108,7 @@ class EmailServiceHttpTest {
   void throwIfMessageDoesNotHaveVerificationCode() {
     //given
     Context ctx = new Context();
-    ctx.setVariable("name", "TEST_NAME");
+    ctx.setVariable("expiry_date", EXPIRY_DATE);
 
     RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, EXPECTED_RECEIVER, ctx);
 
@@ -114,6 +116,22 @@ class EmailServiceHttpTest {
     assertThatThrownBy(() -> sut.sendHtmlMail(messageDetails))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("should contain the `verification_code`")
+    ;
+  }
+
+  @Test
+  @DisplayName("throw if message does not have expiry_date")
+  void throwIfMessageDoesNotHaveExpiryDate() {
+    //given
+    Context ctx = new Context();
+    ctx.setVariable("verification_code", EXPIRY_DATE);
+
+    RegistrationMessageDetails messageDetails = new RegistrationMessageDetails(EXPECTED_SUBJECT, EXPECTED_RECEIVER, ctx);
+
+    //when & then
+    assertThatThrownBy(() -> sut.sendHtmlMail(messageDetails))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("should contain the `expiry_date`")
     ;
   }
 }

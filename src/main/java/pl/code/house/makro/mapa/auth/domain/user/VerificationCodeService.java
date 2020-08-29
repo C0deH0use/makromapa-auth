@@ -13,6 +13,7 @@ import static pl.code.house.makro.mapa.auth.error.UserOperationError.VALIDATION_
 
 import java.time.Clock;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 @Service
 @RequiredArgsConstructor
 class VerificationCodeService {
-
+  private static final DateTimeFormatter EXPIRY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm");
   private static final String COULD_NOT_FIND_VERIFICATION_CODE_MSG = "Could not find any VALID verificationCode with such code.";
   private final Clock clock;
 
@@ -118,6 +119,7 @@ class VerificationCodeService {
 
     Context messageCtx = new Context();
     messageCtx.setVariable("verification_code", verificationCode.getCode());
+    messageCtx.setVariable("expiry_date", EXPIRY_DATE_FORMAT.format(verificationCode.getExpiresOn()));
 
     MessageDetails messageDetails = new RegistrationMessageDetails(properties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
     emailService.sendHtmlMail(messageDetails);
@@ -128,6 +130,7 @@ class VerificationCodeService {
 
     Context messageCtx = new Context();
     messageCtx.setVariable("verification_code", verificationCode.getCode());
+    messageCtx.setVariable("expiry_date", EXPIRY_DATE_FORMAT.format(verificationCode.getExpiresOn()));
 
     MessageDetails messageDetails = new ResetPasswordMessageDetails(properties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
     emailService.sendHtmlMail(messageDetails);

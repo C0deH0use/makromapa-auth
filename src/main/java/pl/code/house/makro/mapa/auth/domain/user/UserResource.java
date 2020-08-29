@@ -6,6 +6,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.domain.user.UserFacade.maskEmail;
 
 import java.security.Principal;
 import lombok.AllArgsConstructor;
@@ -19,11 +20,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewPasswordRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
@@ -37,6 +38,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 class UserResource {
 
   private static final String EXTERNAL_TOKEN = "external-token";
+  private static final String USER_ACTIVATION_LOG = "Client Application `{}` is requesting to activate user {} with activation_code: `{}`";
 
   private final UserFacade facade;
 
@@ -64,13 +66,13 @@ class UserResource {
     return status(CREATED).body(draftDto);
   }
 
-  @PostMapping(path = "/activate/{activation_code}")
+  @PostMapping(path = "/activate")
   ResponseEntity<UserDto> activateDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
-      @PathVariable("activation_code") String activationCode) {
-    log.info("Application Client `{}` is requesting to activate user by activation_code: `{}`", principal.getName(), activationCode);
+      ActivateUserRequest activateUserRequest) {
+    log.info(USER_ACTIVATION_LOG, principal.getName(), maskEmail(activateUserRequest.getEmail()), activateUserRequest.getVerificationCode());
     String clientId = getClientId(principal);
 
-    UserDto userDto = facade.activateDraftBy(activationCode, clientId);
+    UserDto userDto = facade.activateDraftBy(activateUserRequest, clientId);
 
     return ok(userDto);
   }
