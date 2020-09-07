@@ -149,7 +149,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
       auth.jdbcAuthentication()
           .dataSource(dataSource)
-          .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE email = ?")
+          .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE provider = 'BASIC_AUTH' AND email = ?")
           .authoritiesByUsernameQuery("SELECT user_id::text, authority FROM user_authority WHERE user_id::text = ?")
       ;
     }
