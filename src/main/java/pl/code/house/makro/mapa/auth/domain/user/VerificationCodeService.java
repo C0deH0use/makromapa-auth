@@ -37,7 +37,9 @@ class VerificationCodeService {
   private static final String COULD_NOT_FIND_VERIFICATION_CODE_MSG = "Could not find any VALID verificationCode with such code.";
   private final Clock clock;
 
-  private final UserActivationProperties properties;
+  private final UserActivationProperties userActivationProperties;
+
+  private final PasswordResetProperties passwordResetProperties;
 
   private final UserVerificationCodeRepository repository;
 
@@ -121,7 +123,7 @@ class VerificationCodeService {
     messageCtx.setVariable("verification_code", verificationCode.getCode());
     messageCtx.setVariable("expiry_date", EXPIRY_DATE_FORMAT.format(verificationCode.getExpiresOn()));
 
-    MessageDetails messageDetails = new RegistrationMessageDetails(properties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
+    MessageDetails messageDetails = new RegistrationMessageDetails(userActivationProperties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
     emailService.sendHtmlMail(messageDetails);
   }
 
@@ -132,12 +134,12 @@ class VerificationCodeService {
     messageCtx.setVariable("verification_code", verificationCode.getCode());
     messageCtx.setVariable("expiry_date", EXPIRY_DATE_FORMAT.format(verificationCode.getExpiresOn()));
 
-    MessageDetails messageDetails = new ResetPasswordMessageDetails(properties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
+    MessageDetails messageDetails = new ResetPasswordMessageDetails(passwordResetProperties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
     emailService.sendHtmlMail(messageDetails);
   }
 
   private UserVerificationCode buildVerificationCodeWith(UserWithPassword draftUser, CodeType codeType) {
-    ZonedDateTime expiresOn = now(clock).plusHours(properties.getExpiresOn());
+    ZonedDateTime expiresOn = now(clock).plusHours(passwordResetProperties.getExpiresOn());
     String code = randomNumeric(6);
 
     log.debug("Building new verificationCode `{}` ... with expiry date set to {}", code, expiresOn);

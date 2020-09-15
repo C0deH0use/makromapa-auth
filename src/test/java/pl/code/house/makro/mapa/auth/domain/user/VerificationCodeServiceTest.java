@@ -2,8 +2,6 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.ZonedDateTime.now;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,7 +45,6 @@ class VerificationCodeServiceTest {
   private static final String PASSWORD = "DEFAULT_PASWD";
   private static final String USER_EMAIL = "email@domain.com";
   private static final int EXPIRES_AFTER = 10;
-  private final UserActivationProperties properties = properties();
 
   private final Clock clock = Clock.fixed(Instant.parse("2020-07-03T10:15:30.00Z"), UTC);
 
@@ -61,7 +58,7 @@ class VerificationCodeServiceTest {
 
   @BeforeEach
   void setUp() {
-    sut = new VerificationCodeService(clock, properties, repository, emailService);
+    sut = new VerificationCodeService(clock, activationProperties(), resetProperties(), repository, emailService);
   }
 
   @Test
@@ -353,8 +350,11 @@ class VerificationCodeServiceTest {
     return new UserVerificationCode(INVALID_RESET_PASSWORD_CODE_ID, activeUser(), true, CODE, CodeType.RESET_PASSWORD, now(clock).minusMonths(1));
   }
 
-  private UserActivationProperties properties() {
+  private UserActivationProperties activationProperties() {
     return new UserActivationProperties(EXPIRES_AFTER, "REGISTRATION_SUBJECT");
+  }
+  private PasswordResetProperties resetProperties() {
+    return new PasswordResetProperties(EXPIRES_AFTER, "RESET_PASSWORD_SUBJECT");
   }
 
   private UserWithPassword draftUser() {
