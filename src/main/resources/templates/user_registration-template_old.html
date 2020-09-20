@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title th:remove="all">Zmiana hasła użytkownika</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<h2>
+  Poprosił o zmianę hasła
+</h2>
+<p style="margin-top: 40px;margin-bottom: 20px; margin-left: 20px">
+  Otrzymaliśmy żądanie zmiany hasła dla użytkownika (<span th:text="${user_name}"></span>), pomniżej znajduje się kod weryfikacyjny wymagany do zmiany hasła.
+
+  </br>
+  Jeśli to nie Ty poprosiłeś o zmianę hasła, pomiń ten email.
+</p>
+<p style="margin-bottom: 30px; margin-left: 20px; font-size: 1.5em; color: gray">
+  <b>
+    <span th:text="${verification_code}">222222</span>
+  </b>
+</p>
+<p style="margin-top: 40px;margin-bottom: 20px; margin-left: 20px">
+  *Kod będzie aktywny do: <span th:text="${expiry_date}"></span>, do tego czasu możesz dokończyć zmianę hasła w aplikacji mobilnej.</br>
+  Po tym czasie musisz przejść ponownie proces zmiany hasła w aplikacji MakroMapa.
+</p>
+<p>
+  Pozdrawiamy, <br/>
+  <em>Zespół MakroMapy</em>
+</p>
+</body>
+</html>

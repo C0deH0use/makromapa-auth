@@ -59,5 +59,9 @@ public class EmailService {
       isTrue(details.getContext().containsVariable("expiry_date"), "Email message context should contain the `expiry_date` variable");
       isTrue(details.getContext().containsVariable("verification_code"), "Email message context should contain the `verification_code` variable");
     }
+
+    if (RESET_PASSWORD == details.getType()) {
+      isTrue(details.getContext().containsVariable("user_name"), "RESET_PASSWORD Email message context should contain the `user_name` variable");
+    }
   }
 }

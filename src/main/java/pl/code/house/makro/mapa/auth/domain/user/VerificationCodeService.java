@@ -33,6 +33,7 @@ import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 @Service
 @RequiredArgsConstructor
 class VerificationCodeService {
+
   private static final DateTimeFormatter EXPIRY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm");
   private static final String COULD_NOT_FIND_VERIFICATION_CODE_MSG = "Could not find any VALID verificationCode with such code.";
   private final Clock clock;
@@ -123,7 +124,9 @@ class VerificationCodeService {
     messageCtx.setVariable("verification_code", verificationCode.getCode());
     messageCtx.setVariable("expiry_date", EXPIRY_DATE_FORMAT.format(verificationCode.getExpiresOn()));
 
-    MessageDetails messageDetails = new RegistrationMessageDetails(userActivationProperties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
+    MessageDetails messageDetails = new RegistrationMessageDetails(userActivationProperties.getMailSubject(),
+        draftUser.getUserDetails().getEmail(),
+        messageCtx);
     emailService.sendHtmlMail(messageDetails);
   }
 
@@ -133,8 +136,11 @@ class VerificationCodeService {
     Context messageCtx = new Context();
     messageCtx.setVariable("verification_code", verificationCode.getCode());
     messageCtx.setVariable("expiry_date", EXPIRY_DATE_FORMAT.format(verificationCode.getExpiresOn()));
+    messageCtx.setVariable("user_name", draftUser.getUserDetails().getEmail());
 
-    MessageDetails messageDetails = new ResetPasswordMessageDetails(passwordResetProperties.getMailSubject(), draftUser.getUserDetails().getEmail(), messageCtx);
+    MessageDetails messageDetails = new ResetPasswordMessageDetails(passwordResetProperties.getMailSubject(),
+        draftUser.getUserDetails().getEmail(),
+        messageCtx);
     emailService.sendHtmlMail(messageDetails);
   }
 
