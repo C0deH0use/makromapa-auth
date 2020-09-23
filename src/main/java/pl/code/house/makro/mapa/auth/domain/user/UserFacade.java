@@ -49,6 +49,8 @@ public class UserFacade {
 
   private final TermsAndConditionsRepository termsRepository;
 
+  private final UserOptOutService optOutService;
+
   private final VerificationCodeService verificationCodeService;
 
   public static String maskEmail(String email) {
@@ -166,6 +168,11 @@ public class UserFacade {
     verificationCodeService.useCode(verificationCode.getId());
 
     log.info("User `{}` have successfully changed it's password. Verification Code with id {} is marked as used", maskEmail(email), verificationCode.getId());
+  }
+
+  @Transactional
+  public void deleteUser(String authenticationToken) {
+    optOutService.optoutUser(authenticationToken);
   }
 
   private UserDto checkTcAndReturnDto(BaseUser user) {
