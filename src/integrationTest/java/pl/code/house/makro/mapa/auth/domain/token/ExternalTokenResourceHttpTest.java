@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -42,7 +43,7 @@ class ExternalTokenResourceHttpTest {
 
   @BeforeEach
   void setup() {
-    RestAssuredMockMvc.webAppContextSetup(context, springSecurity());
+    webAppContextSetup(context, springSecurity());
   }
 
   @Test
@@ -215,7 +216,6 @@ class ExternalTokenResourceHttpTest {
   private IntegerAssert assertAccessTokenCount() {
     return new IntegerAssert(countRowsInTable(jdbcTemplate, "oauth_access_token"));
   }
-
 
   private IntegerAssert assertUserCount() {
     return new IntegerAssert(countRowsInTable(jdbcTemplate, "app_user"));
