@@ -72,6 +72,14 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
+  @Primary
+  public TokenStore tokenStore(DataSource dataSource) {
+    JdbcTokenStore jdbcTokenStore = new JdbcTokenStore(dataSource);
+    jdbcTokenStore.setAuthenticationKeyGenerator(new ExternalUserAuthenticationKeyGenerator());
+    return jdbcTokenStore;
+  }
+
+  @Bean
   public PasswordEncoder passwordEncoder() {
     return PasswordEncoderFactories.createDelegatingPasswordEncoder();
   }
@@ -174,14 +182,6 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public UserDetailsService userDetailsServiceBean(DataSource dataSource) {
       return new JdbcUserDetailsManager(dataSource);
-    }
-
-    @Bean
-    @Primary
-    public TokenStore tokenStore(DataSource dataSource) {
-      JdbcTokenStore jdbcTokenStore = new JdbcTokenStore(dataSource);
-      jdbcTokenStore.setAuthenticationKeyGenerator(new ExternalUserAuthenticationKeyGenerator());
-      return jdbcTokenStore;
     }
 
     @Bean
