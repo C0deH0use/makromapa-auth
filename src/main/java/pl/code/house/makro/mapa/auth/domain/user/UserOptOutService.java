@@ -7,7 +7,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -17,11 +17,11 @@ class UserOptOutService {
 
   private final UserRepository userRepository;
 
-  private final DefaultTokenServices tokenServices;
+  private final JdbcTokenStore tokenServices;
 
   void optoutUser(String authenticationToken) {
     String accessToken = trimToEmpty(removeStartIgnoreCase(authenticationToken, "bearer"));
-    OAuth2Authentication authenticatedUser = tokenServices.loadAuthentication(accessToken);
+    OAuth2Authentication authenticatedUser = tokenServices.readAuthentication(accessToken);
 
     log.info("Searching for user ['{}'] to be removed that is associated with access token.", authenticatedUser.getName());
     BaseUser user = userRepository.findById(UUID.fromString(authenticatedUser.getName()))
@@ -29,7 +29,7 @@ class UserOptOutService {
 
     log.info("Revoking user ['{}'] access Token", user.getId());
 
-    tokenServices.revokeToken(accessToken);
+    tokenServices.removeAccessToken(accessToken);
     log.info("User ['{}'] provided by {} is being removed from the system", user.getId(), user.getProvider());
     userRepository.deleteById(user.getId());
   }
