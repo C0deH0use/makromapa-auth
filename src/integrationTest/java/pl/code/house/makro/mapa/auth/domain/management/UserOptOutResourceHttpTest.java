@@ -46,7 +46,7 @@ class UserOptOutResourceHttpTest {
   @DisplayName("should accept unauthorized request with signed body")
   void shouldAcceptUnauthorizedRequestWithSignedBody() {
     given()
-        .param("signedRequest", REG_USER.getPassword())
+        .param("signed_request", REG_USER.getPassword())
         .contentType(APPLICATION_JSON_VALUE)
 
         .when()

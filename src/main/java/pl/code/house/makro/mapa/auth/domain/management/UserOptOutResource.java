@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.code.house.makro.mapa.auth.domain.management.dto.UserDataResponseDto;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
@@ -28,8 +29,9 @@ class UserOptOutResource {
   private final UserFacade facade;
 
   @PostMapping(path = "/user/opt-out/facebook")
-  ResponseEntity<UserDataResponseDto> userOptOut(Map<String, Object> request) {
-    log.info("Registered Facebook User OptOut call. signedRequest: `{}`", request);
+  ResponseEntity<UserDataResponseDto> userOptOut(@RequestParam("signed_request") String signedRequest) {
+    log.info("Registered Facebook User OptOut call. signed_request: `{}`", signedRequest);
+
     //facade.deleteUser(accessToken);
     return ok(new UserDataResponseDto("https://www.makromapa.pl/", "200"));
   }

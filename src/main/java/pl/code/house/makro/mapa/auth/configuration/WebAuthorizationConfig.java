@@ -150,7 +150,12 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       http.csrf()
           .disable()
 
-          .authorizeRequests().anyRequest().authenticated()
+          .authorizeRequests()
+
+          .and()
+          .authorizeRequests().antMatchers(BASE_PATH + "/user/opt-out/facebook").anonymous()
+
+          .anyRequest().authenticated()
       ;
     }
 
