@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AnonymousAuthenticationProvider;
@@ -176,6 +177,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @Primary
     public TokenStore tokenStore(DataSource dataSource) {
       JdbcTokenStore jdbcTokenStore = new JdbcTokenStore(dataSource);
       jdbcTokenStore.setAuthenticationKeyGenerator(new ExternalUserAuthenticationKeyGenerator());
