@@ -50,7 +50,7 @@ class UserOptOutResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
 
         .when()
-        .post("/oauth/external/user/facebook/opt-out")
+        .post(BASE_PATH+ "/user/opt-out/facebook")
 
         .then()
         .log().all(true)

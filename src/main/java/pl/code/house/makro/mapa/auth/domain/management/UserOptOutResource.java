@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -25,7 +27,7 @@ class UserOptOutResource {
 
   private final UserFacade facade;
 
-  @PostMapping(path = "/external/user/facebook/opt-out")
+  @PostMapping(path = "/user/opt-out/facebook")
   ResponseEntity<UserDataResponseDto> userOptOut(Map<String, Object> request) {
     log.info("Registered Facebook User OptOut call. signedRequest: `{}`", request);
     //facade.deleteUser(accessToken);
@@ -33,11 +35,10 @@ class UserOptOutResource {
   }
 
   @DeleteMapping("/user/optout")
-  ResponseEntity deleteMe(@RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
-    log.info("Registered request to remove user");
+  ResponseEntity deleteMe(@AuthenticationPrincipal Authentication principal, @RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken) {
+    log.info("Registered request to remove user from: {}", principal.getName());
 
     facade.deleteUser(accessToken);
     return ok().build();
   }
-
 }
