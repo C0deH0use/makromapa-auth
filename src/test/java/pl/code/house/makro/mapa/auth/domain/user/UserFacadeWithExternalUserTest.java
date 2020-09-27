@@ -16,6 +16,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.ExternalMockUser;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
 import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
@@ -66,7 +68,7 @@ class UserFacadeWithExternalUserTest {
         .claims(c -> c.putAll(claims))
         .build();
 
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId())).willReturn(Optional.empty());
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId(), GOOGLE)).willReturn(Optional.empty());
     given(repository.saveAndFlush(any(BaseUser.class))).willAnswer(returnsFirstArg());
 
     //when
@@ -98,7 +100,7 @@ class UserFacadeWithExternalUserTest {
         .claims(c -> c.putAll(claims))
         .build();
 
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId())).willReturn(Optional.empty());
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId(), GOOGLE)).willReturn(Optional.empty());
     given(repository.saveAndFlush(any(BaseUser.class))).willAnswer(returnsFirstArg());
 
     //when
@@ -141,7 +143,7 @@ class UserFacadeWithExternalUserTest {
 
     TermsAndConditions currentTnC = TermsAndConditions.builder().id(1000L).build();
 
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId())).willReturn(Optional.of(premiumUser));
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
     given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
 
     //when
@@ -218,7 +220,7 @@ class UserFacadeWithExternalUserTest {
 
     TermsAndConditions currentTnC = TermsAndConditions.builder().id(1001L).build();
 
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId())).willReturn(Optional.of(premiumUser));
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
     given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
 
     //when

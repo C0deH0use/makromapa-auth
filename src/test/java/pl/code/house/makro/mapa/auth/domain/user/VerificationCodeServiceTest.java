@@ -13,8 +13,6 @@ import static org.mockito.Mockito.times;
 import static pl.code.house.makro.mapa.auth.domain.mail.EmailType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.mail.EmailType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.CommunicationProtocol.EMAIL;
-import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
-import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
@@ -274,7 +272,7 @@ class VerificationCodeServiceTest {
   void throwIfUserIsNotADraftUser() {
     //given
     UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, FREE_USER);
-    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, BASIC_AUTH, userDetail);
+    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, userDetail);
 
     //when & then
     assertThatThrownBy(() -> sut.sendVerificationCodeToDraftUser(user))
@@ -287,7 +285,7 @@ class VerificationCodeServiceTest {
   void throwIfUserDoesNotHaveEmail() {
     //given
     UserDetails userDetail = new UserDetails(null, null, " ", null, DRAFT_USER);
-    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, BASIC_AUTH, userDetail);
+    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, userDetail);
 
     //when & then
     assertThatThrownBy(() -> sut.sendVerificationCodeToDraftUser(user))
@@ -300,7 +298,7 @@ class VerificationCodeServiceTest {
   void throwIfUserDoesNotHaveAPasswordStored() {
     //given
     UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
-    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), null, false, null, BASIC_AUTH, userDetail);
+    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), null, false, null, userDetail);
 
     //when & then
     assertThatThrownBy(() -> sut.sendVerificationCodeToDraftUser(user))
@@ -309,24 +307,11 @@ class VerificationCodeServiceTest {
   }
 
   @Test
-  @DisplayName("throw if user is not set for BASIC_AUTH")
-  void throwIfUserIsNotSetForBasicAuth() {
-    //given
-    UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
-    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, GOOGLE, userDetail);
-
-    //when & then
-    assertThatThrownBy(() -> sut.sendVerificationCodeToDraftUser(user))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("set for Basic Authentication");
-  }
-
-  @Test
   @DisplayName("throw if user is already active")
   void throwIfUserIsAlreadyActive() {
     //given
     UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
-    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, true, null, BASIC_AUTH, userDetail);
+    UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, true, null, userDetail);
 
     //when & then
     assertThatThrownBy(() -> sut.sendVerificationCodeToDraftUser(user))
@@ -338,16 +323,8 @@ class VerificationCodeServiceTest {
     return new UserVerificationCode(VALID_CODE_ID, draftUser(), true, CODE, CodeType.REGISTRATION, now(clock).plusHours(2));
   }
 
-  UserVerificationCode invalidCode() {
-    return new UserVerificationCode(INVALID_CODE_ID, draftUser(), true, CODE, CodeType.REGISTRATION, now(clock).minusHours(1));
-  }
-
   UserVerificationCode resetPasswordCode() {
     return new UserVerificationCode(VALID_RESET_PASSWORD_CODE_ID, activeUser(), true, CODE, CodeType.RESET_PASSWORD, now(clock).plusHours(3));
-  }
-
-  UserVerificationCode outdatedResetPasswordCode() {
-    return new UserVerificationCode(INVALID_RESET_PASSWORD_CODE_ID, activeUser(), true, CODE, CodeType.RESET_PASSWORD, now(clock).minusMonths(1));
   }
 
   private UserActivationProperties activationProperties() {
@@ -359,11 +336,11 @@ class VerificationCodeServiceTest {
 
   private UserWithPassword draftUser() {
     UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
-    return new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, BASIC_AUTH, userDetail);
+    return new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, userDetail);
   }
 
   private UserWithPassword activeUser() {
     UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, FREE_USER);
-    return new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, true, null, BASIC_AUTH, userDetail);
+    return new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, true, null, userDetail);
   }
 }

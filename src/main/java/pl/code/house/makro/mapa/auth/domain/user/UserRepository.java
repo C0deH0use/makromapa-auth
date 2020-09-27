@@ -11,8 +11,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 interface UserRepository extends JpaRepository<BaseUser, UUID> {
 
-  @Query("SELECT u FROM BaseUser u WHERE u.externalId = :externalId")
-  Optional<BaseUser> findByExternalIdAndAuthProvider(@Param("externalId") String externalId);
+  @Query("SELECT u FROM BaseUser u "
+      + "WHERE u.externalId = :externalId "
+      + "AND u.provider = :provider")
+  Optional<BaseUser> findByExternalIdAndAuthProvider(@Param("externalId") String externalId, @Param("provider") OAuth2Provider provider);
 
   @Query("SELECT u FROM BaseUser u "
       + "WHERE u.provider = 'BASIC_AUTH' "

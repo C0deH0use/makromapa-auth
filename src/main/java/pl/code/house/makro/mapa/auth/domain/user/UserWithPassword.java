@@ -3,6 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static javax.persistence.AccessType.FIELD;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
+import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 
 import java.util.UUID;
 import javax.persistence.Access;
@@ -28,29 +29,18 @@ class UserWithPassword extends BaseUser {
   @Column(name = "password")
   private String password;
 
-  UserWithPassword(UUID id, String password, Boolean enabled, Long termsAndConditionsId, OAuth2Provider provider, UserDetails userDetails) {
-    super(id, termsAndConditionsId, provider, userDetails, enabled);
+  UserWithPassword(UUID id, String password, Boolean enabled, Long termsAndConditionsId, UserDetails userDetails) {
+    super(id, termsAndConditionsId, BASIC_AUTH, userDetails, enabled);
     this.password = password;
   }
 
-  static UserWithPassword newDraftFrom(OAuth2Provider authenticationProvider, String encryptedPassword, UserDetails userDetails) {
+  static UserWithPassword newDraftFrom(String encryptedPassword, UserDetails userDetails) {
     return new UserWithPassword(
         UUID.randomUUID(),
         encryptedPassword,
         false,
         null,
-        authenticationProvider,
         userDetails);
-  }
-
-  static UserWithPassword userFrom(String encryptedPassword, BaseUser oldUser) {
-    return new UserWithPassword(
-        oldUser.getId(),
-        encryptedPassword,
-        oldUser.getEnabled(),
-        oldUser.getTermsAndConditionsId(),
-        oldUser.getProvider(),
-        oldUser.getUserDetails());
   }
 
   @Override

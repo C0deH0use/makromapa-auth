@@ -6,7 +6,6 @@ import static org.springframework.util.Assert.hasText;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.ExternalUser.newUserFrom;
-import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.FACEBOOK;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.fromIssuer;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
@@ -18,6 +17,7 @@ import static pl.code.house.makro.mapa.auth.error.UserOperationError.USER_NOT_FO
 import static pl.code.house.makro.mapa.auth.error.UserOperationError.VALIDATION_CODE_NOT_VALID;
 
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,11 +29,13 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
 import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
 import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
+import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
 import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 
 @Slf4j
@@ -63,7 +65,7 @@ public class UserFacade {
     OAuth2Provider oauth2Provider = fromIssuer(token.getClaim("iss"));
     log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
 
-    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
+    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId, oauth2Provider)
         .map(u -> u.updateWith(parseUserDetails(token)))
         .orElseGet(() -> createNewExternalUser(token));
 
@@ -75,7 +77,7 @@ public class UserFacade {
     String externalUserId = userProfile.getId();
     log.debug("Searching for User authenticated by `{}` with externalId - `{}`", FACEBOOK, externalUserId);
 
-    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId)
+    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId, FACEBOOK)
         .map(u -> u.updateWith(parseUserDetails(userProfile)))
         .orElseGet(() -> createNewFacebookUser(userProfile));
 
@@ -171,6 +173,16 @@ public class UserFacade {
   }
 
   @Transactional
+  public UserInfoDto updateUserDetails(UUID userId, UserDetails userDetails) {
+    BaseUser user = userRepository.findById(userId)
+        .filter(BaseUser::getEnabled)
+        .orElseThrow(() -> new UserNotExistsException("Active User with following id `" + userId + " ` does not exists"));
+    user.updateWith(userDetails);
+
+    return user.toUserInfo();
+  }
+
+  @Transactional
   public void deleteUser(String authenticationToken) {
     optOutService.optoutUser(authenticationToken);
   }
@@ -239,7 +251,7 @@ public class UserFacade {
 
     String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
 
-    UserWithPassword user = newDraftFrom(BASIC_AUTH, encodedPassword, userDetails);
+    UserWithPassword user = newDraftFrom(encodedPassword, userDetails);
     return userRepository.saveAndFlush(user);
   }
 
@@ -251,5 +263,4 @@ public class UserFacade {
 
     return externalId;
   }
-
 }

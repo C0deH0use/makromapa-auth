@@ -20,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
@@ -57,6 +58,36 @@ class UserInfoResourceHttpTest {
   }
 
   @Test
+  @Transactional
+  @DisplayName("should update user info details")
+  void shouldUpdateUserInfoDetails() {
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
+
+        .param("name", "MakroMapa Premium")
+        .param("surname", "MakroMapa")
+        .param("picture", "picture1")
+
+        .when()
+        .post(BASE_PATH + "/user-info")
+
+        .then()
+        .log().ifValidationFails()
+        .status(OK)
+
+        .body("sub", equalTo(GOOGLE_PREMIUM_USER.getUserId().toString()))
+        .body("provider", equalTo(GOOGLE.name()))
+        .body("name", equalTo("MakroMapa Premium"))
+        .body("surname", equalTo("MakroMapa"))
+        .body("email", equalTo("test.makro01@gmail.com"))
+        .body("picture", equalTo("picture1"))
+        .body("type", equalTo("PREMIUM_USER"))
+        .body("enabled", equalTo(true))
+    ;
+  }
+
+  @Test
   @DisplayName("return UNAUTHORIZED if using jwt token for authentication to access user-info details")
   void returnUnauthorizedIfUsingJwtTokenForAuthenticationToAccessUserInfoDetails() {
     given()
@@ -69,6 +100,21 @@ class UserInfoResourceHttpTest {
         .log().all(true)
         .status(UNAUTHORIZED)
         .body("error", equalTo("Token was not recognised"))
+    ;
+  }
+
+  @Test
+  @DisplayName("return UNAUTHORIZED if not using any access code in request")
+  void returnUnauthorizedIfNotUsingAnyAccessCodeInRequest() {
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+
+        .when()
+        .get(BASE_PATH + "/user-info")
+
+        .then()
+        .log().all(true)
+        .status(UNAUTHORIZED)
     ;
   }
 

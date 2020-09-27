@@ -1,10 +1,12 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
+import static java.util.UUID.fromString;
 import static org.apache.commons.lang3.StringUtils.removeIgnoreCase;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.http.ResponseEntity.ok;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
 
 import java.util.UUID;
@@ -18,10 +20,12 @@ import org.springframework.security.oauth2.common.exceptions.InvalidTokenExcepti
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 
 @Slf4j
 @RestController
@@ -29,15 +33,44 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 @RequestMapping(path = BASE_PATH + "/user-info", produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
 class UserInfoResource {
 
+  public static final String BEARER_PREFIX = "Bearer ";
+
+  private final UserFacade facade;
+
   private final UserRepository userRepository;
 
   private final ResourceServerTokenServices resourceServerTokenServices;
 
   @GetMapping
   ResponseEntity<UserInfoDto> userInfo(@AuthenticationPrincipal Authentication principal, @RequestHeader(AUTHORIZATION) String bearerToken) {
-    log.debug("{} is request user info", principal.getName());
+    UUID userId = extractUserId(bearerToken);
+    log.debug("{} is requesting user info for {}", principal.getName(), userId);
 
-    String value = removeIgnoreCase(bearerToken, "Bearer ");
+    return userRepository.findById(userId)
+        .map(BaseUser::toUserInfo)
+        .map(ResponseEntity::ok)
+        .orElse(notFound().build());
+  }
+
+  @PostMapping
+  ResponseEntity<UserInfoDto> updateUserInfo(@AuthenticationPrincipal Authentication principal, UserInfoUpdateDto updateDto) {
+    UUID userId = fromString(principal.getName());
+    log.debug("{} is updating user info for {}", principal.getName(), userId);
+
+    UserInfoDto userInfoDto = facade.updateUserDetails(userId, parseUserDetails(updateDto));
+    return ok(userInfoDto);
+  }
+
+  private UserDetails parseUserDetails(UserInfoUpdateDto updateDto) {
+    return UserDetails.builder()
+        .name(updateDto.getName())
+        .surname(updateDto.getSurname())
+        .picture(updateDto.getPicture())
+        .build();
+  }
+
+  private UUID extractUserId(String bearerToken) {
+    String value = removeIgnoreCase(bearerToken, BEARER_PREFIX);
     OAuth2AccessToken token = resourceServerTokenServices.readAccessToken(value);
     if (token == null) {
       throw new InvalidTokenException("Token was not recognised");
@@ -48,10 +81,6 @@ class UserInfoResource {
     }
 
     OAuth2Authentication authentication = resourceServerTokenServices.loadAuthentication(token.getValue());
-
-    return userRepository.findById(UUID.fromString(authentication.getName()))
-        .map(BaseUser::toUserInfo)
-        .map(ResponseEntity::ok)
-        .orElse(notFound().build());
+    return fromString(authentication.getName());
   }
 }

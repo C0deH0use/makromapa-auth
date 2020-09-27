@@ -32,9 +32,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.PasswordMockUser;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
-import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
 import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
@@ -342,6 +342,6 @@ class UserFacadeWithRegisteredUserTest {
         .email(user.getName())
         .type(userType)
         .build();
-    return new UserWithPassword(userId, user.getPassword(), enabled, null, BASIC_AUTH, userDetails);
+    return new UserWithPassword(userId, user.getPassword(), enabled, null, userDetails);
   }
 }

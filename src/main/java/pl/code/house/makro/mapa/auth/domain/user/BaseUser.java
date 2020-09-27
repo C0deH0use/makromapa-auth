@@ -5,7 +5,7 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.InheritanceType.SINGLE_TABLE;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
 import java.util.UUID;
@@ -77,10 +77,10 @@ abstract class BaseUser extends AuditAwareEntity {
 
   public BaseUser updateWith(UserDetails parseUserDetails) {
     this.userDetails = UserDetails.builder()
-        .email(defaultIfEmpty(parseUserDetails.getEmail(), userDetails.getEmail()))
-        .name(defaultIfEmpty(parseUserDetails.getName(), userDetails.getName()))
-        .surname(defaultIfEmpty(parseUserDetails.getSurname(), userDetails.getSurname()))
-        .picture(defaultIfEmpty(parseUserDetails.getPicture(), userDetails.getPicture()))
+        .email(defaultString(parseUserDetails.getEmail(), userDetails.getEmail()))
+        .name(defaultString(parseUserDetails.getName(), userDetails.getName()))
+        .surname(defaultString(parseUserDetails.getSurname(), userDetails.getSurname()))
+        .picture(defaultString(parseUserDetails.getPicture(), userDetails.getPicture()))
         .type(userDetails.getType())
         .build();
 

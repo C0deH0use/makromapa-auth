@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -20,6 +21,9 @@ class UserOptOutService {
 
   private final TokenStore tokenServices;
 
+  private final UserAuthoritiesService authoritiesService;
+
+  @Transactional
   void optoutUser(String authenticationToken) {
     String token = trimToEmpty(removeStartIgnoreCase(authenticationToken, "bearer"));
     OAuth2AccessToken accessToken = tokenServices.readAccessToken(token);
@@ -33,6 +37,8 @@ class UserOptOutService {
 
     tokenServices.removeRefreshToken(accessToken.getRefreshToken());
     tokenServices.removeAccessToken(accessToken);
+    authoritiesService.deleteUserAuthorities(user.getId());
+
     log.info("User ['{}'] provided by {} is being removed from the system", user.getId(), user.getProvider());
     userRepository.deleteById(user.getId());
   }

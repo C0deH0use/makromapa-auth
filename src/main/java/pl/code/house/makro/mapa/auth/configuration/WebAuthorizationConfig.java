@@ -152,9 +152,6 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
           .authorizeRequests()
 
-          .and()
-          .authorizeRequests().antMatchers(BASE_PATH + "/user/opt-out/facebook").anonymous()
-
           .anyRequest().authenticated()
       ;
     }
