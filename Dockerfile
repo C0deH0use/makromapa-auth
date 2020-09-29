@@ -1,11 +1,11 @@
 FROM openjdk:14.0.1-oraclelinux7
 
-ARG api_version
+ARG commit_short_sha
 
-ENV API_VERSION=${api_version}
+ENV CI_COMMIT_SHA=${commit_short_sha}
 
 COPY build/libs/makromapa-auth.jar /
 
 EXPOSE 9090
 
-ENTRYPOINT [ "java", "-XX:MaxDirectMemorySize=800M", "-jar", "/makromapa-auth.jar" ]
+ENTRYPOINT [ "java", "-jar", "/makromapa-auth.jar" ]

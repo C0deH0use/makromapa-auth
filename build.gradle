@@ -101,8 +101,13 @@ dependencyManagement {
 
 springBoot {
     mainClassName = 'pl.code.house.makro.mapa.auth.MakroMapaApp'
-    buildInfo()
-}
+    buildInfo {
+        properties {
+            additional = [
+                    'commit_sha': System.getenv('CI_COMMIT_SHA') ?: 'LOCAL'
+            ]
+        }
+    }}
 
 bootRun {
     doFirst() {
