@@ -2,7 +2,13 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.OK;
@@ -50,10 +56,12 @@ class UserInfoResourceHttpTest {
         .body("provider", equalTo(GOOGLE.name()))
         .body("name", equalTo("Makromapa Test01"))
         .body("surname", equalTo("Test01"))
+        .body("nickname", is(emptyOrNullString()))
         .body("email", equalTo("test.makro01@gmail.com"))
         .body("picture", notNullValue())
         .body("type", equalTo("PREMIUM_USER"))
         .body("enabled", equalTo(true))
+        .body("showNickOnly", equalTo(false))
     ;
   }
 
@@ -68,6 +76,7 @@ class UserInfoResourceHttpTest {
         .param("name", "MakroMapa Premium")
         .param("surname", "MakroMapa")
         .param("picture", "picture1")
+        .param("showNickOnly", true)
 
         .when()
         .post(BASE_PATH + "/user-info")
@@ -80,10 +89,31 @@ class UserInfoResourceHttpTest {
         .body("provider", equalTo(GOOGLE.name()))
         .body("name", equalTo("MakroMapa Premium"))
         .body("surname", equalTo("MakroMapa"))
+        .body("nickname", is(emptyOrNullString()))
         .body("email", equalTo("test.makro01@gmail.com"))
         .body("picture", equalTo("picture1"))
         .body("type", equalTo("PREMIUM_USER"))
         .body("enabled", equalTo(true))
+        .body("showNickOnly", equalTo(true))
+    ;
+  }
+
+  @Test
+  @DisplayName("fetch default user avatars")
+  void fetchDefaultUserAvatars() {
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
+
+        .when()
+        .get(BASE_PATH + "/user-info/avatars")
+
+        .then()
+        .log().ifValidationFails()
+        .status(OK)
+
+        .body("$", hasSize(4))
+        .body("$", hasItem(containsString("https://www.makromapa.pl")))
     ;
   }
 

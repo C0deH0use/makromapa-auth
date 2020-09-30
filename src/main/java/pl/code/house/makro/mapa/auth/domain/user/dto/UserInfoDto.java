@@ -21,6 +21,8 @@ public class UserInfoDto implements Serializable {
 
   String surname;
 
+  String nickname;
+
   String email;
 
   String picture;
@@ -28,4 +30,6 @@ public class UserInfoDto implements Serializable {
   UserType type;
 
   Boolean enabled;
+
+  Boolean showNickOnly;
 }

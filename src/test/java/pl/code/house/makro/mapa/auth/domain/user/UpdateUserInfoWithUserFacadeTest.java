@@ -50,7 +50,7 @@ class UpdateUserInfoWithUserFacadeTest {
         GOOGLE_PREMIUM_USER.getExternalId(),
         true
     );
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "NEW NICKNAME", null, "PICTURE", true, null);
 
     given(repository.findById(userId)).willReturn(Optional.of(premiumUser));
 
@@ -66,7 +66,9 @@ class UpdateUserInfoWithUserFacadeTest {
 
     assertThat(infoDto.getName()).isEqualTo("NEW NAME");
     assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
+    assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
     assertThat(infoDto.getPicture()).isEqualTo("PICTURE");
+    assertThat(infoDto.getShowNickOnly()).isTrue();
   }
 
   @Test
@@ -79,7 +81,7 @@ class UpdateUserInfoWithUserFacadeTest {
         .email(REG_USER.getName())
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", true, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "Nickname", null, "PICTURE", true, null);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
 
@@ -92,10 +94,11 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getProvider()).isEqualTo(BASIC_AUTH);
     assertThat(infoDto.getType()).isEqualTo(FREE_USER);
     assertThat(infoDto.getEmail()).isEqualTo(REG_USER.getName());
-
     assertThat(infoDto.getName()).isEqualTo("NEW NAME");
     assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
+    assertThat(infoDto.getNickname()).isEqualTo("Nickname");
     assertThat(infoDto.getPicture()).isEqualTo("PICTURE");
+    assertThat(infoDto.getShowNickOnly()).isTrue();
   }
 
   @Test
@@ -110,9 +113,10 @@ class UpdateUserInfoWithUserFacadeTest {
         .name("name")
         .surname("surname")
         .picture(expectedPic)
+        .showNickOnly(true)
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", true, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "", null, null, null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "", "NICK",null, null, false, null);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
 
@@ -128,7 +132,9 @@ class UpdateUserInfoWithUserFacadeTest {
 
     assertThat(infoDto.getName()).isEqualTo("NEW NAME");
     assertThat(infoDto.getSurname()).isEmpty();
+    assertThat(infoDto.getNickname()).isEqualTo("NICK");
     assertThat(infoDto.getPicture()).isEqualTo(expectedPic);
+    assertThat(infoDto.getShowNickOnly()).isFalse();
   }
 
   @Test
@@ -136,7 +142,7 @@ class UpdateUserInfoWithUserFacadeTest {
   void throwIfUpdatingUserInfoOfNonExistingUser() {
     //given
     UUID userId = REG_USER.getUserId();
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "", null, "PICTURE", true, null);
 
     given(repository.findById(userId)).willReturn(empty());
 
@@ -158,7 +164,7 @@ class UpdateUserInfoWithUserFacadeTest {
         .email(REG_USER.getName())
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", false, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, null, "PICTURE", false, null);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
 

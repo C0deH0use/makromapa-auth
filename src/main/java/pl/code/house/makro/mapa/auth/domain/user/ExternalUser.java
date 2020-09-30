@@ -46,9 +46,11 @@ class ExternalUser extends BaseUser {
         .sub(this.getId())
         .name(this.getUserDetails().getName())
         .surname(this.getUserDetails().getSurname())
+        .nickname(this.getUserDetails().getNickname())
         .email(this.getUserDetails().getEmail())
         .picture(this.getUserDetails().getPicture())
         .type(this.getUserDetails().getType())
+        .showNickOnly(this.getUserDetails().isShowNickOnly())
         .provider(this.getProvider())
         .enabled(this.getEnabled())
         .build();

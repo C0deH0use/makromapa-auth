@@ -13,9 +13,13 @@ public class UserDetailsDto implements Serializable {
 
   String surname;
 
+  String nickname;
+
   String email;
 
   String picture;
 
   UserType type;
+
+  boolean showNickOnly;
 }

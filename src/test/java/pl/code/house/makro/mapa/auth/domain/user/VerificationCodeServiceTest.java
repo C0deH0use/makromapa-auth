@@ -271,7 +271,7 @@ class VerificationCodeServiceTest {
   @DisplayName("throw if user is not a draft user")
   void throwIfUserIsNotADraftUser() {
     //given
-    UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, FREE_USER);
+    UserDetails userDetail = new UserDetails(null, null, null, USER_EMAIL, null, false, FREE_USER);
     UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, userDetail);
 
     //when & then
@@ -284,7 +284,7 @@ class VerificationCodeServiceTest {
   @DisplayName("throw if user does not have email")
   void throwIfUserDoesNotHaveEmail() {
     //given
-    UserDetails userDetail = new UserDetails(null, null, " ", null, DRAFT_USER);
+    UserDetails userDetail = new UserDetails(null, null, null, " ", null, false, DRAFT_USER);
     UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, userDetail);
 
     //when & then
@@ -297,7 +297,7 @@ class VerificationCodeServiceTest {
   @DisplayName("throw if user does not have a password stored")
   void throwIfUserDoesNotHaveAPasswordStored() {
     //given
-    UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
+    UserDetails userDetail = new UserDetails(null, null, null, USER_EMAIL, null, false, DRAFT_USER);
     UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), null, false, null, userDetail);
 
     //when & then
@@ -310,7 +310,7 @@ class VerificationCodeServiceTest {
   @DisplayName("throw if user is already active")
   void throwIfUserIsAlreadyActive() {
     //given
-    UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
+    UserDetails userDetail = new UserDetails(null, null, null, USER_EMAIL, null, false, DRAFT_USER);
     UserWithPassword user = new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, true, null, userDetail);
 
     //when & then
@@ -335,12 +335,12 @@ class VerificationCodeServiceTest {
   }
 
   private UserWithPassword draftUser() {
-    UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, DRAFT_USER);
+    UserDetails userDetail = new UserDetails(null, null, null, USER_EMAIL, null, false, DRAFT_USER);
     return new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, false, null, userDetail);
   }
 
   private UserWithPassword activeUser() {
-    UserDetails userDetail = new UserDetails(null, null, USER_EMAIL, null, FREE_USER);
+    UserDetails userDetail = new UserDetails(null, null, null, USER_EMAIL, null, false, FREE_USER);
     return new UserWithPassword(GOOGLE_NEW_USER.getUserId(), PASSWORD, true, null, userDetail);
   }
 }

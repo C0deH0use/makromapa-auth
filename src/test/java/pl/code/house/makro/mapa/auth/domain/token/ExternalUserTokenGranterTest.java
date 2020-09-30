@@ -16,7 +16,6 @@ import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,7 +28,6 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
-import pl.code.house.makro.mapa.auth.domain.user.UserType;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDetailsDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
@@ -71,7 +69,7 @@ class ExternalUserTokenGranterTest {
   }
 
   private UserDto userDto() {
-    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, FREE_USER), true);
+    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER, false), true);
   }
 
   private TokenRequest validRequest() {

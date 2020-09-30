@@ -9,9 +9,11 @@ import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -61,11 +63,21 @@ class UserInfoResource {
     return ok(userInfoDto);
   }
 
+  @GetMapping("/avatars")
+  ResponseEntity<List<String>> fetchPossibleAvatars(@AuthenticationPrincipal Authentication principal,
+      @Value("${user-profile.default.avatars}") List<String> defaultAvatars) {
+    log.debug("Fetching default avatars that can be used for user profile");
+
+    return ok(defaultAvatars);
+  }
+
   private UserDetails parseUserDetails(UserInfoUpdateDto updateDto) {
     return UserDetails.builder()
         .name(updateDto.getName())
         .surname(updateDto.getSurname())
+        .nickname(updateDto.getNickname())
         .picture(updateDto.getPicture())
+        .showNickOnly(updateDto.getShowNickOnly())
         .build();
   }
 

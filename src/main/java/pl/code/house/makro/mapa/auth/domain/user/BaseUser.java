@@ -5,6 +5,7 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.InheritanceType.SINGLE_TABLE;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
@@ -70,7 +71,9 @@ abstract class BaseUser extends AuditAwareEntity {
         .email(userDetails.getEmail())
         .name(userDetails.getName())
         .surname(userDetails.getSurname())
+        .nickname(userDetails.getNickname())
         .picture(userDetails.getPicture())
+        .showNickOnly(userDetails.isShowNickOnly())
         .type(FREE_USER)
         .build();
   }
@@ -80,7 +83,9 @@ abstract class BaseUser extends AuditAwareEntity {
         .email(defaultString(parseUserDetails.getEmail(), userDetails.getEmail()))
         .name(defaultString(parseUserDetails.getName(), userDetails.getName()))
         .surname(defaultString(parseUserDetails.getSurname(), userDetails.getSurname()))
+        .nickname(defaultString(parseUserDetails.getNickname(), userDetails.getNickname()))
         .picture(defaultString(parseUserDetails.getPicture(), userDetails.getPicture()))
+        .showNickOnly(toBooleanDefaultIfNull(parseUserDetails.isShowNickOnly(), userDetails.isShowNickOnly()))
         .type(userDetails.getType())
         .build();
 
