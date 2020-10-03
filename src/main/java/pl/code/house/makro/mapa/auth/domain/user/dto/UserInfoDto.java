@@ -31,5 +31,4 @@ public class UserInfoDto implements Serializable {
 
   Boolean enabled;
 
-  Boolean showNickOnly;
 }

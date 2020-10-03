@@ -21,5 +21,4 @@ public class UserDetailsDto implements Serializable {
 
   UserType type;
 
-  boolean showNickOnly;
 }

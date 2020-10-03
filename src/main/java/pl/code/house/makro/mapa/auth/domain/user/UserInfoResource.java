@@ -77,7 +77,6 @@ class UserInfoResource {
         .surname(updateDto.getSurname())
         .nickname(updateDto.getNickname())
         .picture(updateDto.getPicture())
-        .showNickOnly(updateDto.getShowNickOnly())
         .build();
   }
 

@@ -84,7 +84,7 @@ class UserFacadeWithExternalUserTest {
     assertThat(passedUser.getUserDetails().getType()).isEqualTo(FREE_USER);
     assertThat(passedUser.getUserDetails().getName()).isEqualTo(GOOGLE_NEW_USER.getName());
     assertThat(passedUser.getUserDetails().getEmail()).isNotBlank();
-    assertThat(passedUser.getUserDetails().getPicture()).isNotBlank();
+    assertThat(passedUser.getUserDetails().getPicture()).isBlank();
   }
 
   @Test

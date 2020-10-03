@@ -61,7 +61,6 @@ class UserInfoResourceHttpTest {
         .body("picture", notNullValue())
         .body("type", equalTo("PREMIUM_USER"))
         .body("enabled", equalTo(true))
-        .body("showNickOnly", equalTo(false))
     ;
   }
 
@@ -76,7 +75,6 @@ class UserInfoResourceHttpTest {
         .param("name", "MakroMapa Premium")
         .param("surname", "MakroMapa")
         .param("picture", "picture1")
-        .param("showNickOnly", true)
 
         .when()
         .post(BASE_PATH + "/user-info")
@@ -94,7 +92,6 @@ class UserInfoResourceHttpTest {
         .body("picture", equalTo("picture1"))
         .body("type", equalTo("PREMIUM_USER"))
         .body("enabled", equalTo(true))
-        .body("showNickOnly", equalTo(true))
     ;
   }
 

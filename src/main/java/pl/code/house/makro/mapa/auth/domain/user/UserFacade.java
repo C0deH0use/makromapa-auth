@@ -230,7 +230,6 @@ public class UserFacade {
         .name(jwtPrincipal.getClaim("name"))
         .email(jwtPrincipal.getClaim("email"))
         .surname(jwtPrincipal.getClaim("family_name"))
-        .picture(jwtPrincipal.getClaim("picture"))
         .build();
   }
 

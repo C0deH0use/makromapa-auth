@@ -69,7 +69,7 @@ class ExternalUserTokenGranterTest {
   }
 
   private UserDto userDto() {
-    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER, false), true);
+    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER), true);
   }
 
   private TokenRequest validRequest() {

@@ -39,15 +39,12 @@ class UserDetails {
   @Column(name = "picture")
   private String picture;
 
-  @Column(name = "show_nick_only", nullable = false)
-  private boolean showNickOnly;
-
   @Column(name = "type")
   @Enumerated(EnumType.STRING)
   private UserType type;
 
   UserDetailsDto toDto() {
-    return new UserDetailsDto(name, surname, nickname, email, picture, type, showNickOnly);
+    return new UserDetailsDto(name, surname, nickname, email, picture, type);
   }
 
 }

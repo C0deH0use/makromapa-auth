@@ -12,18 +12,15 @@ public class UserInfoUpdateDto implements Serializable {
   String surname;
   String nickname;
   String picture;
-  Boolean showNickOnly;
 
   public UserInfoUpdateDto(
       String name,
       String surname,
       String nickname,
-      String picture,
-      Boolean showNickOnly) {
+      String picture) {
     this.name = name;
     this.surname = surname;
     this.nickname = nickname;
     this.picture = picture;
-    this.showNickOnly = showNickOnly;
   }
 }
