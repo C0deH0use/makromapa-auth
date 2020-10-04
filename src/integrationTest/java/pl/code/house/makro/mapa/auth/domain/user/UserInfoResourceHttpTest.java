@@ -5,6 +5,7 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetu
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -21,6 +22,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.BEARER_TOKEN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
 import io.restassured.http.Header;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -109,7 +111,7 @@ class UserInfoResourceHttpTest {
         .log().ifValidationFails()
         .status(OK)
 
-        .body("$", hasSize(4))
+        .body("size()", greaterThanOrEqualTo(4))
         .body("$", hasItem(containsString("https://www.makromapa.pl")))
     ;
   }
