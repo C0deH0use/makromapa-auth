@@ -76,6 +76,7 @@ class UserInfoResourceHttpTest {
 
         .param("name", "MakroMapa Premium")
         .param("surname", "MakroMapa")
+        .param("nickname", "MakroMapa App")
         .param("picture", "picture1")
 
         .when()
@@ -89,7 +90,7 @@ class UserInfoResourceHttpTest {
         .body("provider", equalTo(GOOGLE.name()))
         .body("name", equalTo("MakroMapa Premium"))
         .body("surname", equalTo("MakroMapa"))
-        .body("nickname", is(emptyOrNullString()))
+        .body("nickname", equalTo("MakroMapa App"))
         .body("email", equalTo("test.makro01@gmail.com"))
         .body("picture", equalTo("picture1"))
         .body("type", equalTo("PREMIUM_USER"))
