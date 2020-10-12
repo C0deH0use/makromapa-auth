@@ -48,7 +48,7 @@ steps:
       - '-c'
       - |
         ./project-version.sh
-        docker build --build-arg commit_short_sha=$SHORT_SHA -t "gcr.io/$PROJECT_ID/makromapa-auth-api" -t "gcr.io/$PROJECT_ID/makromapa-auth-api:0.1.5" .
+        docker build --build-arg commit_short_sha=$SHORT_SHA -t "gcr.io/$PROJECT_ID/makromapa-auth-api" -t "gcr.io/$PROJECT_ID/makromapa-auth-api:0.2.0" .
     waitFor:
       - integration_test
 
@@ -64,7 +64,7 @@ steps:
 
   - name: 'gcr.io/cloud-builders/docker'
     id: push_image
-    args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth-api:0.1.5']
+    args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth-api:0.2.0']
     waitFor:
       - build_image
 
