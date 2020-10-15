@@ -2,10 +2,12 @@ package pl.code.house.makro.mapa.auth.configuration;
 
 import static org.apache.commons.lang3.StringUtils.removeStart;
 
+import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
+import org.springframework.social.InvalidAuthorizationException;
 import org.springframework.social.facebook.api.User;
 import org.springframework.social.facebook.api.impl.FacebookTemplate;
 import pl.code.house.makro.mapa.auth.domain.token.FacebookAuthentication;
@@ -29,11 +31,12 @@ class FacebookAccessCodeAuthenticationProvider implements AuthenticationProvider
     String tokenValue = removeStart(bearer.getToken(), "Bearer ");
 
     FacebookTemplate template = new FacebookTemplate(tokenValue, appNamespace, appId);
-    User userProfile = template.fetchObject("me", User.class, "id", "email", "first_name", "last_name");
-
-    if (userProfile == null) {
-      log.error("Token passed for validation was not recognize as Facebook AccessCode.");
-    }
+    User userProfile = Try.of(() -> template.fetchObject("me", User.class, "id", "email", "first_name", "last_name"))
+        .recover(InvalidAuthorizationException.class, (exc) -> {
+          log.error("Token passed for validation was not recognize as Facebook AccessCode.");
+          return null;
+        })
+        .get();
 
     return new FacebookAuthentication(userProfile);
   }

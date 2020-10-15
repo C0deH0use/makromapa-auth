@@ -20,7 +20,7 @@ public class OpaqueInternalTokenAuthenticationProvider implements Authentication
     BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
     OAuth2AccessToken token = resourceServerTokenServices.readAccessToken(bearer.getToken());
     if (token == null) {
-      log.error("Token passed for validation was not recognize as a JWT token. Passing to next authentication provider.");
+      log.error("Token passed for validation was not recognized as an Opaque token. Passing to next authentication provider.");
       return null;
     }
 
