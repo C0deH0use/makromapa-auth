@@ -11,6 +11,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
+import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -79,7 +80,7 @@ class ExternalTokenResourceTest {
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() throws Exception {
     //given
-    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+    getContext().setAuthentication(validAuthentication());
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
@@ -107,7 +108,7 @@ class ExternalTokenResourceTest {
   @DisplayName("return UNAUTHORIZED if loaded client details does not match by ID")
   void returnUnauthorizedIfLoadedClientDetailsDoesNotMatchById() {
     //given
-    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+    getContext().setAuthentication(validAuthentication());
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
 
@@ -133,7 +134,7 @@ class ExternalTokenResourceTest {
   @DisplayName("return BAD if uploaded client details do not match what was send to resource")
   void returnBadIfUploadedClientDetailsDoNotMatchWhatWasSendToResource() {
     //given
-    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+    getContext().setAuthentication(validAuthentication());
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(INVALID_CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
@@ -161,7 +162,7 @@ class ExternalTokenResourceTest {
   @DisplayName("return BAD_REQUEST if missing grant_type param")
   void returnBadRequestIfMissingGrantTypeParam() {
     //given
-    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+    getContext().setAuthentication(validAuthentication());
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
@@ -188,7 +189,7 @@ class ExternalTokenResourceTest {
   @DisplayName("return BAD_REQUEST if grant_type is unknown or not supported")
   void returnBadRequestIfGrantTypeIsUnknownOrNotSupported() {
     //given
-    SecurityContextHolder.getContext().setAuthentication(validAuthentication());
+    getContext().setAuthentication(validAuthentication());
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(null);

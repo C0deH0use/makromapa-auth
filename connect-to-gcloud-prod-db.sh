@@ -3,11 +3,15 @@
 ## When connecting to the db with postgres client you need to select the host as localhost !
 
 ### DUMP DATA FROM PROD
-# ➜ /usr/local/bin/pg_dump --dbname=makromapa-db-prod --file=/Users/mmalik/Documents/WORK/MakroMapa/data_dump_2020_03.sql --schema=public --username=makromapa-db-user --host=127.0.0.1 --port=5432
+# ➜ /usr/local/Cellar/libpq/13.1/bin/pg_dump --dbname=makromapa-auth-db --file=/Users/mmalik/Documents/MakroMapa/auth_dump_12_12_2020.sql --schema=public --username=makromapa-auth-user --host=127.0.0.1 --port=5432
+
 ###########
 
 ### RESTORE DATA FROM DATA DUMP FILE
-# ➜ /usr/local/Cellar/postgresql/12.3_4/bin/psql --file=/Users/mmalik/Documents/WORK/MakroMapa/data_dump_2020_03.sql --username=makromapa-db-user --host=127.0.0.1 --port=5432 makromapa-db-prod
+# ➜ /usr/local/Cellar/libpq/13.1/bin/psql --file=/Users/mmalik/Documents/MakroMapa/auth_dump_12_12_2020.sql --username=makromapa-auth-user --host=127.0.0.1 --port=5432 makromapa-auth
 ###########
 
-./cloud_sql_proxy -instances="makromapa-backend-dev:europe-west1:makromapa-auth-db=tcp:5432"
+./cloud_sql_proxy -instances="makromapa-297422:europe-west1:makromapa-auth-db=tcp:5432"
+
+#c  For clean DB install UUID extension first
+# CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
