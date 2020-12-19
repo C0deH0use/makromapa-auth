@@ -1,5 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,6 +18,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
+import static pl.code.house.makro.mapa.auth.error.UserOperationError.DRAFT_NOT_FOUND;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -37,6 +39,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
+import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
 import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 
 @ExtendWith(MockitoExtension.class)
@@ -238,7 +241,8 @@ class UserFacadeWithRegisteredUserTest {
     //when
     assertThatThrownBy(() -> sut.activateDraftBy(request, clientId))
         .isInstanceOf(UserRegistrationException.class)
-        .hasMessageContaining("Could not find any eligible draft")
+        .hasMessage("Could not find any eligible draft user with the following email")
+        .hasFieldOrPropertyWithValue("error", DRAFT_NOT_FOUND)
     ;
   }
 
@@ -273,15 +277,29 @@ class UserFacadeWithRegisteredUserTest {
     //when
     assertThatThrownBy(() -> sut.activateDraftBy(request, clientId))
         .isInstanceOf(UserRegistrationException.class)
-        .hasMessageContaining("Could not find any eligible draft")
+        .hasMessage("Could not find any eligible draft user with the following email")
+        .hasFieldOrPropertyWithValue("error", DRAFT_NOT_FOUND)
     ;
   }
-  
+
+  @Test
+  @DisplayName("throw if user passed for reset password does not exist")
+  void throwIfUserPassedForResetPasswordDoesNotExist() {
+    //given
+    String userEmail = REG_USER.getName();
+
+    given(repository.findUserWithPasswordByUserEmail(userEmail)).willReturn(empty());
+
+    //when
+    assertThatThrownBy( () -> sut.resetPasswordFor(userEmail))
+        .isInstanceOf(UserNotExistsException.class)
+        .hasMessage("Could not find user by email: " + userEmail);
+  }
+
   @Test
   @DisplayName("throw if user passed for reset password is a draft")
   void throwIfUserPassedForResetPasswordIsADraft() {
     //given
-    String clientId = "client_id";
     String userEmail = REG_USER.getName();
     UserWithPassword savedUser = savedUser(REG_USER.getUserId(), REG_USER, DRAFT_USER, false);
 
@@ -290,7 +308,7 @@ class UserFacadeWithRegisteredUserTest {
     //when
     assertThatThrownBy( () -> sut.resetPasswordFor(userEmail))
         .isInstanceOf(PasswordResetException.class)
-        .hasMessageContaining("Cannot reset password for DRAFT");
+        .hasMessage("Cannot request reset password. User must be an active one");
   }
 
   @Test

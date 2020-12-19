@@ -85,7 +85,7 @@ class ExternalTokenResourceTest {
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
 
-    Header authenticationHeader = GOOGLE_NEW_USER.getAuthenticationHeader();
+    Header authenticationHeader = GOOGLE_PREMIUM_USER.getAuthenticationHeader();
 
     //when
     mvc.perform(post(EXTERNAL_AUTH_BASE_PATH + "/token")

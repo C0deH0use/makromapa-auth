@@ -8,8 +8,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class UserNotExistsException extends RuntimeException {
 
   private static final long serialVersionUID = -1323710575455876080L;
+  private final UserOperationError error;
 
-  public UserNotExistsException(String message) {
+  public UserNotExistsException(UserOperationError error, String message) {
     super(message);
+    this.error = error;
+  }
+
+  public UserOperationError getError() {
+    return error;
   }
 }

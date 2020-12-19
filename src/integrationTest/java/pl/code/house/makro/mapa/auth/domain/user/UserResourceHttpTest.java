@@ -13,6 +13,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -380,7 +381,28 @@ class UserResourceHttpTest {
         .then()
         .log().all()
         .status(PRECONDITION_FAILED)
-        .body("error", containsString("Cannot reset password for DRAFT user"))
+        .body("error", containsString("Cannot request reset password. User must be an active one"))
+    ;
+  }
+
+  @Test
+  @DisplayName("return NOT_FOUND when requesting password reset for unknown user")
+  void returnNotFoundWhenRequestingPasswordResetForUnknownUser() {
+    //given
+    String UNKNOWN_USER = "unknown@mail.com";
+
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+        .param("email", UNKNOWN_USER)
+
+        .when()
+        .post(BASE_PATH + "/user/password/reset")
+
+        .then()
+        .log().all()
+        .status(NOT_FOUND)
+        .body("error", equalTo("Could not find user by email: " + UNKNOWN_USER))
     ;
   }
 

@@ -114,7 +114,7 @@ public class UserFacade {
 
     VerificationCodeDto verificationCode = verificationCodeService.findVerificationCode(request.getVerificationCode(), REGISTRATION);
 
-    BaseUser user = userRepository.findUserWithPasswordByUserEmail(request.getEmail())
+    BaseUser user = findBasicUserByEmail(request.getEmail())
         .filter(u -> DRAFT_USER == u.getUserDetails().getType())
         .filter(not(BaseUser::getEnabled))
         .orElseThrow(() -> new UserRegistrationException(DRAFT_NOT_FOUND, "Could not find any eligible draft user with the following email"));
@@ -138,10 +138,10 @@ public class UserFacade {
     log.info("User `{}` requests Password Reset", maskEmail(email));
     hasText(email, "Email must be valid");
 
-    UserWithPassword user = (UserWithPassword) userRepository.findUserWithPasswordByUserEmail(email)
+    UserWithPassword user = (UserWithPassword) findBasicUserByEmail(email)
         .filter(u -> DRAFT_USER != u.getUserDetails().getType())
         .filter(BaseUser::getEnabled)
-        .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot reset password for DRAFT user. Please register first."));
+        .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot request reset password. User must be an active one"));
 
     log.info("Request received to reset BASIC_AUTH user ({} - {}) password.", maskEmail(email), user.getId());
     return verificationCodeService.sendResetPasswordToActiveUser(user);
@@ -155,10 +155,10 @@ public class UserFacade {
     hasText(code, "Verification_Code is required!");
     hasText(newPassword, "New Password is required!");
 
-    UserWithPassword user = (UserWithPassword) userRepository.findUserWithPasswordByUserEmail(email)
+    UserWithPassword user = (UserWithPassword) findBasicUserByEmail(email)
         .filter(u -> DRAFT_USER != u.getUserDetails().getType())
         .filter(BaseUser::getEnabled)
-        .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot reset password for DRAFT user. Please register first."));
+        .orElseThrow(() -> new PasswordResetException(USER_NOT_FOUND, "Cannot change user password. User must be an active one"));
 
     VerificationCodeDto verificationCode = verificationCodeService.findVerificationCode(code, RESET_PASSWORD);
 
@@ -176,7 +176,7 @@ public class UserFacade {
   public UserInfoDto updateUserDetails(UUID userId, UserDetails userDetails) {
     BaseUser user = userRepository.findById(userId)
         .filter(BaseUser::getEnabled)
-        .orElseThrow(() -> new UserNotExistsException("Active User with following id `" + userId + " ` does not exists"));
+        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Active User with following id `" + userId + " ` does not exists"));
     user.updateWith(userDetails);
 
     return user.toUserInfo();
@@ -261,5 +261,11 @@ public class UserFacade {
     }
 
     return externalId;
+  }
+
+  private Optional<BaseUser> findBasicUserByEmail(String email) {
+    BaseUser user = userRepository.findUserWithPasswordByUserEmail(email)
+        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Could not find user by email: " + email));
+    return Optional.of(user);
   }
 }
