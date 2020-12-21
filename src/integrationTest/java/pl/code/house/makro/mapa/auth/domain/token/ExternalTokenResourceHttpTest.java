@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -47,6 +48,7 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("return access token when requested by new user ")
   void returnAccessTokenWhenRequestedByNewUser() {
@@ -79,6 +81,7 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("return access token when requesting with AppleId token")
   void returnAccessTokenWhenRequestingWithAppleIdToken() {
@@ -112,6 +115,7 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("return access token when requesting with FaceBook AccessCode")
   void returnAccessTokenWhenRequestingWithFaceBookAccessCode() {
@@ -145,6 +149,7 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("should map jwt token to existing user and create new access token")
   void shouldMapJwtTokenToExistingUserAndCreateNewAccessToken() {
