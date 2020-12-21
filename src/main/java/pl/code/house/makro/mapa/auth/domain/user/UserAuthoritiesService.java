@@ -34,7 +34,7 @@ public class UserAuthoritiesService {
       authorities.add(new SimpleGrantedAuthority("ROLE_PREMIUM_USER"));
     }
     if (ADMIN == type) {
-      authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+      authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN_USER"));
     }
     return authorities;
   }

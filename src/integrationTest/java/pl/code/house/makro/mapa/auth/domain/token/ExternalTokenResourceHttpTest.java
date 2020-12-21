@@ -51,7 +51,7 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("return access token when requested by new user ")
   void returnAccessTokenWhenRequestedByNewUser() {
     //given
-    assertUserCount().isEqualTo(6);
+    assertUserCount().isEqualTo(7);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(0);
 
     given()
@@ -72,10 +72,10 @@ class ExternalTokenResourceHttpTest {
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(900))
     ;
-    assertUserCount().isEqualTo(7);
+    assertUserCount().isEqualTo(8);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(1);
 
-    assertAccessTokenCount().isEqualTo(2);
+    assertAccessTokenCount().isEqualTo(3);
   }
 
   @Test
@@ -83,7 +83,7 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("return access token when requesting with AppleId token")
   void returnAccessTokenWhenRequestingWithAppleIdToken() {
     //given
-    assertUserCount().isEqualTo(6);
+    assertUserCount().isEqualTo(7);
     assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(0);
 
     given()
@@ -105,10 +105,10 @@ class ExternalTokenResourceHttpTest {
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(0))
     ;
-    assertUserCount().isEqualTo(7);
+    assertUserCount().isEqualTo(8);
     assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(1);
 
-    assertAccessTokenCount().isEqualTo(2);
+    assertAccessTokenCount().isEqualTo(3);
   }
 
   @Test
@@ -116,7 +116,7 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("return access token when requesting with FaceBook AccessCode")
   void returnAccessTokenWhenRequestingWithFaceBookAccessCode() {
     //given
-    assertUserCount().isEqualTo(6);
+    assertUserCount().isEqualTo(7);
     assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isEqualTo(0);
 
     given()
@@ -138,19 +138,18 @@ class ExternalTokenResourceHttpTest {
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(0))
     ;
-    assertUserCount().isEqualTo(7);
+    assertUserCount().isEqualTo(8);
     assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isEqualTo(1);
 
-    assertAccessTokenCount().isEqualTo(2);
+    assertAccessTokenCount().isEqualTo(3);
   }
-
 
   @Test
   @Transactional
   @DisplayName("should map jwt token to existing user and create new access token")
   void shouldMapJwtTokenToExistingUserAndCreateNewAccessToken() {
     //given
-    assertAccessTokenCount().isEqualTo(1);
+    assertAccessTokenCount().isEqualTo(2);
     assertUserCountByExternalId(GOOGLE_PREMIUM_USER.getExternalId()).isEqualTo(1);
 
     given()
@@ -172,7 +171,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", greaterThanOrEqualTo(1))
     ;
 
-    assertAccessTokenCount().isEqualTo(1);
+    assertAccessTokenCount().isEqualTo(2);
   }
 
   @Test

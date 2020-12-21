@@ -59,7 +59,7 @@ class UserOptOutResourceHttpTest {
         .status(OK)
     ;
 
-    assertAccessTokenCount().isEqualTo(0);
+    assertAccessTokenCount().isEqualTo(1);
     assertThat(userRepository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).isEmpty();
   }
 

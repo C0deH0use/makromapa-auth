@@ -2,27 +2,30 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
+import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.BEARER_TOKEN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
 import io.restassured.http.Header;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -94,6 +97,50 @@ class UserInfoResourceHttpTest {
         .body("email", equalTo("test.makro01@gmail.com"))
         .body("picture", equalTo("picture1"))
         .body("type", equalTo("PREMIUM_USER"))
+        .body("enabled", equalTo(true))
+    ;
+  }
+
+  @Test
+  @DisplayName("should fetch user info for admin")
+  void shouldFetchUserInfoForAdmin() {
+    //given
+    String adminAccessCode = given()
+        .param("grant_type", "password")
+        .param("username", ADMIN.getName())
+        .param("password", ADMIN.getPassword())
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+        .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+
+        .when()
+        .post("/oauth/token")
+
+        .then()
+        .status(OK)
+        .log().all(true)
+        .body("scope", equalTo("USER"))
+        .extract().body().jsonPath()
+        .getString("access_token")
+    ;
+
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, BEARER_TOKEN + adminAccessCode))
+
+        .when()
+        .get(BASE_PATH + "/user-info")
+
+        .then()
+        .log().all(true)
+        .status(OK)
+        .body("sub", equalTo(ADMIN.getUserId().toString()))
+        .body("provider", equalTo(BASIC_AUTH.name()))
+        .body("name", is(emptyOrNullString()))
+        .body("surname", is(emptyOrNullString()))
+        .body("nickname", is(emptyOrNullString()))
+        .body("email", equalTo(ADMIN.getName()))
+        .body("picture", nullValue())
+        .body("type", equalTo("ADMIN"))
         .body("enabled", equalTo(true))
     ;
   }

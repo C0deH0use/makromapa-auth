@@ -210,10 +210,9 @@ public class UserFacade {
 
   private ExternalUser createNewFacebookUser(User profile) {
     String externalId = profile.getId();
-    OAuth2Provider oauth2Provider = FACEBOOK;
 
     UserDetails userDetails = parseUserDetails(profile);
-    return createNewFreeUser(externalId, oauth2Provider, userDetails);
+    return createNewFreeUser(externalId, FACEBOOK, userDetails);
   }
 
   private ExternalUser createNewFreeUser(String externalId, OAuth2Provider oauth2Provider, UserDetails userDetails) {
