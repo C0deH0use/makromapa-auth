@@ -4,5 +4,5 @@ public enum UserType {
   FREE_USER,
   PREMIUM_USER,
   DRAFT_USER,
-  ADMIN
+  ADMIN_USER
 }

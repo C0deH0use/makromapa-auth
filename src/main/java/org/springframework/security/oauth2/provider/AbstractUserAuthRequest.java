@@ -4,7 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.GRANT_TYPE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.RESPONSE_TYPE;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.userAuthoritiesFor;
-import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.util.Collection;
@@ -129,7 +129,7 @@ public abstract class AbstractUserAuthRequest extends TokenRequest {
     if (PREMIUM_USER == userType) {
       scopes.add("PREMIUM_USER");
     }
-    if (ADMIN == userType) {
+    if (ADMIN_USER == userType) {
       scopes.add("ADMIN");
     }
 
