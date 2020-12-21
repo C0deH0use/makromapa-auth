@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static java.util.stream.Collectors.toList;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.util.ArrayList;
@@ -31,6 +32,9 @@ public class UserAuthoritiesService {
     authorities.add(new SimpleGrantedAuthority("ROLE_FREE_USER"));
     if (PREMIUM_USER == type) {
       authorities.add(new SimpleGrantedAuthority("ROLE_PREMIUM_USER"));
+    }
+    if (ADMIN == type) {
+      authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
     return authorities;
   }
