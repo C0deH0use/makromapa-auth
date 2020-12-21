@@ -140,7 +140,7 @@ class UserInfoResourceHttpTest {
         .body("nickname", is(emptyOrNullString()))
         .body("email", equalTo(ADMIN.getName()))
         .body("picture", nullValue())
-        .body("type", equalTo("ADMIN"))
+        .body("type", equalTo("ADMIN_USER"))
         .body("enabled", equalTo(true))
     ;
   }
