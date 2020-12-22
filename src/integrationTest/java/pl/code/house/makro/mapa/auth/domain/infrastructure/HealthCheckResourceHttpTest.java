@@ -12,6 +12,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 
 import com.icegreen.greenmail.util.GreenMail;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,6 +51,7 @@ class HealthCheckResourceHttpTest {
   }
 
   @Test
+  @Ignore
   @DisplayName("return health status")
   void returnHealthStatus() {
     //given
