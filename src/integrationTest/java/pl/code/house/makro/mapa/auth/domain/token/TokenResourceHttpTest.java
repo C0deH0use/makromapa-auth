@@ -1,5 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
+import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -46,6 +48,7 @@ class TokenResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() {
@@ -72,6 +75,7 @@ class TokenResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("return token details when requesting with valid access token")
   void returnTokenDetailsWhenRequestingWithValidAccessToken() {
@@ -184,7 +188,7 @@ class TokenResourceHttpTest {
         .param("grant_type", "external-token")
         .param("client_id", "makromapa-mobile")
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
-        .contentType(ContentType.JSON)
+        .contentType(JSON)
 
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")

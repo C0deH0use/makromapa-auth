@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -95,6 +96,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("register new user by mobile client")
   void registerNewUserByMobileClient() throws MessagingException {
@@ -128,6 +130,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("request activation_code for existing draft user if existing code is invalid - disabled")
   void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidDisabled() throws MessagingException {
@@ -166,6 +169,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("request activation_code for existing draft user if existing code is invalid - has expired")
   void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidHasExpired() throws MessagingException {
@@ -205,6 +209,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("activate draft user")
   void activateDraftUser() {
@@ -249,6 +254,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("should request user password reset")
   void shouldRequestUserPasswordReset() {
@@ -281,6 +287,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("request user password reset when user already has one request active")
   void requestUserPasswordResetWhenUserAlreadyHasOneRequestActive() {
@@ -319,6 +326,7 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @Rollback
   @Transactional
   @DisplayName("should change user password with verification code")
   void shouldChangeUserPasswordWithVerificationCode() {

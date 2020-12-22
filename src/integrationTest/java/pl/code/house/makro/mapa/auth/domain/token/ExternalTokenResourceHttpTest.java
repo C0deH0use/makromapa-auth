@@ -11,8 +11,6 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.jdbc.JdbcTestUtils.countRowsInTable;
-import static org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.APPLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.FACEBOOK_NEW_USER;
@@ -20,18 +18,17 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
 import io.restassured.http.ContentType;
-import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import java.util.UUID;
-import org.assertj.core.api.IntegerAssert;
+import org.assertj.core.api.LongAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import pl.code.house.makro.mapa.auth.domain.user.TestUserRepository;
 
 @SpringBootTest
 class ExternalTokenResourceHttpTest {
@@ -40,7 +37,10 @@ class ExternalTokenResourceHttpTest {
   private WebApplicationContext context;
 
   @Autowired
-  private JdbcTemplate jdbcTemplate;
+  private TestOAuthAccessTokenRepository oAuthAccessTokenRepository;
+
+  @Autowired
+  private TestUserRepository userRepository;
 
   @BeforeEach
   void setup() {
@@ -54,7 +54,8 @@ class ExternalTokenResourceHttpTest {
   void returnAccessTokenWhenRequestedByNewUser() {
     //given
     assertUserCount().isEqualTo(7);
-    assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(0);
+    assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isZero();
+    assertAccessTokenCount().isOne();
 
     given()
         .param("grant_type", "external-token")
@@ -75,7 +76,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", greaterThanOrEqualTo(900))
     ;
     assertUserCount().isEqualTo(8);
-    assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isEqualTo(1);
+    assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isOne();
 
     assertAccessTokenCount().isEqualTo(2);
   }
@@ -87,7 +88,8 @@ class ExternalTokenResourceHttpTest {
   void returnAccessTokenWhenRequestingWithAppleIdToken() {
     //given
     assertUserCount().isEqualTo(7);
-    assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(0);
+    assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isZero();
+    assertAccessTokenCount().isOne();
 
     given()
         .param("grant_type", "external-token")
@@ -109,7 +111,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", greaterThanOrEqualTo(0))
     ;
     assertUserCount().isEqualTo(8);
-    assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isEqualTo(1);
+    assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isOne();
 
     assertAccessTokenCount().isEqualTo(2);
   }
@@ -121,7 +123,8 @@ class ExternalTokenResourceHttpTest {
   void returnAccessTokenWhenRequestingWithFaceBookAccessCode() {
     //given
     assertUserCount().isEqualTo(7);
-    assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isEqualTo(0);
+    assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isZero();
+    assertAccessTokenCount().isOne();
 
     given()
         .param("grant_type", "external-token")
@@ -143,7 +146,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", greaterThanOrEqualTo(0))
     ;
     assertUserCount().isEqualTo(8);
-    assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isEqualTo(1);
+    assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isOne();
 
     assertAccessTokenCount().isEqualTo(2);
   }
@@ -154,8 +157,8 @@ class ExternalTokenResourceHttpTest {
   @DisplayName("should map jwt token to existing user and create new access token")
   void shouldMapJwtTokenToExistingUserAndCreateNewAccessToken() {
     //given
-    assertAccessTokenCount().isEqualTo(1);
-    assertUserCountByExternalId(GOOGLE_PREMIUM_USER.getExternalId()).isEqualTo(1);
+    assertUserCountByExternalId(GOOGLE_PREMIUM_USER.getExternalId()).isOne();
+    assertAccessTokenCount().isOne();
 
     given()
         .log().all()
@@ -176,7 +179,7 @@ class ExternalTokenResourceHttpTest {
         .body("expires_in", greaterThanOrEqualTo(1))
     ;
 
-    assertAccessTokenCount().isEqualTo(1);
+    assertAccessTokenCount().isOne();
   }
 
   @Test
@@ -217,17 +220,16 @@ class ExternalTokenResourceHttpTest {
     ;
   }
 
-  private IntegerAssert assertAccessTokenCount() {
-    return new IntegerAssert(countRowsInTable(jdbcTemplate, "oauth_access_token"));
+  private LongAssert assertAccessTokenCount() {
+    return new LongAssert(oAuthAccessTokenRepository.count());
   }
 
-  private IntegerAssert assertUserCount() {
-    return new IntegerAssert(countRowsInTable(jdbcTemplate, "app_user"));
+  private LongAssert assertUserCount() {
+    return new LongAssert(userRepository.count());
   }
 
-  private IntegerAssert assertUserCountByExternalId(String externalId) {
-    int userCount = countRowsInTableWhere(jdbcTemplate, "app_user", String.format("external_id = '%s'", externalId));
-    return new IntegerAssert(userCount);
+  private LongAssert assertUserCountByExternalId(String externalId) {
+    return new LongAssert(userRepository.countByExternalId(externalId));
   }
 
 }
