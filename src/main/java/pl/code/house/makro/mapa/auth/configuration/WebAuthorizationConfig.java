@@ -6,6 +6,7 @@ import static org.apache.commons.lang3.StringUtils.split;
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.GET_AUTHORITY_SQL;
 
 import java.util.List;
 import java.util.Map;
@@ -161,7 +162,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       auth.jdbcAuthentication()
           .dataSource(dataSource)
           .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE provider = 'BASIC_AUTH' AND email = ?")
-          .authoritiesByUsernameQuery("SELECT user_id::text, authority FROM user_authority WHERE user_id::text = ?")
+          .authoritiesByUsernameQuery(GET_AUTHORITY_SQL)
       ;
     }
 

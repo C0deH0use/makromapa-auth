@@ -43,8 +43,11 @@ class UserDetails {
   @Enumerated(EnumType.STRING)
   private UserType type;
 
+  @Column(name = "points", nullable = false)
+  private int points;
+
   UserDetailsDto toDto() {
-    return new UserDetailsDto(name, surname, nickname, email, picture, type);
+    return new UserDetailsDto(name, surname, nickname, email, picture, type, points);
   }
 
 }

@@ -1,10 +1,12 @@
 package pl.code.house.makro.mapa.auth.domain.user.dto;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Value;
 import pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider;
+import pl.code.house.makro.mapa.auth.domain.user.PremiumFeature;
 import pl.code.house.makro.mapa.auth.domain.user.UserType;
 
 @Value
@@ -30,5 +32,9 @@ public class UserInfoDto implements Serializable {
   UserType type;
 
   Boolean enabled;
+
+  int points;
+
+  Set<PremiumFeature> premiumFeatures;
 
 }

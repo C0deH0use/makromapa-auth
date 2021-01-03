@@ -11,6 +11,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -27,6 +29,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDetailsDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
@@ -49,6 +52,9 @@ class ExternalUserTokenGranterTest {
   private AuthorizationServerTokenServices tokenServices;
 
   @Mock
+  private UserAuthoritiesService userAuthoritiesService;
+
+  @Mock
   private ClientDetailsService clientDetailsService;
 
   @Test
@@ -59,6 +65,7 @@ class ExternalUserTokenGranterTest {
     TokenRequest request = validRequest();
 
     given(clientDetailsService.loadClientByClientId(CLIENT_ID)).willReturn(MOCK_CLIENT_DETAILS);
+    given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
     given(userFacade.findUserByToken(any())).willReturn(userDto());
 
     //when
@@ -69,7 +76,7 @@ class ExternalUserTokenGranterTest {
   }
 
   private UserDto userDto() {
-    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER), true);
+    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER, 0), true);
   }
 
   private TokenRequest validRequest() {

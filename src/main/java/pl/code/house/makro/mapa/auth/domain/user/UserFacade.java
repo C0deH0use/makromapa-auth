@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.Assert.hasText;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
@@ -8,15 +9,17 @@ import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.ExternalUser.newUserFrom;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.FACEBOOK;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.fromIssuer;
+import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.NON;
+import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.PREMIUM;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
-import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserWithPassword.newDraftFrom;
 import static pl.code.house.makro.mapa.auth.error.UserOperationError.DRAFT_NOT_FOUND;
 import static pl.code.house.makro.mapa.auth.error.UserOperationError.USER_NOT_FOUND;
 import static pl.code.house.makro.mapa.auth.error.UserOperationError.VALIDATION_CODE_NOT_VALID;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,12 +54,21 @@ public class UserFacade {
 
   private final TermsAndConditionsRepository termsRepository;
 
+  private final UserAuthoritiesService authoritiesService;
+
   private final UserOptOutService optOutService;
 
   private final VerificationCodeService verificationCodeService;
 
   public static String maskEmail(String email) {
     return email.replaceAll("(^[^@]{3}|(?!^)\\G)[^@]", "$1*");
+  }
+
+  public Optional<UserInfoDto> findUserById(UUID userId) {
+    log.debug("Searching for User with id - `{}`", userId);
+
+    return userRepository.findById(userId)
+        .map(this::toUserInfo);
   }
 
   @Transactional
@@ -179,7 +191,7 @@ public class UserFacade {
         .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Active User with following id `" + userId + " ` does not exists"));
     user.updateWith(userDetails);
 
-    return user.toUserInfo();
+    return toUserInfo(user);
   }
 
   @Transactional
@@ -188,7 +200,7 @@ public class UserFacade {
   }
 
   private UserDto checkTcAndReturnDto(BaseUser user) {
-    if (PREMIUM_USER == user.getUserDetails().getType()) {
+    if (getUserPremiumFeatures(user).contains(PREMIUM)) {
       TermsAndConditions latestTnC = termsRepository.findFirstByOrderByLastUpdatedDesc();
       boolean userNotApprovedLatestTnC = latestTnC.getId().equals(user.getTermsAndConditionsId());
 
@@ -197,6 +209,18 @@ public class UserFacade {
       }
     }
     return user.toDto();
+  }
+
+  private UserInfoDto toUserInfo(BaseUser user) {
+    return user.toUserInfo(getUserPremiumFeatures(user));
+  }
+
+  private Set<PremiumFeature> getUserPremiumFeatures(BaseUser user) {
+    return authoritiesService.getUserAuthorities(user.getId())
+        .stream()
+        .map(PremiumFeature::fromAuthority)
+        .filter(not(NON::equals))
+        .collect(toSet());
   }
 
   private ExternalUser createNewExternalUser(Jwt jwtPrincipal) {

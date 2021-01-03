@@ -1,8 +1,10 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
 import java.util.Collection;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -13,6 +15,8 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
@@ -26,7 +30,11 @@ class FacebookUserTokenGranter implements TokenGranter {
 
   private final AuthorizationServerTokenServices tokenServices;
 
+  private final TokenStore tokenStore;
+
   private final ClientDetailsService clientDetailsService;
+
+  private final UserAuthoritiesService userAuthoritiesService;
 
   @Override
   public OAuth2AccessToken grant(String grantType, TokenRequest request) {
@@ -50,14 +58,21 @@ class FacebookUserTokenGranter implements TokenGranter {
   }
 
   protected OAuth2AccessToken getAccessToken(ClientDetails client, FacebookUserAuthRequest tokenRequest) {
-    return tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest));
+    OAuth2Authentication auth2Authentication = getOAuth2Authentication(client, tokenRequest);
+    OAuth2AccessToken existingAccessToken = tokenServices.getAccessToken(auth2Authentication);
+    if (existingAccessToken != null) {
+      tokenStore.removeAccessToken(existingAccessToken);
+    }
+    return tokenServices.createAccessToken(auth2Authentication);
   }
 
   private OAuth2Authentication getOAuth2Authentication(ClientDetails client, FacebookUserAuthRequest tokenRequest) {
     UserDto userDto = userFacade.findUserByProfile(tokenRequest.getPrincipal().getUserProfile());
     tokenRequest.setExternalUserId(userDto);
+    List<GrantedAuthority> userAuthorities = userAuthoritiesService.getUserAuthorities(userDto.getId());
+    tokenRequest.setAuthorities(userAuthorities);
 
-    FacebookAuthentication userAuth = new FacebookAuthentication(tokenRequest.getPrincipal().getUserProfile(), userDto.getUserDetails().getType());
+    FacebookAuthentication userAuth = new FacebookAuthentication(tokenRequest.getPrincipal().getUserProfile(), userAuthorities);
     OAuth2Request auth2Request = tokenRequest.createOAuth2Request(client);
     return new ExternalUserAuthentication(auth2Request, userAuth);
   }

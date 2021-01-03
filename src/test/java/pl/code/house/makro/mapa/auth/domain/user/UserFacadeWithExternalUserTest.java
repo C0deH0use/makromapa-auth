@@ -11,12 +11,11 @@ import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
-import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,11 +24,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.ExternalMockUser;
-import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
 import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
@@ -52,6 +51,9 @@ class UserFacadeWithExternalUserTest {
   @Mock
   private UserAuthoritiesService userAuthoritiesService;
 
+  @Mock
+  private ExternalUser storedUser;
+
   @InjectMocks
   private UserFacade sut;
 
@@ -69,7 +71,10 @@ class UserFacadeWithExternalUserTest {
         .build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId(), GOOGLE)).willReturn(Optional.empty());
-    given(repository.saveAndFlush(any(BaseUser.class))).willAnswer(returnsFirstArg());
+    given(userAuthoritiesService.getUserAuthorities(GOOGLE_NEW_USER.getUserId())).willReturn(List.of());
+
+    given(storedUser.getId()).willReturn(GOOGLE_NEW_USER.getUserId());
+    given(repository.saveAndFlush(any(BaseUser.class))).willReturn(storedUser);
 
     //when
     sut.findUserByToken(principal);
@@ -101,7 +106,10 @@ class UserFacadeWithExternalUserTest {
         .build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId(), GOOGLE)).willReturn(Optional.empty());
-    given(repository.saveAndFlush(any(BaseUser.class))).willAnswer(returnsFirstArg());
+    given(userAuthoritiesService.getUserAuthorities(GOOGLE_NEW_USER.getUserId())).willReturn(List.of());
+
+    given(storedUser.getId()).willReturn(GOOGLE_NEW_USER.getUserId());
+    given(repository.saveAndFlush(any(BaseUser.class))).willReturn(storedUser);
 
     //when
     sut.findUserByToken(principal);
@@ -136,7 +144,7 @@ class UserFacadeWithExternalUserTest {
         GOOGLE_PREMIUM_USER.getUserId(),
         1000L,
         GOOGLE,
-        UserDetails.builder().type(PREMIUM_USER).build(),
+        UserDetails.builder().type(FREE_USER).build(),
         GOOGLE_PREMIUM_USER.getExternalId(),
         true
     );
@@ -144,6 +152,8 @@ class UserFacadeWithExternalUserTest {
     TermsAndConditions currentTnC = TermsAndConditions.builder().id(1000L).build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
+    given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
+
     given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
 
     //when
@@ -213,7 +223,7 @@ class UserFacadeWithExternalUserTest {
         GOOGLE_PREMIUM_USER.getUserId(),
         1000L,
         GOOGLE,
-        UserDetails.builder().type(PREMIUM_USER).build(),
+        UserDetails.builder().type(FREE_USER).build(),
         GOOGLE_PREMIUM_USER.getExternalId(),
         true
     );
@@ -221,6 +231,8 @@ class UserFacadeWithExternalUserTest {
     TermsAndConditions currentTnC = TermsAndConditions.builder().id(1001L).build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
+    given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
+
     given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
 
     //when

@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -65,8 +66,10 @@ class UserInfoResourceHttpTest {
         .body("nickname", is(emptyOrNullString()))
         .body("email", equalTo("test.makro01@gmail.com"))
         .body("picture", notNullValue())
-        .body("type", equalTo("PREMIUM_USER"))
+        .body("type", equalTo("FREE_USER"))
+        .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
         .body("enabled", equalTo(true))
+        .body("points", equalTo(0))
     ;
   }
 
@@ -98,8 +101,10 @@ class UserInfoResourceHttpTest {
         .body("nickname", equalTo("MakroMapa App"))
         .body("email", equalTo("test.makro01@gmail.com"))
         .body("picture", equalTo("picture1"))
-        .body("type", equalTo("PREMIUM_USER"))
+        .body("type", equalTo("FREE_USER"))
+        .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
         .body("enabled", equalTo(true))
+        .body("points", equalTo(0))
     ;
   }
 

@@ -14,6 +14,7 @@ public class ExternalUserAuthRequest extends AbstractUserAuthRequest {
 
   JwtAuthenticationToken principal;
 
+
   public ExternalUserAuthRequest(
       Map<String, String> requestParameters,
       String clientId,
@@ -23,5 +24,4 @@ public class ExternalUserAuthRequest extends AbstractUserAuthRequest {
     super(requestParameters, clientId, scopes, responseTypes);
     this.principal = principal;
   }
-
 }

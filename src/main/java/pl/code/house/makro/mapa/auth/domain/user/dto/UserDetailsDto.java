@@ -21,4 +21,6 @@ public class UserDetailsDto implements Serializable {
 
   UserType type;
 
+  int points;
+
 }

@@ -220,7 +220,7 @@ class UserResourceHttpTest {
 
     assertThat(codeRepository.findByUserIdAndCodeType(REG_DRAFT_USER.getUserId(), REGISTRATION).stream().anyMatch(ac -> ac.getExpiresOn().isAfter(now(clock)))).isTrue();
 
-    assertThat(authoritiesManager.userAuthorities(REG_DRAFT_USER.getUserId())).hasSize(0);
+    assertThat(authoritiesManager.getUserAuthorities(REG_DRAFT_USER.getUserId())).hasSize(0);
 
     given()
         .contentType(APPLICATION_JSON_VALUE)
@@ -250,7 +250,7 @@ class UserResourceHttpTest {
     assertThat(user.getEnabled()).isTrue();
     assertThat(user.getUserDetails().getType()).isEqualTo(FREE_USER);
 
-    assertThat(authoritiesManager.userAuthorities(REG_DRAFT_USER.getUserId())).hasSize(1);
+    assertThat(authoritiesManager.getUserAuthorities(REG_DRAFT_USER.getUserId())).hasSize(1);
   }
 
   @Test

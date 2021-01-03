@@ -5,6 +5,7 @@ import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
@@ -49,7 +50,7 @@ class UserWithPassword extends BaseUser {
   }
 
   @Override
-  UserInfoDto toUserInfo() {
+  UserInfoDto toUserInfo(Set<PremiumFeature> featureSet) {
     return UserInfoDto.builder()
         .sub(this.getId())
         .name(this.getUserDetails().getName())
@@ -57,9 +58,11 @@ class UserWithPassword extends BaseUser {
         .nickname(this.getUserDetails().getNickname())
         .email(this.getUserDetails().getEmail())
         .picture(this.getUserDetails().getPicture())
+        .points(this.getUserDetails().getPoints())
         .type(this.getUserDetails().getType())
         .provider(this.getProvider())
         .enabled(this.getEnabled())
+        .premiumFeatures(featureSet)
         .build();
   }
 }

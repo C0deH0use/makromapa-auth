@@ -6,12 +6,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
+import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.PREMIUM;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
-import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
 
@@ -28,6 +30,9 @@ class UpdateUserInfoWithUserFacadeTest {
 
   @Mock
   private UserRepository repository;
+
+  @Mock
+  private UserAuthoritiesService userAuthoritiesService;
 
   @InjectMocks
   private UserFacade sut;
@@ -38,7 +43,7 @@ class UpdateUserInfoWithUserFacadeTest {
     //given
     UUID userId = GOOGLE_PREMIUM_USER.getUserId();
     UserDetails details = UserDetails.builder()
-        .type(PREMIUM_USER)
+        .type(FREE_USER)
         .email("old@google.com")
         .name(GOOGLE_NEW_USER.getName())
         .build();
@@ -50,9 +55,10 @@ class UpdateUserInfoWithUserFacadeTest {
         GOOGLE_PREMIUM_USER.getExternalId(),
         true
     );
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "NEW NICKNAME", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "NEW NICKNAME", null, "PICTURE", null, 0);
 
     given(repository.findById(userId)).willReturn(Optional.of(premiumUser));
+    given(userAuthoritiesService.getUserAuthorities(userId)).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
 
     //when
     UserInfoDto infoDto = sut.updateUserDetails(userId, updatedDetails);
@@ -61,7 +67,8 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getSub()).isEqualTo(userId);
     assertThat(infoDto.getEnabled()).isEqualTo(true);
     assertThat(infoDto.getProvider()).isEqualTo(GOOGLE);
-    assertThat(infoDto.getType()).isEqualTo(PREMIUM_USER);
+    assertThat(infoDto.getType()).isEqualTo(FREE_USER);
+    assertThat(infoDto.getPremiumFeatures()).contains(PREMIUM);
     assertThat(infoDto.getEmail()).isEqualTo("old@google.com");
 
     assertThat(infoDto.getName()).isEqualTo("NEW NAME");
@@ -80,9 +87,10 @@ class UpdateUserInfoWithUserFacadeTest {
         .email(REG_USER.getName())
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", true, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "Nickname", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "Nickname", null, "PICTURE", null, 0);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
+    given(userAuthoritiesService.getUserAuthorities(userId)).willReturn(List.of());
 
     //when
     UserInfoDto infoDto = sut.updateUserDetails(userId, updatedDetails);
@@ -92,6 +100,7 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getEnabled()).isEqualTo(true);
     assertThat(infoDto.getProvider()).isEqualTo(BASIC_AUTH);
     assertThat(infoDto.getType()).isEqualTo(FREE_USER);
+    assertThat(infoDto.getPremiumFeatures()).isEmpty();
     assertThat(infoDto.getEmail()).isEqualTo(REG_USER.getName());
     assertThat(infoDto.getName()).isEqualTo("NEW NAME");
     assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
@@ -113,9 +122,10 @@ class UpdateUserInfoWithUserFacadeTest {
         .picture(expectedPic)
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", true, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "", "NICK",null, null, null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "", "NICK", null, null, null, 0);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
+    given(userAuthoritiesService.getUserAuthorities(userId)).willReturn(List.of());
 
     //when
     UserInfoDto infoDto = sut.updateUserDetails(userId, updatedDetails);
@@ -125,6 +135,7 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getEnabled()).isEqualTo(true);
     assertThat(infoDto.getProvider()).isEqualTo(BASIC_AUTH);
     assertThat(infoDto.getType()).isEqualTo(FREE_USER);
+    assertThat(infoDto.getPremiumFeatures()).isEmpty();
     assertThat(infoDto.getEmail()).isEqualTo(REG_USER.getName());
 
     assertThat(infoDto.getName()).isEqualTo("NEW NAME");
@@ -138,7 +149,7 @@ class UpdateUserInfoWithUserFacadeTest {
   void throwIfUpdatingUserInfoOfNonExistingUser() {
     //given
     UUID userId = REG_USER.getUserId();
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "", null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "", null, "PICTURE", null, 0);
 
     given(repository.findById(userId)).willReturn(empty());
 
@@ -160,7 +171,7 @@ class UpdateUserInfoWithUserFacadeTest {
         .email(REG_USER.getName())
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", false, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, null, "PICTURE", null);
+    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, null, "PICTURE", null, 0);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
 

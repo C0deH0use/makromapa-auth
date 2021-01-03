@@ -4,6 +4,7 @@ import static javax.persistence.AccessType.FIELD;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
 
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
@@ -41,7 +42,7 @@ class ExternalUser extends BaseUser {
   }
 
   @Override
-  UserInfoDto toUserInfo() {
+  UserInfoDto toUserInfo(Set<PremiumFeature> featureSet) {
     return UserInfoDto.builder()
         .sub(this.getId())
         .name(this.getUserDetails().getName())
@@ -50,8 +51,10 @@ class ExternalUser extends BaseUser {
         .email(this.getUserDetails().getEmail())
         .picture(this.getUserDetails().getPicture())
         .type(this.getUserDetails().getType())
+        .points(this.getUserDetails().getPoints())
         .provider(this.getProvider())
         .enabled(this.getEnabled())
+        .premiumFeatures(featureSet)
         .build();
   }
 }

@@ -1,11 +1,12 @@
 package org.springframework.security.oauth2.provider;
 
+import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.GRANT_TYPE;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.RESPONSE_TYPE;
-import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.userAuthoritiesFor;
+import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.ROLE_PREFIX;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN_USER;
-import static pl.code.house.makro.mapa.auth.domain.user.UserType.PREMIUM_USER;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import pl.code.house.makro.mapa.auth.domain.user.UserType;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
@@ -43,7 +45,7 @@ public abstract class AbstractUserAuthRequest extends TokenRequest {
   Set<String> resourceIds = new HashSet<>();
 
   @NonFinal
-  Collection<? extends GrantedAuthority> authorities = new HashSet<>();
+  Collection<GrantedAuthority> authorities = new HashSet<>();
 
   public AbstractUserAuthRequest(
       Map<String, String> requestParameters,
@@ -124,16 +126,19 @@ public abstract class AbstractUserAuthRequest extends TokenRequest {
     modifiable.put("grant_type", getGrantType());
     modifiable.put(USER_ID, externalUser.getId().toString());
 
-    Set<String> scopes = new HashSet<>(this.getScope());
+    Set<String> scopes = this.getAuthorities()
+        .stream()
+        .map(GrantedAuthority::getAuthority)
+        .map(authority -> removeStart(authority, ROLE_PREFIX))
+        .collect(toSet());
     UserType userType = externalUser.getUserDetails().getType();
-    if (PREMIUM_USER == userType) {
-      scopes.add("PREMIUM_USER");
-    }
+
     if (ADMIN_USER == userType) {
       scopes.add("ADMIN");
+      authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 
-    return new OAuth2Request(modifiable, client.getClientId(), userAuthoritiesFor(userType), true, scopes,
+    return new OAuth2Request(modifiable, client.getClientId(), getAuthorities(), true, scopes,
         client.getResourceIds(), null, null, null);
   }
 }

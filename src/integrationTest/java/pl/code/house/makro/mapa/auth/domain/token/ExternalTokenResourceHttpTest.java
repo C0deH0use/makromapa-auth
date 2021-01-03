@@ -2,6 +2,7 @@ package pl.code.house.makro.mapa.auth.domain.token;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -74,6 +75,7 @@ class ExternalTokenResourceHttpTest {
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(900))
+        .body("scope", equalTo("FREE_USER"))
     ;
     assertUserCount().isEqualTo(8);
     assertUserCountByExternalId(GOOGLE_NEW_USER.getExternalId()).isOne();
@@ -109,6 +111,7 @@ class ExternalTokenResourceHttpTest {
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(0))
+        .body("scope", equalTo("FREE_USER"))
     ;
     assertUserCount().isEqualTo(8);
     assertUserCountByExternalId(APPLE_NEW_USER.getExternalId()).isOne();
@@ -144,6 +147,7 @@ class ExternalTokenResourceHttpTest {
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(0))
+        .body("scope", equalTo("FREE_USER"))
     ;
     assertUserCount().isEqualTo(8);
     assertUserCountByExternalId(FACEBOOK_NEW_USER.getExternalId()).isOne();
@@ -177,6 +181,9 @@ class ExternalTokenResourceHttpTest {
         .body("access_token", notNullValue())
         .body("refresh_token", notNullValue())
         .body("expires_in", greaterThanOrEqualTo(1))
+        .body("scope", containsString("FREE_USER"))
+        .body("scope", containsString("DISABLE_ADS"))
+        .body("scope", containsString("PREMIUM"))
     ;
 
     assertAccessTokenCount().isOne();

@@ -1,0 +1,2 @@
+ALTER TABLE app_user
+    ADD COLUMN points INT DEFAULT 0 NOT NULL;

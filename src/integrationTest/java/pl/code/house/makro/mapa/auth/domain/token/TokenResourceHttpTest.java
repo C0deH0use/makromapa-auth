@@ -96,7 +96,7 @@ class TokenResourceHttpTest {
         .body("exp", notNullValue())
         .body("user_name", equalTo("118364847911502210416"))
         .body("client_id", equalTo("makromapa-mobile"))
-        .body("scope", hasItems("PREMIUM_USER", "USER"))
+        .body("scope", hasItems("PREMIUM", "FREE_USER", "DISABLE_ADS"))
 
     ;
   }

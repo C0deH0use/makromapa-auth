@@ -8,6 +8,7 @@ import static lombok.AccessLevel.PROTECTED;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
+import java.util.Set;
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
@@ -89,5 +90,5 @@ abstract class BaseUser extends AuditAwareEntity {
     return this;
   }
 
-  abstract UserInfoDto toUserInfo();
+  abstract UserInfoDto toUserInfo(Set<PremiumFeature> featureSet);
 }
