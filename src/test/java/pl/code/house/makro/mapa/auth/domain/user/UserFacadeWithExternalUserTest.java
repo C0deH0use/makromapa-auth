@@ -2,11 +2,11 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
@@ -40,7 +40,7 @@ class UserFacadeWithExternalUserTest {
   private UserRepository repository;
 
   @Mock
-  private TermsAndConditionsRepository termsRepository;
+  private TermsAndConditionsFacade termsAndConditionsFacade;
 
   @Spy
   private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -154,8 +154,6 @@ class UserFacadeWithExternalUserTest {
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
     given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
 
-    given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
-
     //when
     sut.findUserByToken(principal);
 
@@ -203,42 +201,6 @@ class UserFacadeWithExternalUserTest {
     assertThatThrownBy(() -> sut.findUserByToken(principal))
         .isInstanceOf(InsufficientUserDetailsException.class)
         .hasMessageContaining("external user Id is missing")
-    ;
-  }
-
-  @Test
-  @DisplayName("throw when user needs to approve new TermsAndConditions to get authorized")
-  void throwWhenUserNeedsToApproveNewTermsAndConditionsToGetAuthorized() {
-    //given
-    String token = GOOGLE_PREMIUM_USER.getJwt();
-    Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = minimalClaims(GOOGLE_PREMIUM_USER.getExternalId());
-
-    Jwt principal = Jwt.withTokenValue(token)
-        .headers(h -> h.putAll(headers))
-        .claims(c -> c.putAll(claims))
-        .build();
-
-    ExternalUser premiumUser = new ExternalUser(
-        GOOGLE_PREMIUM_USER.getUserId(),
-        1000L,
-        GOOGLE,
-        UserDetails.builder().type(FREE_USER).build(),
-        GOOGLE_PREMIUM_USER.getExternalId(),
-        true
-    );
-
-    TermsAndConditions currentTnC = TermsAndConditions.builder().id(1001L).build();
-
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
-    given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
-
-    given(termsRepository.findFirstByOrderByLastUpdatedDesc()).willReturn(currentTnC);
-
-    //when
-    assertThatThrownBy(() -> sut.findUserByToken(principal))
-        .isInstanceOf(NewTermsAndConditionsNotApprovedException.class)
-        .hasMessageContaining("New terms and conditions")
     ;
   }
 

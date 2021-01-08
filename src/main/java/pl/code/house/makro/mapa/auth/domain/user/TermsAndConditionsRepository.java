@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 interface TermsAndConditionsRepository extends JpaRepository<TermsAndConditions, Long> {
 
-  TermsAndConditions findFirstByOrderByLastUpdatedDesc();
+  TermsAndConditions findFirstByOrderByLastUpdatedAsc();
 }

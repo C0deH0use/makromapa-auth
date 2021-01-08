@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAuthoritiesService {
 
   public static final String ROLE_PREFIX = "ROLE_";
-  public static final String GET_AUTHORITY_SQL = "SELECT authority, expiry_date FROM user_authority "
+  public static final String GET_AUTHORITY_SQL = "SELECT user_id, authority, expiry_date FROM user_authority "
       + "WHERE (expiry_date IS NULL OR expiry_date > now()) AND user_id::text = ?";
   private static final String INSERT_AUTHORITY_SQL = "INSERT INTO user_authority (user_id, authority) values (?,?)";
   private static final String INSERT_EXPIRABLE_AUTHORITY_SQL = "INSERT INTO user_authority (user_id, authority, expiry_date) values (?,?,?)";
@@ -72,8 +72,8 @@ public class UserAuthoritiesService {
 
     @Override
     public void processRow(ResultSet rs) throws SQLException {
-      String roleName = rs.getString(1);
-      Timestamp expiryDate = rs.getTimestamp(2);
+      String roleName = rs.getString(2);
+      Timestamp expiryDate = rs.getTimestamp(3);
 
       if (expiryDate == null) {
         authorities.add(new SimpleGrantedAuthority(roleName));

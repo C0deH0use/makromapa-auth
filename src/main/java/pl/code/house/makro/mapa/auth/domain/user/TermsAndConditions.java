@@ -18,6 +18,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
+import pl.code.house.makro.mapa.auth.domain.user.dto.TermsAndConditionsDto;
 
 @Entity
 @Table(name = TermsAndConditions.TABLE_NAME)
@@ -47,4 +48,11 @@ class TermsAndConditions extends AuditAwareEntity {
   @Column(name = "contract_en", insertable = false, updatable = false, nullable = false)
   private String contractEn;
 
+  TermsAndConditionsDto toDto() {
+    return TermsAndConditionsDto.builder()
+        .id(id)
+        .contractEn(contractEn)
+        .contractPl(contractPl)
+        .build();
+  }
 }

@@ -25,4 +25,8 @@ interface UserRepository extends JpaRepository<BaseUser, UUID> {
   @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("UPDATE UserWithPassword u SET u.password = :newPassword WHERE u.id = :userId")
   int updateUserPassword(@Param("userId") UUID userId, @Param("newPassword") String newPassword);
+
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE BaseUser u SET u.termsAndConditionsId = :termsId WHERE u.id = :userId")
+  int updateUserTermsAndConditionsId(@Param("userId") UUID userId, @Param("termsId") Long termsId);
 }

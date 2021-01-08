@@ -35,7 +35,6 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
-import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
 import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
 import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
@@ -52,7 +51,7 @@ public class UserFacade {
 
   private final UserAuthoritiesService userAuthoritiesService;
 
-  private final TermsAndConditionsRepository termsRepository;
+  private final TermsAndConditionsFacade termsAndConditionsFacade;
 
   private final UserAuthoritiesService authoritiesService;
 
@@ -201,12 +200,7 @@ public class UserFacade {
 
   private UserDto checkTcAndReturnDto(BaseUser user) {
     if (getUserPremiumFeatures(user).contains(PREMIUM)) {
-      TermsAndConditions latestTnC = termsRepository.findFirstByOrderByLastUpdatedDesc();
-      boolean userNotApprovedLatestTnC = latestTnC.getId().equals(user.getTermsAndConditionsId());
-
-      if (!userNotApprovedLatestTnC) {
-        throw new NewTermsAndConditionsNotApprovedException("New terms and conditions are required for user approval");
-      }
+      termsAndConditionsFacade.isLatestTermsApproved(user.getTermsAndConditionsId());
     }
     return user.toDto();
   }
