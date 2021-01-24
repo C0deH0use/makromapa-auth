@@ -70,6 +70,7 @@ class TermsAndConditionsResourceHttpTest {
   @DisplayName("should successfully update user terms id when approving valid terms and conditions")
   void shouldSuccessfullyUpdateUserTermsIdWhenApprovingValidTermsAndConditions() {
     //given
+    userRepository.updateUserTermsAndConditionsId(GOOGLE_PREMIUM_USER.getUserId(), null);
     assertApprovedTermsForUser(GOOGLE_PREMIUM_USER.getUserId()).isEmpty();
 
     given()

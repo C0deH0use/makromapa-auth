@@ -23,6 +23,10 @@ interface UserRepository extends JpaRepository<BaseUser, UUID> {
   Optional<BaseUser> findUserWithPasswordByUserEmail(@Param("userEmail") String userEmail);
 
   @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE BaseUser u SET u.userDetails.points = u.userDetails.points + :points WHERE u.id = :userId")
+  int updateUserPoints(@Param("userId") UUID userId, @Param("points") int points);
+
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("UPDATE UserWithPassword u SET u.password = :newPassword WHERE u.id = :userId")
   int updateUserPassword(@Param("userId") UUID userId, @Param("newPassword") String newPassword);
 

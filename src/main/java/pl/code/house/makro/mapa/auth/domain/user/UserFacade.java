@@ -285,4 +285,5 @@ public class UserFacade {
         .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Could not find user by email: " + email));
     return Optional.of(user);
   }
+
 }

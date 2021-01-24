@@ -1,11 +1,16 @@
 package pl.code.house.makro.mapa.auth.error.handler;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.ResponseEntity.badRequest;
+import static org.springframework.http.ResponseEntity.status;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.exceptions.ClientAuthenticationException;
@@ -14,9 +19,11 @@ import org.springframework.security.oauth2.common.exceptions.InvalidGrantExcepti
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
@@ -35,7 +42,7 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     HttpStatus httpStatus = statusResolver.statusOf(ex)
         .orElse(HttpStatus.INTERNAL_SERVER_ERROR);
 
-    return ResponseEntity.status(httpStatus).contentType(APPLICATION_JSON).body(errorMessage);
+    return status(httpStatus).contentType(APPLICATION_JSON).body(errorMessage);
   }
 
   @ExceptionHandler({RestClientException.class})
@@ -46,7 +53,7 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     HttpStatus httpStatus = statusResolver.statusOf(ex)
         .orElse(HttpStatus.INTERNAL_SERVER_ERROR);
 
-    return ResponseEntity.status(httpStatus).contentType(APPLICATION_JSON).body(errorMessage);
+    return status(httpStatus).contentType(APPLICATION_JSON).body(errorMessage);
   }
 
   @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class, InvalidFormatException.class,
@@ -55,7 +62,7 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     final ErrorMessage errorMessage = ErrorMessage.from(ex);
 
     logError(ex, errorMessage.getUniqueErrorId(), handlerMethod);
-    return ResponseEntity.badRequest().contentType(APPLICATION_JSON).body(errorMessage);
+    return badRequest().contentType(APPLICATION_JSON).body(errorMessage);
   }
 
   @ExceptionHandler({InvalidRequestException.class, InvalidGrantException.class, InvalidTokenException.class, InvalidClientException.class})
@@ -63,7 +70,22 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     final ErrorMessage errorMessage = ErrorMessage.from(ex);
 
     logError(ex, errorMessage.getUniqueErrorId(), handlerMethod);
-    return ResponseEntity.status(ex.getHttpErrorCode()).contentType(APPLICATION_JSON).body(errorMessage);
+    return status(ex.getHttpErrorCode()).contentType(APPLICATION_JSON).body(errorMessage);
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    final ErrorMessage errorMessage = ErrorMessage.from(ex);
+    logError(ex, errorMessage.getUniqueErrorId());
+
+    //Get all errors
+    Map<String, Object> body = Map.of("errors", ex.getBindingResult()
+        .getFieldErrors()
+        .stream()
+        .map(error -> String.format("field: `%s`, error reason: %s", error.getField(), error.getDefaultMessage()))
+        .collect(toList()));
+
+    return badRequest().contentType(APPLICATION_JSON).body(body);
   }
 
   private void logError(Exception ex, UUID errorId, HandlerMethod handlerMethod) {

@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,6 +31,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 
 @Slf4j
+@Validated
 @RestController
 @AllArgsConstructor
 @RequestMapping(path = BASE_PATH + "/user-info", produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)

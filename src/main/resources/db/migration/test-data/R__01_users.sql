@@ -1,5 +1,5 @@
 INSERT INTO app_user (id, external_id, provider, terms_and_conditions_id, name, surname, email, picture, type, enabled, created, last_updated)
-VALUES ('aa6641c1-e9f4-417f-adf4-f71accc470cb', '118364847911502210416', 'GOOGLE', null, 'Makromapa Test01', 'Test01', 'test.makro01@gmail.com',
+VALUES ('aa6641c1-e9f4-417f-adf4-f71accc470cb', '118364847911502210416', 'GOOGLE', 1001, 'Makromapa Test01', 'Test01', 'test.makro01@gmail.com',
         'https://lh3.googleusercontent.com/-ikY_Cm72czw/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclOYs-lQmxAWahK4NhqYU-W2pcy7g/s96-c/photo.jpg',
         'FREE_USER', true, now(), now());
 
