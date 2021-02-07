@@ -81,4 +81,14 @@ steps:
     waitFor:
       - push_image_latest
 
+artifacts:
+  objects:
+    location: 'gs://build-test-results/$REPO_NAME'
+    paths: [
+        '/workspace/build/test-results/test/*',
+        '/workspace/build/reports/tests/test/*',
+        '/workspace/build/test-results/integrationTest/*',
+        '/workspace/build/reports/tests/integrationTest/*'
+    ]
+
 timeout: 1800s
