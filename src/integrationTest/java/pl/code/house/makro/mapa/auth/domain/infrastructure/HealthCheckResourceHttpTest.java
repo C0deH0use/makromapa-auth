@@ -1,22 +1,18 @@
 package pl.code.house.makro.mapa.auth.domain.infrastructure;
 
 
+import static com.icegreen.greenmail.configuration.GreenMailConfiguration.aConfig;
 import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
-import static io.restassured.module.mockmvc.config.MockMvcConfig.mockMvcConfig;
-import static io.restassured.module.mockmvc.config.RestAssuredMockMvcConfig.config;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static pl.code.house.makro.mapa.auth.domain.GreenMailSmtpConfig.SMTP_SETUP;
 
-import com.icegreen.greenmail.util.GreenMail;
-import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import com.icegreen.greenmail.junit5.GreenMailExtension;
 import org.junit.Ignore;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,21 +30,11 @@ class HealthCheckResourceHttpTest {
   @Autowired
   private WebApplicationContext context;
 
-  private GreenMail greenMail;
-
-  @BeforeEach
-  void setup() {
-    greenMail = new GreenMail();
-    greenMail.setUser("user_greenMain", "secret_password");
-    greenMail.start();
-
-    webAppContextSetup(context, springSecurity());
-  }
-
-  @AfterEach
-  void stop() {
-    greenMail.stop();
-  }
+  @RegisterExtension
+  static GreenMailExtension mailBean = new GreenMailExtension(SMTP_SETUP)
+      .withConfiguration(aConfig()
+          .withUser("user_greenMain", "secret_password")
+      );
 
   @Test
   @Ignore

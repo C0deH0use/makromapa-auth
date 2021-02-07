@@ -1,20 +1,20 @@
 package pl.code.house.makro.mapa.auth.domain.mail;
 
+import static com.icegreen.greenmail.configuration.GreenMailConfiguration.aConfig;
 import static javax.mail.Message.RecipientType.TO;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.code.house.makro.mapa.auth.domain.GreenMailSmtpConfig.SMTP_SETUP;
 
-import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.thymeleaf.context.Context;
@@ -30,25 +30,17 @@ class EmailServiceHttpTest {
   public static final String EXPECTED_RESET_PASSWORD_SUBJECT = "RESET_PASSWORD_SUBJECT";
   public static final String ACTIVATION_CODE = randomNumeric(6);
   public static final String EXPIRY_DATE = "2020-09-15 08:03:48";
-//    public static final String EXPECTED_RECEIVER = "aga.poczta3@autograf.pl";
   public static final String EXPECTED_RECEIVER = "Marek00Malik@gmail.com";
+
+  @RegisterExtension
+  static GreenMailExtension mailBean = new GreenMailExtension(SMTP_SETUP)
+      .withConfiguration(aConfig()
+          .withUser("user_greenMain", "secret_password")
+      );
+
 
   @Autowired
   private EmailService sut;
-
-  private GreenMail greenMail;
-
-  @BeforeEach
-  void setup() {
-    greenMail = new GreenMail();
-    greenMail.setUser("user_greenMain", "secret_password");
-    greenMail.start();
-  }
-
-  @AfterEach
-  void stop() {
-    greenMail.stop();
-  }
 
   @Test
   @DisplayName("should send proper registration email")
@@ -63,7 +55,7 @@ class EmailServiceHttpTest {
     sut.sendHtmlMail(messageDetails);
 
     //then
-    MimeMessage[] receivedMessages = greenMail.getReceivedMessages();
+    MimeMessage[] receivedMessages = mailBean.getReceivedMessages();
     assertThat(receivedMessages).hasSize(1);
     assertThat(receivedMessages[0].getSubject()).isEqualTo(EXPECTED_SUBJECT);
 
@@ -91,7 +83,7 @@ class EmailServiceHttpTest {
     sut.sendHtmlMail(messageDetails);
 
     //then
-    MimeMessage[] receivedMessages = greenMail.getReceivedMessages();
+    MimeMessage[] receivedMessages = mailBean.getReceivedMessages();
     assertThat(receivedMessages).hasSize(1);
     assertThat(receivedMessages[0].getSubject()).isEqualTo(EXPECTED_RESET_PASSWORD_SUBJECT);
 

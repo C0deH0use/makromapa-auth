@@ -188,7 +188,8 @@ dependencies {
             "org.spockframework:spock-core:${spockVersion}",
             "org.exparity:hamcrest-date:2.0.7",
 
-            'com.icegreen:greenmail:1.5.14',
+            'com.icegreen:greenmail:1.6.2',
+            'com.icegreen:greenmail-junit5:1.6.2',
     )
 
     integrationTestRuntimeOnly(
