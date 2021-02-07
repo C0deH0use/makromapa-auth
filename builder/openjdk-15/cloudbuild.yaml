@@ -1,0 +1,8 @@
+# gcloud builds submit --config cloudbuild.yaml .
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '--tag=gcr.io/$PROJECT_ID/openjdk-15', '.']
+
+images: ['gcr.io/$PROJECT_ID/openjdk-15']
+tags: ['codehouse-builds']
