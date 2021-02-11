@@ -1,5 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
+import static com.icegreen.greenmail.configuration.GreenMailConfiguration.aConfig;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -19,6 +20,7 @@ import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.domain.GreenMailSmtpConfig.SMTP_SETUP;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.NEW_REG_USER;
@@ -30,20 +32,18 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER_2;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
-import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.junit5.GreenMailExtension;
 import io.restassured.http.Header;
 import java.time.Clock;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -79,20 +79,15 @@ class UserResourceHttpTest {
   @Value("${mails.registration.verification.code.expiresOn.hours}")
   private Long expiresOn;
 
-  private GreenMail greenMail;
+  @RegisterExtension
+  static GreenMailExtension mailBean = new GreenMailExtension(SMTP_SETUP)
+      .withConfiguration(aConfig()
+          .withUser("user_greenMain", "secret_password")
+      );
 
   @BeforeEach
   void setup() {
-    greenMail = new GreenMail();
-    greenMail.setUser("user_greenMain", "secret_password");
-    greenMail.start();
-
     webAppContextSetup(context, springSecurity());
-  }
-
-  @AfterEach
-  void stop() {
-    greenMail.stop();
   }
 
   @Test
@@ -125,8 +120,8 @@ class UserResourceHttpTest {
 
     assertThat(codeRepository.findByUserIdAndCodeType(newDraftId, REGISTRATION)).isNotEmpty();
 
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
-    assertThat(greenMail.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(NEW_REG_USER.getName());
+    assertThat(mailBean.getReceivedMessages()).hasSize(1);
+    assertThat(mailBean.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(NEW_REG_USER.getName());
   }
 
   @Test
@@ -164,8 +159,8 @@ class UserResourceHttpTest {
     assertThat(newActivationCode.stream().anyMatch(UserVerificationCode::getEnabled)).isTrue();
     assertThat(newActivationCode.stream().map(UserVerificationCode::getExpiresOn).anyMatch(exp -> exp.isBefore(now(clock).plusHours(expiresOn)))).isTrue();
 
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
-    assertThat(greenMail.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(REG_DRAFT_USER_WITH_DISABLED_CODE.getName());
+    assertThat(mailBean.getReceivedMessages()).hasSize(1);
+    assertThat(mailBean.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(REG_DRAFT_USER_WITH_DISABLED_CODE.getName());
   }
 
   @Test
@@ -204,8 +199,8 @@ class UserResourceHttpTest {
     assertThat(newActivationCode.get().getEnabled()).isTrue();
     assertThat(newActivationCode.get().getExpiresOn()).isBeforeOrEqualTo(now(clock).plusHours(expiresOn));
 
-    assertThat(greenMail.getReceivedMessages()).hasSize(1);
-    assertThat(greenMail.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(REG_DRAFT_USER_WITH_EXPIRED_CODE.getName());
+    assertThat(mailBean.getReceivedMessages()).hasSize(1);
+    assertThat(mailBean.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(REG_DRAFT_USER_WITH_EXPIRED_CODE.getName());
   }
 
   @Test
