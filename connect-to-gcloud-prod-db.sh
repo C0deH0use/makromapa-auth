@@ -11,7 +11,7 @@
 # ➜ /usr/local/Cellar/libpq/13.1/bin/psql --file=/Users/mmalik/Documents/MakroMapa/auth/07_02_2021.sql --username=makromapa-auth-user --host=127.0.0.1 --port=5432 makromapa-auth
 ###########
 
-./cloud_sql_proxy -instances="makromapa-297422:europe-west1:makromapa-auth-db=tcp:5432"
+./cloud_sql_proxy -instances="makromapa-305711:europe-west1:makromapa-auth=tcp:5432"
 
 #c  For clean DB install UUID extension first
 # CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
