@@ -76,7 +76,7 @@ steps:
     id: deploy_image
     args: [ 'compute', 'instance-groups', 'managed', 'rolling-action', 'restart' ,'makromapa-auth-instance-group',
             '--max-unavailable', '1',
-            '--zone', 'europe-west3-b',
+            '--zone', 'europe-west1-b',
     ]
     waitFor:
       - push_image_latest
