@@ -4,15 +4,15 @@ buildscript {
         set("springCloudVersion", "Hoxton.SR4")
         set("springSecurityOAuth2Version", "2.4.1.RELEASE")
 
-        set("lombokVersion", "1.18.10")
+        set("lombokVersion", "1.18.20")
 
         set("restAssured", "4.2.0")
-        set("junit5Version", "5.6.2")
-        set("junitPlatformVersion", "1.6.2")
-        set("spockVersion", "2.0-M2-groovy-2.5")
+        set("junit5Version", "5.7.1")
+        set("junitPlatformVersion", "1.7.1")
+        set("spockVersion", "2.0-M5-groovy-2.5")
 
-        set("junitPlatformVersion", "1.6.2")
-        set('junit-jupiter.version', '5.6.2')
+        set("junitPlatformVersion", "1.7.1")
+        set('junit-jupiter.version', '5.7.1')
 
         set("flywayVersion", "6.4.2")
         set('swaggerVersion', "2.9.2")
@@ -20,7 +20,7 @@ buildscript {
 
     ext["mockito.version"] = "3.0.0"
 
-    ext['junit-jupiter.version'] = "5.6.2"
+    ext['junit-jupiter.version'] = "5.7.1"
 
     repositories {
         mavenCentral()
@@ -48,8 +48,8 @@ plugins {
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_14
-    targetCompatibility = JavaVersion.VERSION_14
+    sourceCompatibility = JavaVersion.VERSION_15
+    targetCompatibility = JavaVersion.VERSION_15
 }
 
 configurations {
@@ -197,8 +197,6 @@ dependencies {
     )
 
 }
-
-
 
 /*
  * Tasks

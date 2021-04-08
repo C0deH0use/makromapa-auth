@@ -6,14 +6,14 @@ steps:
   #
   # Build the project
   #
-  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+  - name: 'openjdk:15.0.2-oraclelinux7'
     id: build_jar
     args: ["./gradlew", "clean", "build", "-x", "test"]
 
   #
   # Unit test
   #
-  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+  - name: 'openjdk:15.0.2-oraclelinux7'
     id: unit_test
     args: ["./gradlew", "test"]
     waitFor:
@@ -30,7 +30,7 @@ steps:
     waitFor:
       - unit_test
 
-  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+  - name: 'openjdk:15.0.2-oraclelinux7'
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
     env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev',
