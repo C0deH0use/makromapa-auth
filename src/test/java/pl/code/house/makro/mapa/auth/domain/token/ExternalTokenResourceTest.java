@@ -10,7 +10,6 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.security.core.context.SecurityContextHolder.createEmptyContext;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -22,12 +21,9 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_
 
 import io.restassured.http.Header;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import javax.sql.DataSource;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,8 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -46,7 +40,6 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.code.house.makro.mapa.auth.configuration.ImportTestAuthorizationConfig;
 
@@ -104,9 +97,8 @@ class ExternalTokenResourceTest {
   }
 
   @Test
-  @SneakyThrows
   @DisplayName("return UNAUTHORIZED if loaded client details does not match by ID")
-  void returnUnauthorizedIfLoadedClientDetailsDoesNotMatchById() {
+  void returnUnauthorizedIfLoadedClientDetailsDoesNotMatchById() throws Exception {
     //given
     getContext().setAuthentication(validAuthentication());
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
@@ -130,9 +122,8 @@ class ExternalTokenResourceTest {
   }
 
   @Test
-  @SneakyThrows
   @DisplayName("return BAD if uploaded client details do not match what was send to resource")
-  void returnBadIfUploadedClientDetailsDoNotMatchWhatWasSendToResource() {
+  void returnBadIfUploadedClientDetailsDoNotMatchWhatWasSendToResource() throws Exception {
     //given
     getContext().setAuthentication(validAuthentication());
 
@@ -158,9 +149,8 @@ class ExternalTokenResourceTest {
   }
 
   @Test
-  @SneakyThrows
   @DisplayName("return BAD_REQUEST if missing grant_type param")
-  void returnBadRequestIfMissingGrantTypeParam() {
+  void returnBadRequestIfMissingGrantTypeParam() throws Exception {
     //given
     getContext().setAuthentication(validAuthentication());
 
@@ -185,9 +175,8 @@ class ExternalTokenResourceTest {
   }
 
   @Test
-  @SneakyThrows
   @DisplayName("return BAD_REQUEST if grant_type is unknown or not supported")
-  void returnBadRequestIfGrantTypeIsUnknownOrNotSupported() {
+  void returnBadRequestIfGrantTypeIsUnknownOrNotSupported() throws Exception {
     //given
     getContext().setAuthentication(validAuthentication());
 

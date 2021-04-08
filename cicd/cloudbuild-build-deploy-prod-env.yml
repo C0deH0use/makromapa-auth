@@ -1,19 +1,19 @@
 ## How to submit:$
-#  gcloud builds submit --config builder/cloudbuild-build-deploy-test-env.yml .
+#  gcloud builds submit --config builder/cloudbuild-build-deploy-prod-env.yml .
 ##
 steps:
 
   # 
   # Build the project
   #
-  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+  - name: 'openjdk:15.0.2-oraclelinux7'
     id: build_jar
     args: ["./gradlew", "clean", "build", "-x", "test"]
 
   #
   # Unit test
   #
-  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+  - name: 'openjdk:15.0.2-oraclelinux7'
     id: unit_test
     args: ["./gradlew", "test"]
     waitFor:
@@ -22,7 +22,7 @@ steps:
   #
   # integration tests
   #
-  - name: 'docker/compose:1.25.5'
+  - name: 'docker/compose:1.28.6'
     id: postgres_db
     args: ['-f', 'builder/docker-compose.cicd.dependencies.yml', "up", "-d"]
     env:
@@ -30,7 +30,7 @@ steps:
     waitFor:
       - unit_test
 
-  - name: 'gcr.io/$PROJECT_ID/openjdk-14'
+  - name: 'openjdk:15.0.2-oraclelinux7'
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
     env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev' ]
@@ -76,7 +76,7 @@ steps:
     id: deploy_image
     args: [ 'compute', 'instance-groups', 'managed', 'rolling-action', 'restart' ,'makromapa-auth-instance-group',
             '--max-unavailable', '1',
-            '--zone', 'europe-west3-b',
+            '--zone', 'europe-west1-b',
     ]
     waitFor:
       - push_image_latest

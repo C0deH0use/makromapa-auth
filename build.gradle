@@ -1,26 +1,27 @@
 buildscript {
     ext {
-        set('springBootVersion', "2.3.1.RELEASE")
-        set("springCloudVersion", "Hoxton.SR4")
-        set("springSecurityOAuth2Version", "2.4.1.RELEASE")
+        set('springBootVersion', "2.4.4")
+        set("springCloudVersion", "2020.0.2")
+        set("springSecurityOAuth2Version", "2.5.0.RELEASE")
 
-        set("lombokVersion", "1.18.10")
+        set("lombokVersion", "1.18.20")
 
         set("restAssured", "4.2.0")
-        set("junit5Version", "5.6.2")
-        set("junitPlatformVersion", "1.6.2")
-        set("spockVersion", "2.0-M2-groovy-2.5")
+        set("junit5Version", "5.7.1")
+        set("junitPlatformVersion", "1.7.1")
+        set('junit-jupiter.version', '5.7.1')
+        set("spockVersion", "2.0-M5-groovy-2.5")
 
-        set("junitPlatformVersion", "1.6.2")
-        set('junit-jupiter.version', '5.6.2')
 
-        set("flywayVersion", "6.4.2")
-        set('swaggerVersion', "2.9.2")
+        set("flywayVersion", "7.7.2")
+        set("swaggerVersion", "2.9.2")
+        set("apacheCommonsLang3Version", "3.12.0")
+        set("vavrVersion", "0.10.3")
     }
 
-    ext["mockito.version"] = "3.0.0"
+    ext["mockito.version"] = "3.8.0"
 
-    ext['junit-jupiter.version'] = "5.6.2"
+    ext['junit-jupiter.version'] = "5.7.1"
 
     repositories {
         mavenCentral()
@@ -39,17 +40,17 @@ plugins {
     id 'pmd'
     id 'checkstyle'
 
-    id "org.flywaydb.flyway" version "6.4.2"
+    id "org.flywaydb.flyway" version "7.7.2"
     id 'io.franzbecker.gradle-lombok' version '4.0.0'
 
-    id 'org.springframework.boot' version '2.3.1.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-    id "org.springframework.cloud.contract" version "2.1.5.RELEASE"
+    id 'org.springframework.boot' version '2.4.3'
+    id "org.springframework.cloud.contract" version "3.0.2"
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_14
-    targetCompatibility = JavaVersion.VERSION_14
+    sourceCompatibility = JavaVersion.VERSION_15
+    targetCompatibility = JavaVersion.VERSION_15
 }
 
 configurations {
@@ -72,7 +73,6 @@ configurations {
 repositories {
     jcenter()
     mavenCentral()
-    mavenLocal()
 }
 
 
@@ -143,7 +143,7 @@ dependencies {
             'org.springframework.security:spring-security-oauth2-jose',
             'org.springframework.security:spring-security-oauth2-resource-server',
             "org.springframework.social:spring-social-facebook:2.0.3.RELEASE",
-            "org.springframework.social:spring-social-web:1.1.4.RELEASE",
+            "org.springframework.social:spring-social-web:1.1.6.RELEASE",
 
             'org.springframework.boot:spring-boot-starter-security',
             'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure',
@@ -152,8 +152,8 @@ dependencies {
             'org.flywaydb:flyway-core',
             'org.postgresql:postgresql',
 
-            "org.apache.commons:commons-lang3:3.10",
-            'io.vavr:vavr:0.10.3',
+            "org.apache.commons:commons-lang3:${apacheCommonsLang3Version}",
+            "io.vavr:vavr:${vavrVersion}",
     )
 
     compileOnly 'org.projectlombok:lombok'
@@ -195,16 +195,17 @@ dependencies {
     integrationTestRuntimeOnly(
             "org.junit.platform:junit-platform-engine:${junitPlatformVersion}",
     )
-
 }
-
-
 
 /*
  * Tasks
  */
+contracts {
+    failOnNoContracts false
+}
+
 pmd {
-    toolVersion = "6.23.0"
+    toolVersion = "6.33.0"
     ignoreFailures = false
     pmdTest.enabled = false
     pmdIntegrationTest.enabled = false
@@ -213,7 +214,7 @@ pmd {
 }
 
 checkstyle {
-    toolVersion = "8.12"
+    toolVersion = "8.41"
     ignoreFailures = false
     maxErrors = 0
     maxWarnings = 0
@@ -237,7 +238,6 @@ tasks.withType(Pmd) {
 }
 
 test {
-//    dependsOn spockTest
     maxParallelForks = 4
 
     group = LifecycleBasePlugin.VERIFICATION_GROUP
