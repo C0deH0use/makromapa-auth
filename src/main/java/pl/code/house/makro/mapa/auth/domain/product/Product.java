@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
@@ -22,15 +22,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
-import pl.code.house.makro.mapa.auth.domain.user.dto.PointsProductDto;
+import pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
 @Entity
-@Table(name = PointsProduct.TABLE_NAME)
+@Table(name = Product.TABLE_NAME)
 @Access(FIELD)
 @Getter(PACKAGE)
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = PROTECTED)
-class PointsProduct extends AuditAwareEntity {
+class Product extends AuditAwareEntity {
 
   static final String TABLE_NAME = "points_product";
 
@@ -58,7 +59,7 @@ class PointsProduct extends AuditAwareEntity {
   private String reasons;
 
   @Builder(access = PACKAGE)
-  PointsProduct(Long id, String name, String description, int points, Set<PointsOperationReason> reasons) {
+  Product(Long id, String name, String description, int points, Set<PointsOperationReason> reasons) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -70,8 +71,8 @@ class PointsProduct extends AuditAwareEntity {
     return Stream.of(reasons.split(DELIMITER)).filter(StringUtils::isNoneBlank).map(PointsOperationReason::valueOf).collect(toSet());
   }
 
-  PointsProductDto toDto() {
-    return PointsProductDto.builder()
+  ProductDto toDto() {
+    return ProductDto.builder()
         .id(id)
         .name(name)
         .description(description)

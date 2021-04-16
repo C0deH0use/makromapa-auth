@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -15,21 +15,21 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.code.house.makro.mapa.auth.domain.user.dto.PointsProductDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
 @Slf4j
 @Validated
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH + "/points", produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
-class PointsProductsResource {
+@RequestMapping(path = BASE_PATH + "/product", produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
+class ProductsResource {
 
-  private final UserPointsFacade facade;
+  private final ProductFacade facade;
 
   @GetMapping
-  ResponseEntity<List<PointsProductDto>> getPointsProducts(@AuthenticationPrincipal Authentication principal) {
+  ResponseEntity<List<ProductDto>> getPointsProducts(@AuthenticationPrincipal Authentication principal) {
     log.info("User: {} requested all points products that are currently available for MakroMapa", principal.getName());
 
-    return ok(facade.fetchAllPointsProducts());
+    return ok(facade.findAll());
   }
 }

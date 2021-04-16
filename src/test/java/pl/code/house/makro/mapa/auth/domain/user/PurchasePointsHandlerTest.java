@@ -19,6 +19,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 import pl.code.house.makro.mapa.auth.error.IllegalOperationForSelectedProductException;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,7 +33,7 @@ class PurchasePointsHandlerTest {
   private UserRepository userRepository;
 
   @Mock
-  private PointProductRepository productRepository;
+  private ProductFacade productFacade;
 
   @Mock
   private PointsActionLogRepository actionLogRepository;
@@ -52,7 +54,7 @@ class PurchasePointsHandlerTest {
         .operation(PURCHASE)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.of(purchaseProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
 
     //when
     sut.handle(dto);
@@ -63,10 +65,10 @@ class PurchasePointsHandlerTest {
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     PointsActionLog capturedValue = logArgumentCaptor.getValue();
-    assertThat(capturedValue.getPoints()).isEqualTo(20);
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
-    assertThat(capturedValue.getProduct()).isEqualTo(purchaseProduct());
-    assertThat(capturedValue.getOperationReason()).isEqualTo(PURCHASE);
+    assertThat(capturedValue.getDetails().getPoints()).isEqualTo(20);
+    assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
+    assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(PURCHASE);
   }
 
   @Test
@@ -79,7 +81,7 @@ class PurchasePointsHandlerTest {
         .operation(EARN)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.of(purchaseProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
@@ -95,7 +97,7 @@ class PurchasePointsHandlerTest {
         .product(productId)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.empty());
+    given(productFacade.findById(productId)).willReturn(Optional.empty());
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
@@ -103,8 +105,8 @@ class PurchasePointsHandlerTest {
         .hasMessage("Could not find product to because of which points where earned");
   }
 
-  static PointsProduct earnProduct() {
-    return PointsProduct.builder()
+  static ProductDto earnProduct() {
+    return ProductDto.builder()
         .id(productId)
         .name("Points earned when dish proposal was approved")
         .points(20)
@@ -112,8 +114,8 @@ class PurchasePointsHandlerTest {
         .build();
   }
 
-  static PointsProduct purchaseProduct() {
-    return PointsProduct.builder()
+  static ProductDto purchaseProduct() {
+    return ProductDto.builder()
         .id(productId)
         .name("Points purchased")
         .points(20)
