@@ -3,6 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
 import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.NON;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN_USER;
 
 import java.util.Optional;
 import java.util.Set;
@@ -27,10 +28,18 @@ public class UserPointsFacade {
 
   @Transactional
   public Optional<UserInfoDto> updatePointsFor(UUID userId, UserInfoUpdatePointsDto updatePointsDto) {
-    pointsService.handleUpdate(updatePointsDto, userId);
+    if (isNotAdminUser(userId)) {
+      pointsService.handleUpdate(updatePointsDto, userId);
+    }
 
     return userRepository.findById(userId)
         .map(this::toUserInfo);
+  }
+
+  private boolean isNotAdminUser(UUID userId) {
+    return userRepository.findById(userId)
+        .filter(user -> ADMIN_USER == user.getUserType())
+        .isEmpty();
   }
 
   private UserInfoDto toUserInfo(BaseUser user) {
