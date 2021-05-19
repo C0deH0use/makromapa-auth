@@ -7,7 +7,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
@@ -18,18 +17,16 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
-import io.restassured.http.ContentType;
 import io.restassured.http.Header;
-import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -97,7 +94,32 @@ class TokenResourceHttpTest {
         .body("user_name", equalTo("118364847911502210416"))
         .body("client_id", equalTo("makromapa-mobile"))
         .body("scope", hasItems("PREMIUM", "FREE_USER", "DISABLE_ADS"))
+    ;
+  }
 
+  @Test
+  @Transactional
+  @DisplayName("should check token owned by admin")
+  void shouldCheckTokenOwnedByAdmin() {
+    String adminAccessToken = getAdminAccessToken();
+
+    given()
+        .param("token", adminAccessToken)
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
+        .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+
+        .when()
+        .get("/oauth/check_token")
+
+        .then()
+        .log().all()
+        .status(OK)
+        .body("active", equalTo(true))
+        .body("exp", notNullValue())
+        .body("user_name", equalTo("118364847911502210416"))
+        .body("client_id", equalTo("basic-auth-makromapa-mobile"))
+        .body("scope", hasItems("USER"))
+        .body("authorities", hasItems("ROLE_ADMIN_USER"))
     ;
   }
 
@@ -192,6 +214,22 @@ class TokenResourceHttpTest {
 
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+
+        .then()
+        .status(OK)
+        .extract().body().jsonPath().getString("access_token");
+  }
+  private String getAdminAccessToken() {
+    return given()
+        .param("grant_type", "password")
+        .param("client_id", "basic-auth-makromapa-mobile")
+        .param("username", ADMIN.getName())
+        .param("password", ADMIN.getPassword())
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+        .contentType(JSON)
+
+        .when()
+        .post("/oauth/token")
 
         .then()
         .status(OK)
