@@ -17,7 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +42,7 @@ class UserResource {
   private final UserFacade facade;
 
   @PostMapping("/registration")
-  ResponseEntity<CommunicationDto> registerNewDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
+  ResponseEntity<CommunicationDto> registerNewDraft(UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
     log.info("Request to register new user `{}` by {}", newUserRequest.getEmail(), principal.getPrincipal());
 
     String clientId = getClientId(principal);
@@ -67,7 +66,7 @@ class UserResource {
   }
 
   @PostMapping(path = "/activate")
-  ResponseEntity<UserDto> activateDraft(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
+  ResponseEntity<UserDto> activateDraft(UsernamePasswordAuthenticationToken principal,
       ActivateUserRequest activateUserRequest) {
     log.info(USER_ACTIVATION_LOG, principal.getName(), maskEmail(activateUserRequest.getEmail()), activateUserRequest.getVerificationCode());
     String clientId = getClientId(principal);
@@ -78,7 +77,7 @@ class UserResource {
   }
 
   @PostMapping("/password/reset")
-  ResponseEntity<CommunicationDto> resetUserPassword(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
+  ResponseEntity<CommunicationDto> resetUserPassword(UsernamePasswordAuthenticationToken principal,
       @RequestParam("email") String email) {
     log.info("Registered request from {} to reset password for user `{}`", principal.getName(), email);
 
@@ -87,7 +86,7 @@ class UserResource {
   }
 
   @PostMapping("/password/change")
-  ResponseEntity changeUserPassword(@AuthenticationPrincipal UsernamePasswordAuthenticationToken principal,
+  ResponseEntity changeUserPassword(UsernamePasswordAuthenticationToken principal,
       NewPasswordRequest newPasswordRequest) {
     log.info("Registered request from {} to reset password for user `{}`", principal.getName(), newPasswordRequest.getNewPassword());
 

@@ -40,6 +40,7 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.code.house.makro.mapa.auth.configuration.ImportTestAuthorizationConfig;
 
@@ -73,7 +74,8 @@ class ExternalTokenResourceTest {
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() throws Exception {
     //given
-    getContext().setAuthentication(validAuthentication());
+    TestSecurityContextHolder.clearContext();
+    TestSecurityContextHolder.setAuthentication(validAuthentication());
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);

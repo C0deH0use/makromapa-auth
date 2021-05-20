@@ -1,19 +1,19 @@
 ## How to submit:$
-#  gcloud builds submit --config builder/cloudbuild-pr-banches.yml .
+#  gcloud builds submit --config cicd/cloudbuild-pr-banches.yml .
 ##
 steps:
 
   #
   # Build the project
   #
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: build_jar
     args: ["./gradlew", "clean", "build", "-x", "test"]
 
   #
   # Unit test
   #
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: unit_test
     args: ["./gradlew", "test"]
     waitFor:
@@ -22,7 +22,7 @@ steps:
   #
   # integration test
   #
-  - name: 'docker/compose:1.25.5'
+  - name: 'docker/compose:1.28.6'
     id: postgres_db
     args: ['-f', 'cicd/docker-compose.cicd.dependencies.yml', "up", "-d"]
     env:
@@ -30,7 +30,7 @@ steps:
     waitFor:
       - unit_test
 
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
     env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev',

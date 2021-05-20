@@ -6,14 +6,14 @@ steps:
   # 
   # Build the project
   #
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: build_jar
     args: ["./gradlew", "clean", "build", "-x", "test"]
 
   #
   # Unit test
   #
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: unit_test
     args: ["./gradlew", "test"]
     waitFor:
@@ -22,7 +22,7 @@ steps:
   #
   # integration tests
   #
-  - name: 'docker/compose:1.25.5'
+  - name: 'docker/compose:1.28.6'
     id: postgres_db
     args: ['-f', 'cicd/docker-compose.cicd.dependencies.yml', "up", "-d"]
     env:
@@ -30,7 +30,7 @@ steps:
     waitFor:
       - unit_test
 
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
     env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev' ]
@@ -48,7 +48,7 @@ steps:
       - '-c'
       - |
         ./project-version.sh
-        docker build --build-arg commit_short_sha=$SHORT_SHA -t "gcr.io/$PROJECT_ID/makromapa-auth-api" -t "gcr.io/$PROJECT_ID/makromapa-auth-api:0.2.6" .
+        docker build --build-arg commit_short_sha=$SHORT_SHA -t "gcr.io/$PROJECT_ID/makromapa-auth" -t "gcr.io/$PROJECT_ID/makromapa-auth:0.3.0" .
     waitFor:
       - integration_test
 
@@ -57,17 +57,15 @@ steps:
   #
   - name: 'gcr.io/cloud-builders/docker'
     id: push_image_latest
-    args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth-api']
+    args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth']
     waitFor:
       - build_image
-
 
   - name: 'gcr.io/cloud-builders/docker'
     id: push_image
-    args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth-api:0.2.6']
+    args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth:0.3.0']
     waitFor:
       - build_image
-
 
   #
   ## Deploy and restart Compute Engine

@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -44,7 +43,7 @@ class UserInfoResource {
   private final ResourceServerTokenServices resourceServerTokenServices;
 
   @GetMapping
-  ResponseEntity<UserInfoDto> userInfo(@AuthenticationPrincipal Authentication principal, @RequestHeader(AUTHORIZATION) String bearerToken) {
+  ResponseEntity<UserInfoDto> userInfo(Authentication principal, @RequestHeader(AUTHORIZATION) String bearerToken) {
     UUID userId = extractUserId(bearerToken);
     log.debug("{} is requesting user info for {}", principal.getName(), userId);
 
@@ -54,7 +53,7 @@ class UserInfoResource {
   }
 
   @PostMapping
-  ResponseEntity<UserInfoDto> updateUserInfo(@AuthenticationPrincipal Authentication principal, UserInfoUpdateDto updateDto) {
+  ResponseEntity<UserInfoDto> updateUserInfo(Authentication principal, UserInfoUpdateDto updateDto) {
     UUID userId = fromString(principal.getName());
     log.debug("{} is updating user info for {}", principal.getName(), userId);
 
@@ -63,8 +62,7 @@ class UserInfoResource {
   }
 
   @GetMapping("/avatars")
-  ResponseEntity<List<String>> fetchPossibleAvatars(@AuthenticationPrincipal Authentication principal,
-      @Value("${user-profile.default.avatars}") List<String> defaultAvatars) {
+  ResponseEntity<List<String>> fetchPossibleAvatars(@Value("${user-profile.default.avatars}") List<String> defaultAvatars) {
     log.debug("Fetching default avatars that can be used for user profile");
 
     return ok(defaultAvatars);

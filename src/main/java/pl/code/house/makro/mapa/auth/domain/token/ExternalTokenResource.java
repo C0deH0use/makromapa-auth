@@ -12,7 +12,6 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
@@ -42,7 +41,7 @@ class ExternalTokenResource {
   private final ExternalUserCompositeTokenGranter tokenGranter;
 
   @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/token")
-  ResponseEntity<OAuth2AccessToken> authorizeJwtToken(@AuthenticationPrincipal JwtAuthenticationToken principal,
+  ResponseEntity<OAuth2AccessToken> authorizeJwtToken(JwtAuthenticationToken principal,
       @RequestParam Map<String, String> parameters) {
     log.info("Authorizing user ['{}'] with JWT token", principal.getName());
 
@@ -74,7 +73,7 @@ class ExternalTokenResource {
   }
 
   @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/code")
-  ResponseEntity<OAuth2AccessToken> authorizeAccessCode(@AuthenticationPrincipal FacebookAuthentication principal,
+  ResponseEntity<OAuth2AccessToken> authorizeAccessCode(FacebookAuthentication principal,
       @RequestParam Map<String, String> parameters) {
     log.info("Authorizing user ['{}'] with access code", principal.getName());
 
