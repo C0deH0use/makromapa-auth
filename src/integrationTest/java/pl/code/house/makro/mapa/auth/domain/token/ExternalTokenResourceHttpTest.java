@@ -49,7 +49,6 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("return access token when requested by new user ")
   void returnAccessTokenWhenRequestedByNewUser() {
@@ -84,7 +83,6 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("return access token when requesting with AppleId token")
   void returnAccessTokenWhenRequestingWithAppleIdToken() {
@@ -120,7 +118,6 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("return access token when requesting with FaceBook AccessCode")
   void returnAccessTokenWhenRequestingWithFaceBookAccessCode() {
@@ -156,7 +153,6 @@ class ExternalTokenResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("should map jwt token to existing user and create new access token")
   void shouldMapJwtTokenToExistingUserAndCreateNewAccessToken() {

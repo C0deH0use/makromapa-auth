@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +29,7 @@ class UserPointsResource {
   private final UserPointsFacade facade;
 
   @PostMapping
-  ResponseEntity<UserInfoDto> updateUserPoints(@AuthenticationPrincipal Authentication principal, @Valid UserInfoUpdatePointsDto updatePointsDto) {
+  ResponseEntity<UserInfoDto> updateUserPoints(Authentication principal, @Valid UserInfoUpdatePointsDto updatePointsDto) {
     UUID userId = fromString(principal.getName());
     log.info("Request to update User {} points, via {} operation:{}", userId, updatePointsDto.getOperation(), updatePointsDto.getProduct());
 

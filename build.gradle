@@ -1,27 +1,28 @@
 buildscript {
     ext {
-        set('springBootVersion', "2.4.4")
+        set('springBootVersion', "2.4.5")
         set("springCloudVersion", "2020.0.2")
+        set('springClouContractVersion', "3.0.2")
         set("springSecurityOAuth2Version", "2.5.0.RELEASE")
 
         set("lombokVersion", "1.18.20")
 
         set("restAssured", "4.2.0")
-        set("junit5Version", "5.7.1")
-        set("junitPlatformVersion", "1.7.1")
-        set('junit-jupiter.version', '5.7.1')
-        set("spockVersion", "2.0-M5-groovy-2.5")
+        set("junit5Version", "5.7.2")
+        set("junitPlatformVersion", "1.7.2")
+        set('junit-jupiter.version', '5.7.2')
+        set("spockVersion", "2.0-M5-groovy-3.0")
 
 
-        set("flywayVersion", "7.7.2")
+        set("flywayVersion", "7.8.2")
         set("swaggerVersion", "2.9.2")
         set("apacheCommonsLang3Version", "3.12.0")
         set("vavrVersion", "0.10.3")
     }
 
-    ext["mockito.version"] = "3.8.0"
-
-    ext['junit-jupiter.version'] = "5.7.1"
+    ext["mockito.version"] = "3.9.0"
+    ext['groovy.version'] = '3.0.7'
+    ext['junit-jupiter.version'] = "5.7.2"
 
     repositories {
         mavenCentral()
@@ -40,41 +41,33 @@ plugins {
     id 'pmd'
     id 'checkstyle'
 
-    id "org.flywaydb.flyway" version "7.7.2"
-    id 'io.franzbecker.gradle-lombok' version '4.0.0'
+    id "org.flywaydb.flyway" version "7.8.2"
+    id "io.freefair.lombok" version "5.3.3.3"
 
-    id 'org.springframework.boot' version '2.4.3'
-    id "org.springframework.cloud.contract" version "3.0.2"
+    id 'org.springframework.boot' version '2.4.5'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
 }
 
 configurations {
-    compileOnly {
+    implementationOnly {
         extendsFrom annotationProcessor
     }
 
     developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
+    runtimeOnlyClasspath.extendsFrom(developmentOnly)
 
-    integrationTestRuntime.extendsFrom testRuntime
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
-
-    integrationTestCompile.extendsFrom testImplementation
-    integrationTestCompileOnly.extendsFrom testCompileOnly
+    integrationTestRuntimeOnly.extendsFrom(testRuntimeOnly)
+    integrationTestImplementation.extendsFrom(testImplementation)
 }
 
 repositories {
-    jcenter()
     mavenCentral()
 }
-
 
 idea {
     module {
@@ -175,6 +168,7 @@ dependencies {
     testImplementation(
             'io.projectreactor:reactor-test',
             'org.springframework.security:spring-security-test',
+            "org.springframework.cloud:spring-cloud-starter-contract-stub-runner:${springClouContractVersion}",
 
             "org.junit.jupiter:junit-jupiter-api:${junit5Version}",
             "org.junit.jupiter:junit-jupiter-params:${junit5Version}",
@@ -200,27 +194,21 @@ dependencies {
 /*
  * Tasks
  */
-contracts {
-    failOnNoContracts false
-}
-
 pmd {
-    toolVersion = "6.33.0"
     ignoreFailures = false
     pmdTest.enabled = false
     pmdIntegrationTest.enabled = false
     ruleSets = []
-    ruleSetFiles = files("$rootProject.projectDir/config/pmd/pmdRules.xml")
+    ruleSetConfig(project.resources.text.fromUri("https://raw.githubusercontent.com/Marek00Malik/codestyle/master/config/pmd/pmdRules.xml"))
 }
 
 checkstyle {
-    toolVersion = "8.41"
     ignoreFailures = false
     maxErrors = 0
     maxWarnings = 0
     checkstyleTest.enabled = false
     checkstyleIntegrationTest.enabled = false
-    configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
+    config = project.resources.text.fromUri("https://raw.githubusercontent.com/Marek00Malik/codestyle/master/config/checkstyle/checkstyle.xml")
 }
 
 tasks.withType(Checkstyle) {

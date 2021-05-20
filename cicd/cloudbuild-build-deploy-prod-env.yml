@@ -6,14 +6,14 @@ steps:
   # 
   # Build the project
   #
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: build_jar
     args: ["./gradlew", "clean", "build", "-x", "test"]
 
   #
   # Unit test
   #
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: unit_test
     args: ["./gradlew", "test"]
     waitFor:
@@ -30,7 +30,7 @@ steps:
     waitFor:
       - unit_test
 
-  - name: 'openjdk:15.0.2-oraclelinux7'
+  - name: 'openjdk:16-oraclelinux8'
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
     env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev' ]
@@ -61,13 +61,11 @@ steps:
     waitFor:
       - build_image
 
-
   - name: 'gcr.io/cloud-builders/docker'
     id: push_image
     args: ['push', 'gcr.io/$PROJECT_ID/makromapa-auth:0.3.0']
     waitFor:
       - build_image
-
 
   #
   ## Deploy and restart Compute Engine

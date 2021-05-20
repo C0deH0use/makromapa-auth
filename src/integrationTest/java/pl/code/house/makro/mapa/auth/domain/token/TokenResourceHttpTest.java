@@ -22,14 +22,18 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
 import io.restassured.http.Header;
+import java.util.UUID;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import pl.code.house.makro.mapa.auth.domain.user.TestUserRepository;
 
 @SpringBootTest
 class TokenResourceHttpTest {
@@ -39,13 +43,15 @@ class TokenResourceHttpTest {
   @Autowired
   private WebApplicationContext context;
 
+  @Autowired
+  private TestUserRepository userRepository;
+
   @BeforeEach
   void setup() {
     webAppContextSetup(context, springSecurity());
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() {
@@ -72,7 +78,6 @@ class TokenResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("return token details when requesting with valid access token")
   void returnTokenDetailsWhenRequestingWithValidAccessToken() {
@@ -102,7 +107,7 @@ class TokenResourceHttpTest {
   @DisplayName("should check token owned by admin")
   void shouldCheckTokenOwnedByAdmin() {
     String adminAccessToken = getAdminAccessToken();
-
+    String adminId = userRepository.findIdByEmail(ADMIN.getName());
     given()
         .param("token", adminAccessToken)
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
@@ -116,7 +121,7 @@ class TokenResourceHttpTest {
         .status(OK)
         .body("active", equalTo(true))
         .body("exp", notNullValue())
-        .body("user_name", equalTo("118364847911502210416"))
+        .body("user_name", equalTo(adminId))
         .body("client_id", equalTo("basic-auth-makromapa-mobile"))
         .body("scope", hasItems("USER"))
         .body("authorities", hasItems("ROLE_ADMIN_USER"))

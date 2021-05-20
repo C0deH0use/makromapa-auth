@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +26,7 @@ class PointsProductsResource {
   private final UserPointsFacade facade;
 
   @GetMapping
-  ResponseEntity<List<PointsProductDto>> getPointsProducts(@AuthenticationPrincipal Authentication principal) {
+  ResponseEntity<List<PointsProductDto>> getPointsProducts(Authentication principal) {
     log.info("User: {} requested all points products that are currently available for MakroMapa", principal.getName());
 
     return ok(facade.fetchAllPointsProducts());

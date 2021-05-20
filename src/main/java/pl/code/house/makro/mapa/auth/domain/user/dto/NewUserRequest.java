@@ -3,14 +3,14 @@ package pl.code.house.makro.mapa.auth.domain.user.dto;
 import lombok.Value;
 
 @Value
-@SuppressWarnings({"PMD.FormalParameterNamingConventions", "ParameterName"})
+@SuppressWarnings({"PMD.FormalParameterNamingConventions", "ParameterName", "checkstyle:parameternamecheck"})
 public class NewUserRequest {
 
   String grantType;
   String clientId;
   String email;
   String password;
-
+  //CHECKSTYLE:OFF
   public NewUserRequest(
       String grant_type,
       String client_id,
@@ -22,4 +22,5 @@ public class NewUserRequest {
     this.email = username;
     this.password = password;
   }
+  //CHECKSTYLE:ON
 }
