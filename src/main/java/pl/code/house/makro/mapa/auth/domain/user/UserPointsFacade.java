@@ -1,11 +1,10 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.NON;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN_USER;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.code.house.makro.mapa.auth.domain.user.dto.PointsProductDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdatePointsDto;
 
@@ -24,25 +22,24 @@ public class UserPointsFacade {
 
   private final UserRepository userRepository;
 
-  private final PointProductRepository productRepository;
-
   private final UserPointsService pointsService;
 
   private final UserAuthoritiesService authoritiesService;
 
   @Transactional
   public Optional<UserInfoDto> updatePointsFor(UUID userId, UserInfoUpdatePointsDto updatePointsDto) {
-    pointsService.handleUpdate(updatePointsDto, userId);
+    if (isNotAdminUser(userId)) {
+      pointsService.handleUpdate(updatePointsDto, userId);
+    }
 
     return userRepository.findById(userId)
         .map(this::toUserInfo);
   }
 
-  public List<PointsProductDto> fetchAllPointsProducts() {
-    return productRepository.findAll()
-        .stream()
-        .map(PointsProduct::toDto)
-        .collect(toList());
+  private boolean isNotAdminUser(UUID userId) {
+    return userRepository.findById(userId)
+        .filter(user -> ADMIN_USER == user.getUserType())
+        .isEmpty();
   }
 
   private UserInfoDto toUserInfo(BaseUser user) {

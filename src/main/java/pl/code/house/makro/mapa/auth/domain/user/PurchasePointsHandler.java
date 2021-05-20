@@ -4,13 +4,15 @@ import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.PU
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
 @Slf4j
 @Service
 class PurchasePointsHandler extends PointsOperationHandler {
 
-  PurchasePointsHandler(PointProductRepository productRepository, PointsActionLogRepository logRepository, UserRepository userRepository) {
-    super(productRepository, logRepository, userRepository);
+  PurchasePointsHandler(ProductFacade productFacade, PointsActionLogRepository logRepository, UserRepository userRepository) {
+    super(productFacade, logRepository, userRepository);
   }
 
   @Override
@@ -20,7 +22,7 @@ class PurchasePointsHandler extends PointsOperationHandler {
 
   @Override
   void handle(PointsOperationDto dto) {
-    PointsProduct product = findAndValidateProductCorrectUsage(dto);
+    ProductDto product = findAndValidateProductCorrectUsage(dto);
 
     log.info("User `{}` has PURCHASE {} points by means of product: {}", dto.getUserId(), product.getPoints(), product.getName());
     updateUserPoints(dto);

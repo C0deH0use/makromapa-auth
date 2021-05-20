@@ -1,5 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.token;
 
+import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static org.hamcrest.Matchers.containsString;
@@ -132,7 +133,6 @@ class ExternalTokenResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(FACEBOOK_NEW_USER.getAuthenticationHeader())
 
-        .log().all(true)
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/code")
 
@@ -161,11 +161,10 @@ class ExternalTokenResourceHttpTest {
     assertAccessTokenCount().isOne();
 
     given()
-        .log().all()
         .param("grant_type", "external-token")
         .param("client_id", "makromapa-mobile")
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
-        .contentType(ContentType.JSON)
+        .contentType(JSON)
 
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")
@@ -191,7 +190,7 @@ class ExternalTokenResourceHttpTest {
     given()
         .param("client_id", "makromapa-mobile")
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
-        .contentType(ContentType.JSON)
+        .contentType(JSON)
 
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")
@@ -210,7 +209,7 @@ class ExternalTokenResourceHttpTest {
     given()
         .param("grant_type", "external-token")
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
-        .contentType(ContentType.JSON)
+        .contentType(JSON)
 
         .when()
         .post(EXTERNAL_AUTH_BASE_PATH + "/token")

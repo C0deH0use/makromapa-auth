@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
@@ -23,7 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
-class PointsProductsResourceHttpTest {
+class ProductsResourceHttpTest {
 
   @Autowired
   private WebApplicationContext context;
@@ -42,7 +42,7 @@ class PointsProductsResourceHttpTest {
         .param("operation", "EARN")
 
         .when()
-        .get(BASE_PATH + "/points")
+        .get(BASE_PATH + "/product")
 
         .then()
         .log().ifValidationFails()

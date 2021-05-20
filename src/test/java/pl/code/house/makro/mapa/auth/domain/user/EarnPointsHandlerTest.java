@@ -20,6 +20,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
 import pl.code.house.makro.mapa.auth.error.IllegalOperationForSelectedProductException;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +30,7 @@ class EarnPointsHandlerTest {
   private UserRepository userRepository;
 
   @Mock
-  private PointProductRepository productRepository;
+  private ProductFacade productFacade;
 
   @Mock
   private PointsActionLogRepository actionLogRepository;
@@ -49,7 +50,7 @@ class EarnPointsHandlerTest {
         .product(productId)
         .operation(EARN)
         .build();
-    given(productRepository.findById(productId)).willReturn(Optional.of(earnProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(earnProduct()));
 
     //when
     sut.handle(dto);
@@ -60,10 +61,10 @@ class EarnPointsHandlerTest {
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     PointsActionLog capturedValue = logArgumentCaptor.getValue();
-    assertThat(capturedValue.getPoints()).isEqualTo(20);
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
-    assertThat(capturedValue.getProduct()).isEqualTo(earnProduct());
-    assertThat(capturedValue.getOperationReason()).isEqualTo(EARN);
+    assertThat(capturedValue.getDetails().getPoints()).isEqualTo(20);
+    assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
+    assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(EARN);
   }
 
   @Test
@@ -76,7 +77,7 @@ class EarnPointsHandlerTest {
         .operation(EARN)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.of(purchaseProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
@@ -92,7 +93,7 @@ class EarnPointsHandlerTest {
         .product(productId)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.empty());
+    given(productFacade.findById(productId)).willReturn(Optional.empty());
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))

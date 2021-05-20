@@ -5,11 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
-import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.EARN;
 import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.USE;
-import static pl.code.house.makro.mapa.auth.domain.user.PurchasePointsHandlerTest.earnProduct;
 import static pl.code.house.makro.mapa.auth.domain.user.PurchasePointsHandlerTest.purchaseProduct;
-import static pl.code.house.makro.mapa.auth.domain.user.PurchasePointsHandlerTest.userId;
 
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +19,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 import pl.code.house.makro.mapa.auth.error.IllegalOperationForSelectedProductException;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +33,7 @@ class UsePointsHandlerTest {
   private UserRepository userRepository;
 
   @Mock
-  private PointProductRepository productRepository;
+  private ProductFacade productFacade;
 
   @Mock
   private PointsActionLogRepository actionLogRepository;
@@ -55,7 +54,7 @@ class UsePointsHandlerTest {
         .operation(USE)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.of(useOnAdsProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(useOnAdsProduct()));
 
     //when
     sut.handle(dto);
@@ -65,10 +64,10 @@ class UsePointsHandlerTest {
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     PointsActionLog capturedValue = logArgumentCaptor.getValue();
-    assertThat(capturedValue.getPoints()).isEqualTo(100);
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
-    assertThat(capturedValue.getProduct()).isEqualTo(useOnAdsProduct());
-    assertThat(capturedValue.getOperationReason()).isEqualTo(USE);
+    assertThat(capturedValue.getDetails().getPoints()).isEqualTo(100);
+    assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
+    assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(USE);
   }
 
   @Test
@@ -81,7 +80,7 @@ class UsePointsHandlerTest {
         .operation(USE)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.of(useOnPremiumProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(useOnPremiumProduct()));
 
     //when
     sut.handle(dto);
@@ -91,10 +90,10 @@ class UsePointsHandlerTest {
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     PointsActionLog capturedValue = logArgumentCaptor.getValue();
-    assertThat(capturedValue.getPoints()).isEqualTo(300);
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
-    assertThat(capturedValue.getProduct()).isEqualTo(useOnPremiumProduct());
-    assertThat(capturedValue.getOperationReason()).isEqualTo(USE);
+    assertThat(capturedValue.getDetails().getPoints()).isEqualTo(300);
+    assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
+    assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(USE);
   }
 
   @Test
@@ -107,7 +106,7 @@ class UsePointsHandlerTest {
         .operation(USE)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.of(purchaseProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
@@ -123,7 +122,7 @@ class UsePointsHandlerTest {
         .product(productId)
         .build();
 
-    given(productRepository.findById(productId)).willReturn(Optional.empty());
+    given(productFacade.findById(productId)).willReturn(Optional.empty());
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
@@ -131,8 +130,8 @@ class UsePointsHandlerTest {
         .hasMessage("Could not find product to because of which points where earned");
   }
 
-  static PointsProduct useOnAdsProduct() {
-    return PointsProduct.builder()
+  static ProductDto useOnAdsProduct() {
+    return ProductDto.builder()
         .id(productId)
         .name("Points Used on Ads")
         .points(100)
@@ -140,8 +139,8 @@ class UsePointsHandlerTest {
         .build();
   }
 
-  static PointsProduct useOnPremiumProduct() {
-    return PointsProduct.builder()
+  static ProductDto useOnPremiumProduct() {
+    return ProductDto.builder()
         .id(productId)
         .name("Points Used on PREMIUM")
         .points(300)

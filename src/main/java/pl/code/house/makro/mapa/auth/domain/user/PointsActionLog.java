@@ -1,8 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.user;
 
 import static javax.persistence.AccessType.FIELD;
-import static javax.persistence.EnumType.STRING;
-import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.AUTO;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PROTECTED;
@@ -10,12 +8,10 @@ import static lombok.AccessLevel.PROTECTED;
 import java.util.UUID;
 import javax.persistence.Access;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,15 +44,7 @@ class PointsActionLog extends AuditAwareEntity {
   @Column(name = "user_id", updatable = false, nullable = false)
   private UUID userId;
 
-  @Enumerated(STRING)
-  @Column(name = "reason", updatable = false, nullable = false)
-  private PointsOperationReason operationReason;
-
-  @Column(name = "points", updatable = false, nullable = false)
-  private int points;
-
-  @OneToOne(fetch = LAZY)
-  @JoinColumn(name = "product_id", nullable = false, updatable = false)
-  private PointsProduct product;
+  @Embedded
+  private ActionDetails details;
 
 }

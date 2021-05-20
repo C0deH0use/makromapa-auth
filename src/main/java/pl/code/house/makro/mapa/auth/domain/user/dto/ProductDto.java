@@ -7,7 +7,7 @@ import pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason;
 
 @Value
 @Builder
-public class PointsProductDto {
+public class ProductDto {
 
   Long id;
   String name;
