@@ -8,4 +8,4 @@ COPY build/libs/makromapa-auth.jar /
 
 EXPOSE 9090
 
-ENTRYPOINT [ "java", "-jar", "/makromapa-auth.jar" ]
+ENTRYPOINT [ "java", "--illegal-access=permit", "-jar", "/makromapa-auth.jar" ]

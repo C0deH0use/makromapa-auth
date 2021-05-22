@@ -28,7 +28,7 @@ public class TestUser {
   // -- External(JWT) UserDetails
   public static ExternalMockUser GOOGLE_NEW_USER = new ExternalMockUser(null, "Makro Mapa", "104796865881481034300", NEW_USER_TOKEN, null);
   public static ExternalMockUser GOOGLE_PREMIUM_USER = new ExternalMockUser("aa6641c1-e9f4-417f-adf4-f71accc470cb", "Makromapa Test01", "118364847911502210416", PREMIUM_USER_TOKEN,
-      "e0b02447-f09d-4e00-af2a-d00e3289b78e");
+      "a0942e10-726b-4598-82fc-bd8537bbded4");
 
   public static ExternalMockUser APPLE_NEW_USER = new ExternalMockUser(null, null, "000967.b5b96568a64c4bd28aec59d6186399e1.0837", APPLE_USER_TOKEN, null);
 

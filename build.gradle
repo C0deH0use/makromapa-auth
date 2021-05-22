@@ -1,17 +1,17 @@
 buildscript {
     ext {
-        set('springBootVersion', "2.4.5")
+        set('springBootVersion', "2.5.0")
         set("springCloudVersion", "2020.0.2")
         set('springClouContractVersion', "3.0.2")
-        set("springSecurityOAuth2Version", "2.5.0.RELEASE")
+        set("springSecurityOAuth2Version", "2.5.1.RELEASE")
 
         set("lombokVersion", "1.18.20")
 
-        set("restAssured", "4.2.0")
+        set("restAssured", "4.3.3")
         set("junit5Version", "5.7.2")
         set("junitPlatformVersion", "1.7.2")
         set('junit-jupiter.version', '5.7.2')
-        set("spockVersion", "2.0-M5-groovy-3.0")
+        set("spockVersion", "2.0-groovy-3.0")
 
 
         set("flywayVersion", "7.8.2")
@@ -44,7 +44,7 @@ plugins {
     id "org.flywaydb.flyway" version "7.8.2"
     id "io.freefair.lombok" version "5.3.3.3"
 
-    id 'org.springframework.boot' version '2.4.5'
+    id 'org.springframework.boot' version '2.5.0'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
