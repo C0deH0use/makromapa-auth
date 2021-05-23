@@ -4,6 +4,7 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.contract.spec.internal.HttpStatus.NOT_FOUND;
+import static org.springframework.cloud.contract.spec.internal.HttpStatus.OK;
 import static org.springframework.cloud.contract.spec.internal.HttpStatus.UNAUTHORIZED;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -35,7 +36,7 @@ class ActuatorConfigurationHttpTest {
 
         .then()
         .log().ifValidationFails()
-        .statusCode(NOT_FOUND);
+        .statusCode(UNAUTHORIZED);
   }
 
   @Test
@@ -59,6 +60,6 @@ class ActuatorConfigurationHttpTest {
 
         .then()
         .log().ifValidationFails()
-        .statusCode(200);
+        .statusCode(OK);
   }
 }

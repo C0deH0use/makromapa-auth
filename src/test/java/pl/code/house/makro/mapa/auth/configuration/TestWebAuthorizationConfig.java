@@ -1,7 +1,7 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
-import static pl.code.house.makro.mapa.auth.configuration.ApplicationSecurityConfiguration.trimClientIds;
+import static pl.code.house.makro.mapa.auth.configuration.WebAuthorizationConfig.trimClientIds;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;

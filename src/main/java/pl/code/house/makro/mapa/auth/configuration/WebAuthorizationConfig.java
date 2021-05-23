@@ -8,12 +8,13 @@ import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.GET_AUTHORITY_SQL;
 
+import io.vavr.control.Try;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +53,6 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import pl.code.house.makro.mapa.auth.domain.token.ExternalUserAuthenticationKeyGenerator;
 
 @Configuration
-@NoArgsConstructor
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
@@ -70,6 +70,15 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     NimbusJwtDecoder decoder = withJwkSetUri(jwkSetUri).build();
     decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
     return decoder;
+  }
+
+  @Autowired
+  void configureGlobal(AuthenticationManagerBuilder auth, @Value("${admin.auth.password}") String adminPassword) {
+    Try.of(() -> auth.inMemoryAuthentication()
+        .withUser("admin_aga")
+        .password(passwordEncoder().encode(adminPassword))
+        .roles("ADMIN"))
+        .getOrElseThrow((exc) -> new IllegalStateException("Error when creating BASIC AUTH ADMIN", exc));
   }
 
   @Bean
@@ -223,6 +232,9 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
           .and()
           .authorizeRequests().antMatchers(BASE_PATH + "/user-info").authenticated()
+
+          .and()
+          .authorizeRequests().antMatchers("/actuator/**").hasRole("ADMIN")
 
           .and()
           .httpBasic()
