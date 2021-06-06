@@ -1,7 +1,6 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
-import static pl.code.house.makro.mapa.auth.configuration.WebAuthorizationConfig.trimClientIds;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,13 +20,13 @@ public class TestWebAuthorizationConfig {
   @Bean
   @Profile({"integrationTest"})
   public JwtDecoder googleJwkDecoder(
-      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      ExternalProviders externalProviders,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
   ) {
     List<OAuth2TokenValidator<Jwt>> validators = List.of(
         new JwtIssuerValidator(issuer),
-        new TokenSupplierValidator(trimClientIds(androidClientId))
+        new TokenSupplierValidator(externalProviders.clients())
     );
 
     NimbusJwtDecoder newDecoder = withJwkSetUri(jwkSetUri).build();
@@ -38,13 +37,13 @@ public class TestWebAuthorizationConfig {
   @Bean
   @Profile({"integrationTest"})
   public JwtDecoder appleIdJwkDecoder(
-      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      ExternalProviders externalProviders,
       @Value("${spring.security.apple.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.apple.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
   ) {
     List<OAuth2TokenValidator<Jwt>> validators = List.of(
         new JwtIssuerValidator(issuer),
-        new TokenSupplierValidator(trimClientIds(androidClientId))
+        new TokenSupplierValidator(externalProviders.clients())
     );
 
     NimbusJwtDecoder newDecoder = withJwkSetUri(jwkSetUri).build();

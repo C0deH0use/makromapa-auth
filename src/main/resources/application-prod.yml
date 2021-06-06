@@ -1,12 +1,3 @@
-android:
-    oauth2:
-        client:
-            clientId:
-                564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com,
-                564812606198-44u6cgevjdv34ovv14obueht0jgv507o.apps.googleusercontent.com,
-                564812606198-psjo00jbumas117peub5h33v83t4j3ip.apps.googleusercontent.com,
-                https://securetoken.google.com/makromapa,
-                https://appleid.apple.com
 spring:
     datasource:
         password: mysecretpassword
@@ -16,3 +7,11 @@ spring:
         locations:
             - classpath:db/migration/default
             - classpath:db/migration/prod
+app:
+    provider:
+        clients:
+            - 564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com
+            - 564812606198-44u6cgevjdv34ovv14obueht0jgv507o.apps.googleusercontent.com
+            - 564812606198-psjo00jbumas117peub5h33v83t4j3ip.apps.googleusercontent.com
+            - https://securetoken.google.com/makromapa
+            - https://appleid.apple.com

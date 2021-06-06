@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -37,6 +36,8 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 class UserInfoResource {
 
   private static final String BEARER_PREFIX = "Bearer ";
+
+  private final DefaultUserAvatars defaultAvatars;
 
   private final UserFacade facade;
 
@@ -62,10 +63,10 @@ class UserInfoResource {
   }
 
   @GetMapping("/avatars")
-  ResponseEntity<List<String>> fetchPossibleAvatars(@Value("${user-profile.default.avatars}") List<String> defaultAvatars) {
+  ResponseEntity<List<String>> fetchPossibleAvatars() {
     log.debug("Fetching default avatars that can be used for user profile");
 
-    return ok(defaultAvatars);
+    return ok(defaultAvatars.avatars());
   }
 
   private UserDetails parseUserDetails(UserInfoUpdateDto updateDto) {

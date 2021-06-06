@@ -1,8 +1,6 @@
 package pl.code.house.makro.mapa.auth.configuration;
 
 import static java.util.UUID.randomUUID;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.split;
 import static org.springframework.security.crypto.factory.PasswordEncoderFactories.createDelegatingPasswordEncoder;
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
 import static org.springframework.util.StringUtils.toStringArray;
@@ -15,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
@@ -56,22 +53,18 @@ import pl.code.house.makro.mapa.auth.domain.token.ExternalUserAuthenticationKeyG
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
+class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
   private static final String WILD_CARD = "/**";
 
   private final DataSource dataSource;
   private final SecurityProperties securityProperties;
 
-  static List<String> trimClientIds(String androidClientId) {
-    return List.of(split(androidClientId, ",")).stream().map(StringUtils::trimToEmpty).collect(toList());
-  }
-
-  private static JwtDecoder buildDecoder(String androidClientId, String issuer, String jwkSetUri) {
+  private static JwtDecoder buildDecoder(List<String> providerIds, String issuer, String jwkSetUri) {
     List<OAuth2TokenValidator<Jwt>> validators = List.of(
         new JwtTimestampValidator(),
         new JwtIssuerValidator(issuer),
-        new TokenSupplierValidator(trimClientIds(androidClientId))
+        new TokenSupplierValidator(providerIds)
     );
     NimbusJwtDecoder decoder = withJwkSetUri(jwkSetUri).build();
     decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
@@ -117,7 +110,7 @@ public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
         .inMemoryAuthentication()
         .passwordEncoder(passwordEncoder())
         .withUser(User.withUsername(securityProperties.getUser().getName())
-            .password(passwordEncoder().encode(securityProperties.getUser().getPassword()))
+            .password(securityProperties.getUser().getPassword())
             .roles(toStringArray(securityProperties.getUser().getRoles()))
             .build()
         )
@@ -164,27 +157,27 @@ public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @Bean
   @Profile({"!integrationTest"})
   JwtDecoder googleJwkDecoder(
-      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      ExternalProviders externalProviders,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.google.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
   ) {
-    return buildDecoder(androidClientId, issuer, jwkSetUri);
+    return buildDecoder(externalProviders.clients(), issuer, jwkSetUri);
   }
 
   @Bean
   @Profile({"!integrationTest"})
   JwtDecoder appleIdJwkDecoder(
-      @Value("${android.oauth2.client.client-id}") String androidClientId,
+      ExternalProviders externalProviders,
       @Value("${spring.security.apple.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
       @Value("${spring.security.apple.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri
   ) {
-    return buildDecoder(androidClientId, issuer, jwkSetUri);
+    return buildDecoder(externalProviders.clients(), issuer, jwkSetUri);
   }
 
   @Order(10)
   @Configuration
   @RequiredArgsConstructor
-  public static class Oauth2AuthenticationConfig extends WebSecurityConfigurerAdapter {
+  static class Oauth2AuthenticationConfig extends WebSecurityConfigurerAdapter {
 
     private final ResourceServerTokenServices tokenServices;
 
@@ -211,7 +204,7 @@ public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @Order(20)
   @Configuration
   @RequiredArgsConstructor
-  public static class AuthorizedClientsAuthenticationConfig extends WebSecurityConfigurerAdapter {
+  static class AuthorizedClientsAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
 
@@ -234,7 +227,7 @@ public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @Order(30)
   @Configuration
   @RequiredArgsConstructor
-  public static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
+  static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
     private final ExternalAuthenticationManagerResolver externalAuthenticationManagerResolver;
 
@@ -254,7 +247,7 @@ public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
   @Order(40)
   @Configuration
   @RequiredArgsConstructor
-  public static class ActuatorsAuthenticationConfig extends WebSecurityConfigurerAdapter {
+  static class ActuatorsAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {

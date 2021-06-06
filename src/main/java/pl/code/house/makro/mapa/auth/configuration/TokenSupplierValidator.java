@@ -18,7 +18,7 @@ class TokenSupplierValidator implements OAuth2TokenValidator<Jwt> {
   private final List<String> expectedClientIds;
 
   TokenSupplierValidator(List<String> ids) {
-    Assert.notNull(ids, "clientIds cannot be null");
+    Assert.notNull(ids, "Provider clientIds cannot be null");
     Assert.isTrue(!ids.isEmpty(), "clientIds cannot be empty");
     this.expectedClientIds = ids;
   }

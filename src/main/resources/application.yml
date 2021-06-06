@@ -1,12 +1,3 @@
-android:
-    oauth2:
-        client:
-            clientId:
-                564812606198-psjo00jbumas117peub5h33v83t4j3ip.apps.googleusercontent.com,
-                564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com,
-                564812606198-u6b5to8rhjsqkpi9sidsek3vrk02kjq5.apps.googleusercontent.com
-                https://securetoken.google.com/makromapa,
-                https://appleid.apple.com
 info:
     app:
         description: MakroMapa Authentication API
@@ -105,17 +96,23 @@ spring:
 
         user:
             name: admin_aga
-            password: mysecretpassword
+            password: '{bcrypt}$2a$10$qddTFdN3.mRq9P4/mlGVXOog30EvQA0cjSK8woqmD9pA/3hk6kQUu'
             roles: ADMIN
 
-user-profile:
-    default:
-        avatars:
-            https://www.makromapa.pl/assets/profile_avatars/avatar_boy.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_boy_music.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_cup.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_boy_beard.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_music.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_long_hair.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_elegant.png,
-            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_curly.png
+app:
+    avatars:
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_boy.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_boy_music.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_cup.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_boy_beard.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_music.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_long_hair.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_elegant.png
+        - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_curly.png
+    provider:
+        clients:
+            - 564812606198-psjo00jbumas117peub5h33v83t4j3ip.apps.googleusercontent.com
+            - 564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com
+            - 564812606198-u6b5to8rhjsqkpi9sidsek3vrk02kjq5.apps.googleusercontent.com
+            - https://securetoken.google.com/makromapa
+            - https://appleid.apple.com
