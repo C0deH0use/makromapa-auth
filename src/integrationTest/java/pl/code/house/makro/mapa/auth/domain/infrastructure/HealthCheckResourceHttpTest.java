@@ -4,15 +4,14 @@ import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static pl.code.house.makro.mapa.auth.domain.GreenMailSmtpConfig.SMTP_SETUP;
-import static pl.code.house.makro.mapa.auth.domain.user.TestUser.BEARER_TOKEN;
-import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
 import com.icegreen.greenmail.util.GreenMail;
 import org.junit.jupiter.api.AfterEach;
@@ -24,7 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.context.WebApplicationContext;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 class HealthCheckResourceHttpTest {
 
   @Value("${info.app.name}")
@@ -34,7 +33,7 @@ class HealthCheckResourceHttpTest {
   String appDesc;
 
   @Autowired
-  private WebApplicationContext context;
+  WebApplicationContext context;
 
   private GreenMail greenMail;
 
@@ -43,7 +42,6 @@ class HealthCheckResourceHttpTest {
     greenMail = new GreenMail(SMTP_SETUP);
     greenMail.setUser("user_greenMain", "secret_password");
     greenMail.start();
-
     webAppContextSetup(context, springSecurity());
   }
 
@@ -53,12 +51,10 @@ class HealthCheckResourceHttpTest {
   }
 
   @Test
-  @DisplayName("should display health status when user is admin")
-  void shouldDisplayHealthStatusWhenUserIsAdmin() {
+  @DisplayName("should display health status")
+  void shouldDisplayHealthStatus() {
     //given
     given()
-        .auth().with(httpBasic("admin_aga", "mysecretpassword"))
-
         .contentType(JSON)
 
         .when()
@@ -66,39 +62,25 @@ class HealthCheckResourceHttpTest {
 
         .then()
         .log().ifValidationFails()
-        .status(OK)
+        .statusCode(OK.value())
     ;
   }
 
   @Test
-  @DisplayName("should not allow health status when user is not authenticated")
-  void shouldNotAllowHealthStatusWhenUserIsNotAuthenticated() {
+  @DisplayName("should display info status")
+  void shouldDisplayInfoStatus() {
     //given
     given()
         .contentType(JSON)
-        .when()
-        .get("/actuator/health")
-
-        .then()
-        .status(UNAUTHORIZED)
-    ;
-  }
-
-  @Test
-  @DisplayName("return info status when asking as BasicAuth Admin")
-  void returnInfoStatusWhenAskingAsBasicAuthAdmin() {
-    //given
-    given()
         .auth().with(httpBasic("admin_aga", "mysecretpassword"))
-
-        .contentType(JSON)
 
         .when()
         .get("/actuator/info")
 
         .then()
         .log().all(true)
-        .status(OK)
+        .statusCode(OK.value())
+
         .body("app.name", equalTo(appTitle))
         .body("app.description", equalTo(appDesc))
         .body("build.artifact", equalTo("makromapa-auth"))
@@ -108,32 +90,17 @@ class HealthCheckResourceHttpTest {
   }
 
   @Test
-  @DisplayName("should not allow info status when user is not authenticated")
-  void shouldNotAllowInfoStatusWhenUserIsNotAuthenticated() {
+  @DisplayName("should return UNAUTHORIZED when asking for info status without credentials")
+  void shouldReturnUnAuthorizedWhenAskingForInfoStatusWithoutCredentials() {
     //given
     given()
-        .contentType(JSON)
-        .when()
-        .get("/actuator/info")
-
-        .then()
-        .status(UNAUTHORIZED)
-    ;
-  }
-
-  @Test
-  @DisplayName("should not allow info status for OAuth2 user2")
-  void shouldNotAllowInfoStatusForOAuth2User2() {
-    //given
-    given()
-        .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
         .contentType(JSON)
 
         .when()
         .get("/actuator/info")
 
         .then()
-        .status(FORBIDDEN)
+        .statusCode(UNAUTHORIZED.value())
     ;
   }
 }

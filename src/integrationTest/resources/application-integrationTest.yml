@@ -1,0 +1,24 @@
+logging:
+    level:
+        pl:
+            code:
+                house:
+                    makro:
+                        mapa:
+                            auth: DEBUG
+        org:
+            springframework:
+                security: DEBUG
+#                    access: DEBUG
+#                    oauth2: DEBUG
+                web:
+                    filter: DEBUG
+spring:
+    flyway:
+        locations: classpath:db/migration/default, classpath:db/migration/local, classpath:db/migration/test-data
+    mail:
+        host: localhost
+        password: secret_password
+        port: 3025
+        protocol: smtp
+        username: user_greenMain

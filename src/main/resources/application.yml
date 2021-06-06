@@ -1,0 +1,121 @@
+android:
+    oauth2:
+        client:
+            clientId:
+                564812606198-psjo00jbumas117peub5h33v83t4j3ip.apps.googleusercontent.com,
+                564812606198-7g1vth4r68jutsnh2d2q8l0imkqim0qv.apps.googleusercontent.com,
+                564812606198-u6b5to8rhjsqkpi9sidsek3vrk02kjq5.apps.googleusercontent.com
+                https://securetoken.google.com/makromapa,
+                https://appleid.apple.com
+info:
+    app:
+        description: MakroMapa Authentication API
+        name: MakroMapa Authentication
+logging:
+    level:
+        org:
+            springframework:
+                security:
+                    oauth2: DEBUG
+mails:
+    password:
+        reset:
+            verification:
+                code:
+                    expiresOn:
+                        hours: 2
+                    mail:
+                        subject: Zmiana hasla
+    registration:
+        verification:
+            code:
+                expiresOn:
+                    hours: 2
+                mail:
+                    subject: Witamy w MakroMapie
+management:
+    endpoints:
+        web:
+            exposure:
+                include: info, health, loggers
+    health:
+        defaults:
+            enabled: true
+server:
+    port: 9090
+
+spring:
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        password: mysecretpassword
+        url: jdbc:postgresql://localhost:5433/makromapa-db-auth
+        username: makromapa-auth-user
+    flyway:
+        locations: classpath:db/migration/default
+    jpa:
+        database: POSTGRESQL
+        generate-ddl: false
+        hibernate:
+            ddl-auto: validate
+        properties:
+            hibernate:
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+                temp:
+                    use_jdbc_metadata_defaults: false
+    mail:
+        host: serwer2138817.home.pl
+        port: 465
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                smtps:
+                    starttls:
+                        enable: true
+                    timeout: 8000
+                transport:
+                    protocol: smtps
+        protocol: smtps
+        username: kontakt@makromapa.pl
+
+    profiles:
+        active: integrationTest
+
+    security:
+        apple:
+            oauth2:
+                resourceserver:
+                    jwt:
+                        issuer-uri: https://appleid.apple.com
+                        jwk-set-uri: https://appleid.apple.com/auth/keys
+        facebook:
+            opaque:
+                app-id: 618454592140781
+                app-namespace: makromapa
+        google:
+            oauth2:
+                resourceserver:
+                    jwt:
+                        issuer-uri: https://accounts.google.com
+                        jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+
+        user:
+            name: admin_aga
+            password: mysecretpassword
+            roles: ADMIN
+
+user-profile:
+    default:
+        avatars:
+            https://www.makromapa.pl/assets/profile_avatars/avatar_boy.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_boy_music.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_cup.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_boy_beard.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_music.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_long_hair.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_elegant.png,
+            https://www.makromapa.pl/assets/profile_avatars/avatar_girl_curly.png

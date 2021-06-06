@@ -24,7 +24,7 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 
 @ExtendWith(MockitoExtension.class)
-class OAuth2ManagerResolverTest {
+class ExternalAuthenticationManagerResolverTest {
 
   @Mock
   private HttpServletRequest request;
@@ -36,7 +36,7 @@ class OAuth2ManagerResolverTest {
   private AuthenticationManagerResolver<HttpServletRequest> jwtResolver;
 
   @InjectMocks
-  private OAuth2ManagerResolver sut;
+  private ExternalAuthenticationManagerResolver sut;
 
   @Test
   @DisplayName("should return jwtResolver if token is JWT based")

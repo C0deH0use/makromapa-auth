@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PRIVATE)
 public class ApiConstraints {
 
-  public static final String BASE_PATH = "/oauth";
-  public static final String EXTERNAL_AUTH_BASE_PATH = BASE_PATH + "/external";
+  public static final String USER_OAUTH_PATH = "/user/oauth";
+  public static final String USER_MANAGEMENT_PATH = "/user/management";
+  public static final String EXTERNAL_AUTHENTICATION_PATH = "/user/external";
 }

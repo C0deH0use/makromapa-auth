@@ -7,7 +7,7 @@ import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,16 +33,16 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 @Validated
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH + "/user-info", produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
+@RequestMapping(path = USER_OAUTH_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
 class UserInfoResource {
 
-  public static final String BEARER_PREFIX = "Bearer ";
+  private static final String BEARER_PREFIX = "Bearer ";
 
   private final UserFacade facade;
 
   private final ResourceServerTokenServices resourceServerTokenServices;
 
-  @GetMapping
+  @GetMapping("/info")
   ResponseEntity<UserInfoDto> userInfo(Authentication principal, @RequestHeader(AUTHORIZATION) String bearerToken) {
     UUID userId = extractUserId(bearerToken);
     log.debug("{} is requesting user info for {}", principal.getName(), userId);
@@ -52,7 +52,7 @@ class UserInfoResource {
         .orElse(notFound().build());
   }
 
-  @PostMapping
+  @PostMapping("/info")
   ResponseEntity<UserInfoDto> updateUserInfo(Authentication principal, UserInfoUpdateDto updateDto) {
     UUID userId = fromString(principal.getName());
     log.debug("{} is updating user info for {}", principal.getName(), userId);

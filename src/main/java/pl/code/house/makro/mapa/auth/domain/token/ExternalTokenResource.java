@@ -6,7 +6,7 @@ import static org.springframework.http.HttpHeaders.PRAGMA;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.security.oauth2.common.util.OAuth2Utils.CLIENT_ID;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -40,8 +40,9 @@ class ExternalTokenResource {
 
   private final ExternalUserCompositeTokenGranter tokenGranter;
 
-  @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/token")
-  ResponseEntity<OAuth2AccessToken> authorizeJwtToken(JwtAuthenticationToken principal,
+  @PostMapping(path = EXTERNAL_AUTHENTICATION_PATH + "/token")
+  ResponseEntity<OAuth2AccessToken> authorizeJwtToken(
+      JwtAuthenticationToken principal,
       @RequestParam Map<String, String> parameters) {
     log.info("Authorizing user ['{}'] with JWT token", principal.getName());
 
@@ -72,7 +73,7 @@ class ExternalTokenResource {
         .body(tokenDto);
   }
 
-  @PostMapping(path = EXTERNAL_AUTH_BASE_PATH + "/code")
+  @PostMapping(path = EXTERNAL_AUTHENTICATION_PATH + "/code")
   ResponseEntity<OAuth2AccessToken> authorizeAccessCode(FacebookAuthentication principal,
       @RequestParam Map<String, String> parameters) {
     log.info("Authorizing user ['{}'] with access code", principal.getName());

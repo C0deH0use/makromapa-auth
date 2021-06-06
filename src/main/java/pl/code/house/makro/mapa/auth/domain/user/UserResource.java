@@ -5,7 +5,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserFacade.maskEmail;
 
 import java.security.Principal;
@@ -32,7 +32,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH + "/user", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+@RequestMapping(path = USER_MANAGEMENT_PATH, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @PreAuthorize("hasAuthority('ROLE_REGISTER')")
 class UserResource {
 

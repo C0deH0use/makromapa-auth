@@ -4,7 +4,7 @@ import static java.util.UUID.fromString;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.notFound;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 
 import java.util.UUID;
 import javax.validation.Valid;
@@ -24,12 +24,12 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdatePointsDto;
 @Validated
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
+@RequestMapping(path = USER_OAUTH_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
 class UserPointsResource {
 
   private final UserPointsFacade facade;
 
-  @PostMapping("/user/points")
+  @PostMapping("/points")
   ResponseEntity<UserInfoDto> updateUserPoints(Authentication principal, @Valid UserInfoUpdatePointsDto updatePointsDto) {
     UUID userId = fromString(principal.getName());
     log.info("Request to update User {} points, via {} operation:{}", userId, updatePointsDto.getOperation(), updatePointsDto.getProduct());
@@ -39,7 +39,7 @@ class UserPointsResource {
         .orElse(notFound().build());
   }
 
-  @PostMapping("/user/{userId}/points")
+  @PostMapping("/{userId}/points")
   ResponseEntity<UserInfoDto> updateUserPoints(@PathVariable UUID userId, @Valid UserInfoUpdatePointsDto updatePointsDto) {
     log.info("Request to update User {} points, via {} operation:{}", userId, updatePointsDto.getOperation(), updatePointsDto.getProduct());
 

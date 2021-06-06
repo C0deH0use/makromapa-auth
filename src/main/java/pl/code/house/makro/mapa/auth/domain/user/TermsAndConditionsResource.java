@@ -2,7 +2,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.TermsAndConditionsDto;
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = BASE_PATH + "/terms-and-conditions", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+@RequestMapping(path = USER_OAUTH_PATH + "/terms-and-conditions", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 class TermsAndConditionsResource {
 
   private final TermsAndConditionsFacade facade;

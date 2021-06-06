@@ -28,10 +28,9 @@ class ActuatorConfigurationHttpTest {
   }
 
   @Test
-  @DisplayName("Logfile Actuator endpoint should is not open")
-  void LogfileEndpointNotOpen() {
+  @DisplayName("Logfile Actuator endpoint should is UNAUTHORIZED")
+  void LogfileEndpointIsUnauthorized() {
     given()
-
         .get("/actuator/logfile")
 
         .then()
@@ -40,8 +39,8 @@ class ActuatorConfigurationHttpTest {
   }
 
   @Test
-  @DisplayName("Loggers Actuator endpoint should is not open")
-  void LoggersEndpointOpen() {
+  @DisplayName("Loggers Actuator endpoint should is UNAUTHORIZED")
+  void LoggersEndpointIsUnauthorized() {
     given()
         .get("/actuator/loggers")
 
@@ -51,8 +50,20 @@ class ActuatorConfigurationHttpTest {
   }
 
   @Test
-  @DisplayName("should get actuator logger endpoint details")
-  void shouldGetActuatorLoggerEndpointDetails() {
+  @DisplayName("Logfile Actuator endpoint should is Not Opened despite being Admin")
+  void logfileActuatorEndpointShouldIsNotOpenedDespiteBeingAdmin() {
+    given()
+        .auth().with(httpBasic("admin_aga", "mysecretpassword"))
+        .get("/actuator/logfile")
+
+        .then()
+        .log().ifValidationFails()
+        .statusCode(NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("Logger actuator endpoint is allowed only for admins")
+  void loggerActuatorEndpointIsAllowedOnlyForAdmins() {
     given()
         .auth().with(httpBasic("admin_aga", "mysecretpassword"))
 

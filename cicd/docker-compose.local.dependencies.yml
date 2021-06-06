@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   makromapa_auth_db:
-    image: postgres:12
+    image: postgres:13
     restart: always
 
     expose:

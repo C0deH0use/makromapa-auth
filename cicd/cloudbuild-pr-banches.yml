@@ -22,7 +22,7 @@ steps:
   #
   # integration test
   #
-  - name: 'docker/compose:1.28.6'
+  - name: 'docker/compose:1.29.2'
     id: postgres_db
     args: ['-f', 'cicd/docker-compose.cicd.dependencies.yml', "up", "-d"]
     env:

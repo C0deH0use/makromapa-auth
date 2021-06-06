@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
@@ -66,7 +66,7 @@ class UserPointsResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post(BASE_PATH + "/user/points")
+        .post(USER_OAUTH_PATH + "/points")
 
         .then()
         .log().all(true)
@@ -105,7 +105,7 @@ class UserPointsResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post(BASE_PATH + "/user/{userId}/points", GOOGLE_PREMIUM_USER.getUserId())
+        .post(USER_OAUTH_PATH + "/{userId}/points", GOOGLE_PREMIUM_USER.getUserId())
 
         .then()
         .log().ifValidationFails()
@@ -143,7 +143,7 @@ class UserPointsResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post(BASE_PATH + "/user/{userId}/points", ADMIN.getUserId())
+        .post(USER_OAUTH_PATH + "/{userId}/points", ADMIN.getUserId())
 
         .then()
         .log().ifValidationFails()
@@ -174,7 +174,7 @@ class UserPointsResourceHttpTest {
         .param("product", "1003")
 
         .when()
-        .post(BASE_PATH + "/user/points")
+        .post(USER_OAUTH_PATH + "/points")
 
         .then()
         .log().all(true)
@@ -196,7 +196,7 @@ class UserPointsResourceHttpTest {
         .param("product", "1200")
 
         .when()
-        .post(BASE_PATH + "/user/points")
+        .post(USER_OAUTH_PATH + "/points")
 
         .then()
         .log().all(true)
@@ -216,7 +216,7 @@ class UserPointsResourceHttpTest {
         .param("operation", "EARN")
 
         .when()
-        .post(BASE_PATH + "/user/points")
+        .post(USER_OAUTH_PATH + "/points")
 
         .then()
         .log().all(true)

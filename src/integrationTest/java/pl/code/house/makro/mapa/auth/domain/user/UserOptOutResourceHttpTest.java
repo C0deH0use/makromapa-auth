@@ -7,7 +7,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.BEARER_TOKEN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
@@ -48,7 +48,7 @@ class UserOptOutResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
         .when()
-        .delete(BASE_PATH + "/user/optout")
+        .delete(USER_OAUTH_PATH + "/optout")
 
         .then()
         .log().all(true)

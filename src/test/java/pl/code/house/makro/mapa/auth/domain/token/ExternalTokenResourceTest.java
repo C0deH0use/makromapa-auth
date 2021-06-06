@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
@@ -23,6 +23,7 @@ import io.restassured.http.Header;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -39,9 +41,12 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.code.house.makro.mapa.auth.configuration.ExternalAuthenticationManagerResolver;
 import pl.code.house.makro.mapa.auth.configuration.ImportTestAuthorizationConfig;
 
 @ImportTestAuthorizationConfig
@@ -70,6 +75,18 @@ class ExternalTokenResourceTest {
   @MockBean
   private DataSource dataSource;
 
+  @MockBean
+  private TokenStore tokenStore;
+
+  @MockBean
+  private ResourceServerTokenServices tokenServices;
+
+  @MockBean
+  private ExternalAuthenticationManagerResolver managerResolver;
+
+  @MockBean
+  private AuthenticationManager authenticationManager;
+
   @Test
   @DisplayName("return OK with new token")
   void returnOkWithNewToken() throws Exception {
@@ -79,11 +96,13 @@ class ExternalTokenResourceTest {
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
+    given(managerResolver.resolve(any(HttpServletRequest.class))).willReturn(authenticationManager);
+    given(authenticationManager.authenticate(any(Authentication.class))).willReturn(validAuthentication());
 
     Header authenticationHeader = GOOGLE_PREMIUM_USER.getAuthenticationHeader();
 
     //when
-    mvc.perform(post(EXTERNAL_AUTH_BASE_PATH + "/token")
+    mvc.perform(post(EXTERNAL_AUTHENTICATION_PATH + "/token")
         .contentType(APPLICATION_JSON)
         .param("client_id", CLIENT_ID)
         .param("grant_type", EXTERNAL_TOKEN_TYPE)
@@ -105,11 +124,13 @@ class ExternalTokenResourceTest {
     getContext().setAuthentication(validAuthentication());
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
+    given(managerResolver.resolve(any(HttpServletRequest.class))).willReturn(authenticationManager);
+    given(authenticationManager.authenticate(any(Authentication.class))).willReturn(validAuthentication());
 
     Header authenticationHeader = GOOGLE_NEW_USER.getAuthenticationHeader();
 
     //when
-    mvc.perform(post(EXTERNAL_AUTH_BASE_PATH + "/token")
+    mvc.perform(post(EXTERNAL_AUTHENTICATION_PATH + "/token")
         .contentType(APPLICATION_JSON)
         .param("grant_type", EXTERNAL_TOKEN_TYPE)
         .content(APPLICATION_JSON_VALUE)
@@ -131,11 +152,13 @@ class ExternalTokenResourceTest {
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(INVALID_CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
+    given(managerResolver.resolve(any(HttpServletRequest.class))).willReturn(authenticationManager);
+    given(authenticationManager.authenticate(any(Authentication.class))).willReturn(validAuthentication());
 
     Header authenticationHeader = GOOGLE_NEW_USER.getAuthenticationHeader();
 
     //when
-    mvc.perform(post(EXTERNAL_AUTH_BASE_PATH + "/token")
+    mvc.perform(post(EXTERNAL_AUTHENTICATION_PATH + "/token")
         .contentType(APPLICATION_JSON)
         .param("client_id", CLIENT_ID)
         .param("grant_type", EXTERNAL_TOKEN_TYPE)
@@ -158,11 +181,13 @@ class ExternalTokenResourceTest {
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(TOKEN);
+    given(managerResolver.resolve(any(HttpServletRequest.class))).willReturn(authenticationManager);
+    given(authenticationManager.authenticate(any(Authentication.class))).willReturn(validAuthentication());
 
     Header authenticationHeader = GOOGLE_NEW_USER.getAuthenticationHeader();
 
     //when
-    mvc.perform(post(EXTERNAL_AUTH_BASE_PATH + "/token")
+    mvc.perform(post(EXTERNAL_AUTHENTICATION_PATH + "/token")
         .contentType(APPLICATION_JSON)
         .param("client_id", CLIENT_ID)
         .content(APPLICATION_JSON_VALUE)
@@ -184,11 +209,13 @@ class ExternalTokenResourceTest {
 
     given(clientDetails.loadClientByClientId(CLIENT_ID)).willReturn(CLIENT_DETAILS);
     given(tokenGranter.grant(eq(EXTERNAL_TOKEN_TYPE), any(TokenRequest.class))).willReturn(null);
+    given(managerResolver.resolve(any(HttpServletRequest.class))).willReturn(authenticationManager);
+    given(authenticationManager.authenticate(any(Authentication.class))).willReturn(validAuthentication());
 
     Header authenticationHeader = GOOGLE_NEW_USER.getAuthenticationHeader();
 
     //when
-    mvc.perform(post(EXTERNAL_AUTH_BASE_PATH + "/token")
+    mvc.perform(post(EXTERNAL_AUTHENTICATION_PATH + "/token")
         .contentType(APPLICATION_JSON)
         .param("client_id", CLIENT_ID)
         .param("grant_type", EXTERNAL_TOKEN_TYPE)

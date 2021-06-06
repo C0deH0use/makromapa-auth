@@ -1,6 +1,7 @@
 package pl.code.house.makro.mapa.auth.error.handler;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.ResponseEntity.badRequest;
 import static org.springframework.http.ResponseEntity.status;
@@ -40,7 +41,7 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     logError(ex, errorMessage.getUniqueErrorId());
 
     HttpStatus httpStatus = statusResolver.statusOf(ex)
-        .orElse(HttpStatus.INTERNAL_SERVER_ERROR);
+        .orElse(INTERNAL_SERVER_ERROR);
 
     return status(httpStatus).contentType(APPLICATION_JSON).body(errorMessage);
   }
@@ -51,7 +52,7 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     logError(ex, errorMessage.getUniqueErrorId(), handlerMethod);
 
     HttpStatus httpStatus = statusResolver.statusOf(ex)
-        .orElse(HttpStatus.INTERNAL_SERVER_ERROR);
+        .orElse(INTERNAL_SERVER_ERROR);
 
     return status(httpStatus).contentType(APPLICATION_JSON).body(errorMessage);
   }

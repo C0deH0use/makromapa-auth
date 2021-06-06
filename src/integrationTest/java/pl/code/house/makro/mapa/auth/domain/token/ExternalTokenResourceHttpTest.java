@@ -13,13 +13,12 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.APPLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.FACEBOOK_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 
-import io.restassured.http.ContentType;
 import java.util.UUID;
 import org.assertj.core.api.LongAssert;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import pl.code.house.makro.mapa.auth.domain.user.TestUserRepository;
@@ -65,7 +63,7 @@ class ExternalTokenResourceHttpTest {
         .header(GOOGLE_NEW_USER.getAuthenticationHeader())
 
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/token")
 
         .then()
         .log().all()
@@ -100,7 +98,7 @@ class ExternalTokenResourceHttpTest {
 
         .log().all(true)
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/token")
 
         .then()
         .log().all()
@@ -134,7 +132,7 @@ class ExternalTokenResourceHttpTest {
         .header(FACEBOOK_NEW_USER.getAuthenticationHeader())
 
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/code")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/code")
 
         .then()
         .log().all()
@@ -167,7 +165,7 @@ class ExternalTokenResourceHttpTest {
         .contentType(JSON)
 
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/token")
 
         .then()
         .log().all(true)
@@ -193,7 +191,7 @@ class ExternalTokenResourceHttpTest {
         .contentType(JSON)
 
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/token")
 
         .then()
         .log().ifValidationFails()
@@ -212,7 +210,7 @@ class ExternalTokenResourceHttpTest {
         .contentType(JSON)
 
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/token")
 
         .then()
         .log().ifValidationFails()

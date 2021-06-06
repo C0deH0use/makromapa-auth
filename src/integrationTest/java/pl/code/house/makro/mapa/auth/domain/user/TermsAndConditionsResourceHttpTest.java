@@ -5,7 +5,6 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetu
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -13,7 +12,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.BEARER_TOKEN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
@@ -53,7 +52,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
 
         .when()
-        .get(BASE_PATH + "/terms-and-conditions")
+        .get(USER_OAUTH_PATH + "/terms-and-conditions")
 
         .then()
         .log().ifValidationFails()
@@ -78,7 +77,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
 
         .when()
-        .post(BASE_PATH + "/terms-and-conditions/1001/approve")
+        .post(USER_OAUTH_PATH + "/terms-and-conditions/1001/approve")
 
         .then()
         .log().ifValidationFails()
@@ -116,7 +115,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + accessCode)
 
         .when()
-        .post(BASE_PATH + "/terms-and-conditions/1001/approve")
+        .post(USER_OAUTH_PATH + "/terms-and-conditions/1001/approve")
 
         .then()
         .log().ifValidationFails()
@@ -138,7 +137,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
 
         .when()
-        .post(BASE_PATH + "/terms-and-conditions/1000/approve")
+        .post(USER_OAUTH_PATH + "/terms-and-conditions/1000/approve")
 
         .then()
         .log().ifValidationFails()

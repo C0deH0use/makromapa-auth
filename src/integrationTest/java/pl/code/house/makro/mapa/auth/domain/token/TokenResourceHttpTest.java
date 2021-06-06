@@ -16,21 +16,17 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
 import io.restassured.http.Header;
-import java.util.UUID;
-import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import pl.code.house.makro.mapa.auth.domain.user.TestUserRepository;
@@ -218,7 +214,7 @@ class TokenResourceHttpTest {
         .contentType(JSON)
 
         .when()
-        .post(EXTERNAL_AUTH_BASE_PATH + "/token")
+        .post(EXTERNAL_AUTHENTICATION_PATH + "/token")
 
         .then()
         .status(OK)

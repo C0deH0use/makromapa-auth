@@ -5,6 +5,7 @@ import static org.springframework.security.oauth2.server.resource.BearerTokenErr
 import com.nimbusds.jwt.JWTParser;
 import io.vavr.control.Try;
 import javax.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -12,16 +13,12 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 
-class OAuth2ManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
+@RequiredArgsConstructor
+public class ExternalAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
 
   private final AuthenticationManagerResolver<HttpServletRequest> jwtResolver;
   private final AuthenticationManager opaqueAuthenticationManager;
   private final BearerTokenResolver resolver = new DefaultBearerTokenResolver();
-
-  OAuth2ManagerResolver(AuthenticationManagerResolver<HttpServletRequest> jwtResolver, AuthenticationManager opaqueAuthManager) {
-    this.jwtResolver = jwtResolver;
-    this.opaqueAuthenticationManager = opaqueAuthManager;
-  }
 
   @Override
   public AuthenticationManager resolve(HttpServletRequest context) {

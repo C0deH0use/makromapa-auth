@@ -3,19 +3,21 @@ package pl.code.house.makro.mapa.auth.configuration;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.springframework.security.crypto.factory.PasswordEncoderFactories.createDelegatingPasswordEncoder;
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTH_BASE_PATH;
+import static org.springframework.util.StringUtils.toStringArray;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.GET_AUTHORITY_SQL;
 
-import io.vavr.control.Try;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -29,8 +31,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -49,15 +50,20 @@ import org.springframework.security.oauth2.provider.token.ResourceServerTokenSer
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import pl.code.house.makro.mapa.auth.domain.token.ExternalUserAuthenticationKeyGenerator;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
+public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
-  public static List<String> trimClientIds(String androidClientId) {
+  private static final String WILD_CARD = "/**";
+
+  private final DataSource dataSource;
+  private final SecurityProperties securityProperties;
+
+  static List<String> trimClientIds(String androidClientId) {
     return List.of(split(androidClientId, ",")).stream().map(StringUtils::trimToEmpty).collect(toList());
   }
 
@@ -72,39 +78,74 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     return decoder;
   }
 
-  @Autowired
-  void configureGlobal(AuthenticationManagerBuilder auth, @Value("${admin.auth.password}") String adminPassword) {
-    Try.of(() -> auth.inMemoryAuthentication()
-        .withUser("admin_aga")
-        .password(passwordEncoder().encode(adminPassword))
-        .roles("ADMIN"))
-        .getOrElseThrow((exc) -> new IllegalStateException("Error when creating BASIC AUTH ADMIN", exc));
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return createDelegatingPasswordEncoder();
   }
 
   @Bean
   @Primary
-  public TokenStore tokenStore(DataSource dataSource) {
+  TokenStore tokenStore() {
     JdbcTokenStore jdbcTokenStore = new JdbcTokenStore(dataSource);
     jdbcTokenStore.setAuthenticationKeyGenerator(new ExternalUserAuthenticationKeyGenerator());
     return jdbcTokenStore;
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
-    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+  @Primary
+  ResourceServerTokenServices customResourceTokenService(TokenStore tokenStore, ClientDetailsService clientDetailsService) {
+    DefaultTokenServices tokenServices = new DefaultTokenServices();
+    tokenServices.setTokenStore(tokenStore);
+    tokenServices.setSupportRefreshToken(true);
+    tokenServices.setReuseRefreshToken(true);
+    tokenServices.setClientDetailsService(clientDetailsService);
+    return tokenServices;
   }
 
   @Bean
-  OAuth2ManagerResolver oauth2ManagerResolver(
-      ResourceServerTokenServices customResourceTokenService,
-      JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver,
-      FacebookAccessCodeAuthenticationProvider facebookAccessCodeAuthenticationProvider) {
+  TokenStoreUserApprovalHandler userApprovalHandler(TokenStore tokenStore, ClientDetailsService clientDetailsService) {
+    TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
+    handler.setTokenStore(tokenStore);
+    handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
+    handler.setClientDetailsService(clientDetailsService);
+    return handler;
+  }
+
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth
+        .inMemoryAuthentication()
+        .passwordEncoder(passwordEncoder())
+        .withUser(User.withUsername(securityProperties.getUser().getName())
+            .password(passwordEncoder().encode(securityProperties.getUser().getPassword()))
+            .roles(toStringArray(securityProperties.getUser().getRoles()))
+            .build()
+        )
+        .and()
+
+        .jdbcAuthentication()
+        .dataSource(dataSource)
+        .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE provider = 'BASIC_AUTH' AND email = ?")
+        .authoritiesByUsernameQuery(GET_AUTHORITY_SQL)
+    ;
+  }
+
+  @Bean
+  @Override
+  public AuthenticationManager authenticationManagerBean() throws Exception {
+    return super.authenticationManagerBean();
+  }
+
+  @Bean
+  ExternalAuthenticationManagerResolver externalAuthenticationManagerResolver(
+      @Value("${spring.security.facebook.opaque.app-id}") String faceBookAppId,
+      @Value("${spring.security.facebook.opaque.app-namespace}") String facebookAppNamespace,
+      JwtIssuerAuthenticationManagerResolver multiJwtAuthenticationManagerResolver) {
     AuthenticationManager opaqueAuthenticationManager = new ProviderManager(
         new AnonymousAuthenticationProvider(randomUUID().toString()),
-        new OpaqueInternalTokenAuthenticationProvider(customResourceTokenService),
-        facebookAccessCodeAuthenticationProvider
+        new FacebookAccessCodeAuthenticationProvider(faceBookAppId, facebookAppNamespace)
     );
-    return new OAuth2ManagerResolver(multiJwtAuthenticationManagerResolver, opaqueAuthenticationManager);
+    return new ExternalAuthenticationManagerResolver(multiJwtAuthenticationManagerResolver, opaqueAuthenticationManager);
   }
 
   @Bean
@@ -119,14 +160,6 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     );
     return new JwtIssuerAuthenticationManagerResolver(new CustomIssuerJwtAuthenticationManagerResolver(jwtDecoders));
   }
-
-  @Bean
-  FacebookAccessCodeAuthenticationProvider facebookAccessCodeAuthenticationProvider(
-      @Value("${spring.security.facebook.opaque.app-id}") String appId,
-      @Value("${spring.security.facebook.opaque.app-namespace}") String appNamespace) {
-    return new FacebookAccessCodeAuthenticationProvider(appId, appNamespace);
-  }
-
 
   @Bean
   @Profile({"!integrationTest"})
@@ -148,99 +181,93 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
     return buildDecoder(androidClientId, issuer, jwkSetUri);
   }
 
-  @Order(2)
+  @Order(10)
   @Configuration
   @RequiredArgsConstructor
   public static class Oauth2AuthenticationConfig extends WebSecurityConfigurerAdapter {
 
-    private final DataSource dataSource;
+    private final ResourceServerTokenServices tokenServices;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-      http.csrf()
-          .disable()
-
-          .authorizeRequests()
-
-          .anyRequest().authenticated()
-      ;
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-      auth.jdbcAuthentication()
-          .dataSource(dataSource)
-          .usersByUsernameQuery("SELECT id, password, enabled FROM app_user WHERE provider = 'BASIC_AUTH' AND email = ?")
-          .authoritiesByUsernameQuery(GET_AUTHORITY_SQL)
-      ;
-    }
-
-    @Bean
-    public ResourceServerTokenServices customResourceTokenService(TokenStore tokenStore, ClientDetailsService clientDetailsService) {
-      DefaultTokenServices tokenServices = new DefaultTokenServices();
-      tokenServices.setTokenStore(tokenStore);
-      tokenServices.setSupportRefreshToken(true);
-      tokenServices.setReuseRefreshToken(true);
-      tokenServices.setClientDetailsService(clientDetailsService);
-      return tokenServices;
-    }
-
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-      return super.authenticationManagerBean();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsServiceBean(DataSource dataSource) {
-      return new JdbcUserDetailsManager(dataSource);
-    }
-
-    @Bean
-    public TokenStoreUserApprovalHandler userApprovalHandler(TokenStore tokenStore, ClientDetailsService clientDetailsService) {
-      TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
-      handler.setTokenStore(tokenStore);
-      handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
-      handler.setClientDetailsService(clientDetailsService);
-      return handler;
-    }
-  }
-
-  @Order(1)
-  @Configuration
-  @RequiredArgsConstructor
-  static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
-
-    private final DataSource dataSource;
-
-    private final OAuth2ManagerResolver oauth2ManagerResolver;
-
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
-
       http
           .csrf().disable()
 
-          .oauth2ResourceServer()
-          .authenticationManagerResolver(oauth2ManagerResolver)
+          .antMatcher(USER_OAUTH_PATH + WILD_CARD)
+          .authorizeRequests(req -> req.antMatchers(USER_OAUTH_PATH + WILD_CARD).authenticated())
+          .oauth2ResourceServer(customizer -> customizer.authenticationManagerResolver(managerResolver()))
+      ;
+    }
 
-          .and()
-          .authorizeRequests().antMatchers(EXTERNAL_AUTH_BASE_PATH + "/token/**").authenticated()
+    OpaqueTokenAuthenticationManagerResolver managerResolver() {
+      AuthenticationManager authenticationManager = new ProviderManager(
+          new AnonymousAuthenticationProvider(randomUUID().toString()),
+          new OpaqueInternalTokenAuthenticationProvider(tokenServices)
+      );
+      return new OpaqueTokenAuthenticationManagerResolver(authenticationManager);
+    }
+  }
 
-          .and()
-          .authorizeRequests().antMatchers(BASE_PATH + "/user-registration").authenticated()
+  @Order(20)
+  @Configuration
+  @RequiredArgsConstructor
+  public static class AuthorizedClientsAuthenticationConfig extends WebSecurityConfigurerAdapter {
 
-          .and()
-          .authorizeRequests().antMatchers(BASE_PATH + "/user-info").authenticated()
+    private final DataSource dataSource;
 
-          .and()
-          .authorizeRequests().antMatchers("/actuator/**").hasRole("ADMIN")
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+      http
+          .csrf().disable()
 
-          .and()
+          .antMatcher(USER_MANAGEMENT_PATH + WILD_CARD)
+          .authorizeRequests(req -> req.antMatchers(USER_MANAGEMENT_PATH + WILD_CARD).authenticated())
+
           .httpBasic()
-
           .and()
+
           .userDetailsService(new ClientDetailsUserDetailsService(new JdbcClientDetailsService(dataSource)))
+      ;
+    }
+  }
+
+  @Order(30)
+  @Configuration
+  @RequiredArgsConstructor
+  public static class JwtAuthenticationConfig extends WebSecurityConfigurerAdapter {
+
+    private final ExternalAuthenticationManagerResolver externalAuthenticationManagerResolver;
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+      http
+          .csrf().disable()
+
+          .antMatcher(EXTERNAL_AUTHENTICATION_PATH + WILD_CARD)
+
+          .oauth2ResourceServer(customizer -> customizer.authenticationManagerResolver(externalAuthenticationManagerResolver))
+          .authorizeRequests(req -> req.antMatchers(EXTERNAL_AUTHENTICATION_PATH + WILD_CARD).authenticated())
+      ;
+    }
+  }
+
+  @Order(40)
+  @Configuration
+  @RequiredArgsConstructor
+  public static class ActuatorsAuthenticationConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+      http
+          .csrf().disable()
+
+          .antMatcher("/actuator/**")
+
+          .authorizeRequests(req -> req
+              .antMatchers("/actuator/health").permitAll()
+              .anyRequest().hasRole("ADMIN")
+          )
+          .httpBasic()
       ;
     }
   }

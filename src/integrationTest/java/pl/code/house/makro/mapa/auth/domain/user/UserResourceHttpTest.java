@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
 import static pl.code.house.makro.mapa.auth.domain.GreenMailSmtpConfig.SMTP_SETUP;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
@@ -91,7 +91,6 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("register new user by mobile client")
   void registerNewUserByMobileClient() throws MessagingException {
@@ -105,7 +104,7 @@ class UserResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/registration")
+        .post(USER_MANAGEMENT_PATH + "/registration")
 
         .then()
         .log().all()
@@ -125,7 +124,6 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("request activation_code for existing draft user if existing code is invalid - disabled")
   void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidDisabled() throws MessagingException {
@@ -143,7 +141,7 @@ class UserResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/registration")
+        .post(USER_MANAGEMENT_PATH + "/registration")
 
         .then()
         .log().all()
@@ -164,7 +162,6 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("request activation_code for existing draft user if existing code is invalid - has expired")
   void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidHasExpired() throws MessagingException {
@@ -180,7 +177,7 @@ class UserResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/registration")
+        .post(USER_MANAGEMENT_PATH + "/registration")
 
         .then()
         .log().all()
@@ -204,7 +201,6 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("activate draft user")
   void activateDraftUser() {
@@ -224,7 +220,7 @@ class UserResourceHttpTest {
         .param("verificationCode", REG_DRAFT_USER.getActivationCode())
 
         .when()
-        .post(BASE_PATH + "/user/activate")
+        .post(USER_MANAGEMENT_PATH + "/activate")
 
         .then()
         .log().all()
@@ -249,7 +245,6 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("should request user password reset")
   void shouldRequestUserPasswordReset() {
@@ -267,7 +262,7 @@ class UserResourceHttpTest {
         .param("email", user.getUserDetails().getEmail())
 
         .when()
-        .post(BASE_PATH + "/user/password/reset")
+        .post(USER_MANAGEMENT_PATH + "/password/reset")
 
         .then()
         .log().all()
@@ -282,12 +277,10 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("request user password reset when user already has one request active")
   void requestUserPasswordResetWhenUserAlreadyHasOneRequestActive() {
     //given
-
     BaseUser user = userRepository.findById(REG_USER.getUserId()).orElseThrow();
 
     assertThat(user.getEnabled()).isTrue();
@@ -303,7 +296,7 @@ class UserResourceHttpTest {
         .param("email", user.getUserDetails().getEmail())
 
         .when()
-        .post(BASE_PATH + "/user/password/reset")
+        .post(USER_MANAGEMENT_PATH + "/password/reset")
 
         .then()
         .log().all()
@@ -321,7 +314,6 @@ class UserResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("should change user password with verification code")
   void shouldChangeUserPasswordWithVerificationCode() {
@@ -335,7 +327,7 @@ class UserResourceHttpTest {
         .param("newPassword", newPassword)
 
         .when()
-        .post(BASE_PATH + "/user/password/change")
+        .post(USER_MANAGEMENT_PATH + "/password/change")
 
         .then()
         .log().all()
@@ -360,7 +352,7 @@ class UserResourceHttpTest {
         .param("newPassword", newPassword)
 
         .when()
-        .post(BASE_PATH + "/user/password/change")
+        .post(USER_MANAGEMENT_PATH + "/password/change")
 
         .then()
         .log().all()
@@ -379,7 +371,7 @@ class UserResourceHttpTest {
         .param("email", REG_DRAFT_USER.getName())
 
         .when()
-        .post(BASE_PATH + "/user/password/reset")
+        .post(USER_MANAGEMENT_PATH + "/password/reset")
 
         .then()
         .log().all()
@@ -400,7 +392,7 @@ class UserResourceHttpTest {
         .param("email", UNKNOWN_USER)
 
         .when()
-        .post(BASE_PATH + "/user/password/reset")
+        .post(USER_MANAGEMENT_PATH + "/password/reset")
 
         .then()
         .log().all()
@@ -427,7 +419,7 @@ class UserResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
 
         .when()
-        .post(BASE_PATH + "/user/registration")
+        .post(USER_MANAGEMENT_PATH + "/registration")
 
         .then()
         .log().all()
@@ -447,7 +439,7 @@ class UserResourceHttpTest {
         .param("verificationCode",  REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
 
         .when()
-        .post(BASE_PATH + "/user/activate")
+        .post(USER_MANAGEMENT_PATH + "/activate")
 
         .then()
         .log().all()
@@ -467,7 +459,7 @@ class UserResourceHttpTest {
         .param("verificationCode",  REG_DRAFT_USER_WITH_DISABLED_CODE.getActivationCode())
 
         .when()
-        .post(BASE_PATH + "/user/activate")
+        .post(USER_MANAGEMENT_PATH + "/activate")
 
         .then()
         .log().all()

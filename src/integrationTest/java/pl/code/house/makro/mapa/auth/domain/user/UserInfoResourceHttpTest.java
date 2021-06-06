@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.BASE_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
@@ -32,7 +32,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -54,7 +53,7 @@ class UserInfoResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
         .when()
-        .get(BASE_PATH + "/user-info")
+        .get(USER_OAUTH_PATH + "/info")
 
         .then()
         .log().all(true)
@@ -74,7 +73,6 @@ class UserInfoResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("should update user info details")
   void shouldUpdateUserInfoDetails() {
@@ -88,7 +86,7 @@ class UserInfoResourceHttpTest {
         .param("picture", "picture1")
 
         .when()
-        .post(BASE_PATH + "/user-info")
+        .post(USER_OAUTH_PATH + "/info")
 
         .then()
         .log().ifValidationFails()
@@ -109,7 +107,6 @@ class UserInfoResourceHttpTest {
   }
 
   @Test
-  @Rollback
   @Transactional
   @DisplayName("should fetch user info for admin")
   void shouldFetchUserInfoForAdmin() {
@@ -137,7 +134,7 @@ class UserInfoResourceHttpTest {
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + adminAccessCode))
 
         .when()
-        .get(BASE_PATH + "/user-info")
+        .get(USER_OAUTH_PATH + "/info")
 
         .then()
         .log().all(true)
@@ -162,7 +159,7 @@ class UserInfoResourceHttpTest {
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
 
         .when()
-        .get(BASE_PATH + "/user-info/avatars")
+        .get(USER_OAUTH_PATH + "/avatars")
 
         .then()
         .log().ifValidationFails()
@@ -180,12 +177,11 @@ class UserInfoResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
         .when()
-        .get(BASE_PATH + "/user-info")
+        .get(USER_OAUTH_PATH + "/info")
 
         .then()
         .log().all(true)
         .status(UNAUTHORIZED)
-        .body("error", equalTo("Token was not recognised"))
     ;
   }
 
@@ -196,7 +192,7 @@ class UserInfoResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
 
         .when()
-        .get(BASE_PATH + "/user-info")
+        .get(USER_OAUTH_PATH + "/info")
 
         .then()
         .log().all(true)

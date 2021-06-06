@@ -16,5 +16,5 @@
 ###########
 
 gcloud auth login
-gcloud config set project makromapa-309419
-./cloud_sql_proxy -instances="makromapa-309419:europe-west1:makromapa=tcp:5432"
+gcloud config set project makromapa-dev-315712
+./cloud_sql_proxy -instances="makromapa-dev-315712:europe-west1:makromapa=tcp:5432"
