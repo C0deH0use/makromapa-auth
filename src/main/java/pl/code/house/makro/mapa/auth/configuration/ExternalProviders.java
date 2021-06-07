@@ -6,6 +6,6 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "app.provider")
-record ExternalProviders(List<String> clients) {
+public record ExternalProviders(List<String> clients) {
 
 }

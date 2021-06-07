@@ -47,11 +47,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.code.house.makro.mapa.auth.configuration.ExternalAuthenticationManagerResolver;
+import pl.code.house.makro.mapa.auth.configuration.ExternalProviders;
 import pl.code.house.makro.mapa.auth.configuration.ImportTestAuthorizationConfig;
 
 @ImportTestAuthorizationConfig
 @ExtendWith(MockitoExtension.class)
-@WebMvcTest(controllers = {ExternalTokenResource.class})
+@WebMvcTest(controllers = {ExternalTokenResource.class, ExternalProviders.class})
 class ExternalTokenResourceTest {
 
   private static final String ACCESS_CODE = "10c7fc72-64f6-4c9a-af2b-a5d33c65ecf3";
