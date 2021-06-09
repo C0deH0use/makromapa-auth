@@ -5,8 +5,8 @@ import static org.springframework.security.crypto.factory.PasswordEncoderFactori
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
 import static org.springframework.util.StringUtils.toStringArray;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.GET_AUTHORITY_SQL;
 
 import java.util.List;
@@ -186,8 +186,8 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       http
           .csrf().disable()
 
-          .antMatcher(USER_OAUTH_PATH + WILD_CARD)
-          .authorizeRequests(req -> req.antMatchers(USER_OAUTH_PATH + WILD_CARD).authenticated())
+          .antMatcher(OAUTH_USER_PATH + WILD_CARD)
+          .authorizeRequests(req -> req.antMatchers(OAUTH_USER_PATH + WILD_CARD).authenticated())
           .oauth2ResourceServer(customizer -> customizer.authenticationManagerResolver(managerResolver()))
       ;
     }
@@ -217,6 +217,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
           .authorizeRequests(req -> req.antMatchers(USER_MANAGEMENT_PATH + WILD_CARD).authenticated())
 
           .httpBasic()
+          .realmName("makromapa/authorized_client")
           .and()
 
           .userDetailsService(new ClientDetailsUserDetailsService(new JdbcClientDetailsService(dataSource)))

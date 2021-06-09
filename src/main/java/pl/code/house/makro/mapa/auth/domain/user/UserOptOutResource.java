@@ -3,7 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.ok;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = USER_OAUTH_PATH, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+@RequestMapping(path = OAUTH_USER_PATH, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 class UserOptOutResource {
 
   private final UserFacade facade;

@@ -135,7 +135,7 @@ public abstract class AbstractUserAuthRequest extends TokenRequest {
 
     if (ADMIN_USER == userType) {
       scopes.add("ADMIN");
-      authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+      authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN_USER"));
     }
 
     return new OAuth2Request(modifiable, client.getClientId(), getAuthorities(), true, scopes,

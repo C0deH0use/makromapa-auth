@@ -7,7 +7,7 @@ import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +32,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 @Validated
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = USER_OAUTH_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
+@RequestMapping(path = OAUTH_USER_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
 class UserInfoResource {
 
   private static final String BEARER_PREFIX = "Bearer ";

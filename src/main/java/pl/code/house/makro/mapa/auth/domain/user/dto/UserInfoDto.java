@@ -1,5 +1,6 @@
 package pl.code.house.makro.mapa.auth.domain.user.dto;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import pl.code.house.makro.mapa.auth.domain.user.UserType;
 @Builder
 public class UserInfoDto implements Serializable {
 
+  @Serial
   private static final long serialVersionUID = 5045615582527580736L;
 
   UUID sub;

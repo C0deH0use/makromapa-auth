@@ -42,7 +42,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
   @Override
   public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
     oauthServer
-        .realm("makromapa/client")
+        .realm("makromapa/oauth2")
         .tokenKeyAccess("denyAll()")
         .checkTokenAccess("isAuthenticated() and hasAnyRole('MAKROMAPA_BACKEND', 'USER_INFO_AUTH')")
     ;

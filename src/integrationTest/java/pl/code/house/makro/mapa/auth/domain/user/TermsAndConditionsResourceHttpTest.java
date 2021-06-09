@@ -12,7 +12,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.BEARER_TOKEN;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
@@ -52,7 +52,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
 
         .when()
-        .get(USER_OAUTH_PATH + "/terms-and-conditions")
+        .get(OAUTH_USER_PATH + "/terms-and-conditions")
 
         .then()
         .log().ifValidationFails()
@@ -77,7 +77,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
 
         .when()
-        .post(USER_OAUTH_PATH + "/terms-and-conditions/1001/approve")
+        .post(OAUTH_USER_PATH + "/terms-and-conditions/1001/approve")
 
         .then()
         .log().ifValidationFails()
@@ -115,7 +115,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + accessCode)
 
         .when()
-        .post(USER_OAUTH_PATH + "/terms-and-conditions/1001/approve")
+        .post(OAUTH_USER_PATH + "/terms-and-conditions/1001/approve")
 
         .then()
         .log().ifValidationFails()
@@ -137,7 +137,7 @@ class TermsAndConditionsResourceHttpTest {
         .header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode())
 
         .when()
-        .post(USER_OAUTH_PATH + "/terms-and-conditions/1000/approve")
+        .post(OAUTH_USER_PATH + "/terms-and-conditions/1000/approve")
 
         .then()
         .log().ifValidationFails()

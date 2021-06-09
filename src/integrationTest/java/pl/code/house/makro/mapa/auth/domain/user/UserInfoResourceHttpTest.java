@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
@@ -53,7 +53,7 @@ class UserInfoResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
         .when()
-        .get(USER_OAUTH_PATH + "/info")
+        .get(OAUTH_USER_PATH + "/info")
 
         .then()
         .log().all(true)
@@ -86,7 +86,7 @@ class UserInfoResourceHttpTest {
         .param("picture", "picture1")
 
         .when()
-        .post(USER_OAUTH_PATH + "/info")
+        .post(OAUTH_USER_PATH + "/info")
 
         .then()
         .log().ifValidationFails()
@@ -134,7 +134,7 @@ class UserInfoResourceHttpTest {
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + adminAccessCode))
 
         .when()
-        .get(USER_OAUTH_PATH + "/info")
+        .get(OAUTH_USER_PATH + "/info")
 
         .then()
         .log().all(true)
@@ -159,7 +159,7 @@ class UserInfoResourceHttpTest {
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
 
         .when()
-        .get(USER_OAUTH_PATH + "/avatars")
+        .get(OAUTH_USER_PATH + "/avatars")
 
         .then()
         .log().ifValidationFails()
@@ -177,7 +177,7 @@ class UserInfoResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
         .header(GOOGLE_PREMIUM_USER.getAuthenticationHeader())
         .when()
-        .get(USER_OAUTH_PATH + "/info")
+        .get(OAUTH_USER_PATH + "/info")
 
         .then()
         .log().all(true)
@@ -192,7 +192,7 @@ class UserInfoResourceHttpTest {
         .contentType(APPLICATION_JSON_VALUE)
 
         .when()
-        .get(USER_OAUTH_PATH + "/info")
+        .get(OAUTH_USER_PATH + "/info")
 
         .then()
         .log().all(true)

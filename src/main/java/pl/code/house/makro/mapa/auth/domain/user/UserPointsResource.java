@@ -4,7 +4,7 @@ import static java.util.UUID.fromString;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.notFound;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_OAUTH_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 
 import java.util.UUID;
 import javax.validation.Valid;
@@ -24,7 +24,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdatePointsDto;
 @Validated
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = USER_OAUTH_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
+@RequestMapping(path = OAUTH_USER_PATH, produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
 class UserPointsResource {
 
   private final UserPointsFacade facade;

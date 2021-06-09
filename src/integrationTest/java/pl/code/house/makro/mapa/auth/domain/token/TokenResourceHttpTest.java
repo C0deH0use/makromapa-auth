@@ -4,9 +4,12 @@ import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
@@ -22,6 +25,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
 import io.restassured.http.Header;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -85,24 +89,26 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .get("/oauth/check_token")
+        .post("/oauth/check_token")
 
         .then()
         .log().all()
         .status(OK)
         .body("active", equalTo(true))
         .body("exp", notNullValue())
+        .body("aud", hasItem("makromapa-mobile"))
         .body("user_name", equalTo("118364847911502210416"))
         .body("client_id", equalTo("makromapa-mobile"))
         .body("scope", hasItems("PREMIUM", "FREE_USER", "DISABLE_ADS"))
+        .body("authorities", hasItems("ROLE_FREE_USER", "ROLE_DISABLE_ADS", "ROLE_PREMIUM"))
     ;
   }
 
   @Test
   @Transactional
-  @DisplayName("should check token owned by admin")
+  @DisplayName("should check token owned by admin when logged in from mobile app")
   void shouldCheckTokenOwnedByAdmin() {
-    String adminAccessToken = getAdminAccessToken();
+    String adminAccessToken = getAdminAccessTokenLoggedInFromMobileApp();
     String adminId = userRepository.findIdByEmail(ADMIN.getName());
     given()
         .param("token", adminAccessToken)
@@ -110,7 +116,7 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .get("/oauth/check_token")
+        .post("/oauth/check_token")
 
         .then()
         .log().all()
@@ -119,8 +125,60 @@ class TokenResourceHttpTest {
         .body("exp", notNullValue())
         .body("user_name", equalTo(adminId))
         .body("client_id", equalTo("basic-auth-makromapa-mobile"))
+        .body("scope", hasSize(1))
         .body("scope", hasItems("USER"))
         .body("authorities", hasItems("ROLE_ADMIN_USER"))
+    ;
+  }
+
+  @Test
+  @Transactional
+  @DisplayName("should check token owned by admin when logged in from Admin app")
+  void shouldCheckTokenOwnedByAdminLoggedInFromAdminApp() {
+    String adminAccessToken = getAdminAccessTokenLoggedInFromAdminClient();
+    given()
+        .param("token", adminAccessToken)
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
+        .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+
+        .when()
+        .post("/oauth/check_token")
+
+        .then()
+        .log().all()
+        .status(OK)
+        .body("active", equalTo(true))
+        .body("exp", notNullValue())
+        .body("client_id", equalTo("makromapa-admin"))
+        .body("scope", hasSize(2))
+        .body("scope", hasItems("USER"))
+        .body("scope", hasItems("ADMIN"))
+        .body("authorities", hasItems("ROLE_ADMIN_USER"))
+    ;
+  }
+
+  @Test
+  @Transactional
+  @DisplayName("should check token owned by backend system")
+  void shouldCheckTokenOwnedByBackendSystem() {
+    String backendSystemAccessToken = getBackendSystemAccessToken();
+    given()
+        .param("token", backendSystemAccessToken)
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
+        .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+
+        .when()
+        .post("/oauth/check_token")
+
+        .then()
+        .log().all()
+        .status(OK)
+        .body("active", equalTo(true))
+        .body("exp", notNullValue())
+        .body("client_id", equalTo("makromapa-backend"))
+        .body("scope", hasSize(1))
+        .body("scope", hasItems("USER"))
+        .body("authorities", hasItem("ROLE_MAKROMAPA_BACKEND"))
     ;
   }
 
@@ -150,7 +208,7 @@ class TokenResourceHttpTest {
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
 
         .when()
-        .get("/oauth/check_token")
+        .post("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
@@ -167,7 +225,7 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .get("/oauth/check_token")
+        .post("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
@@ -182,7 +240,7 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .get("/oauth/check_token")
+        .post("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
@@ -198,7 +256,7 @@ class TokenResourceHttpTest {
         .contentType(APPLICATION_FORM_URLENCODED_VALUE)
 
         .when()
-        .get("/oauth/check_token")
+        .post("/oauth/check_token")
 
         .then()
         .log().ifValidationFails()
@@ -220,13 +278,47 @@ class TokenResourceHttpTest {
         .status(OK)
         .extract().body().jsonPath().getString("access_token");
   }
-  private String getAdminAccessToken() {
+
+  private String getAdminAccessTokenLoggedInFromMobileApp() {
     return given()
         .param("grant_type", "password")
         .param("client_id", "basic-auth-makromapa-mobile")
         .param("username", ADMIN.getName())
         .param("password", ADMIN.getPassword())
         .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+        .contentType(JSON)
+
+        .when()
+        .post("/oauth/token")
+
+        .then()
+        .status(OK)
+        .extract().body().jsonPath().getString("access_token");
+  }
+
+  private String getAdminAccessTokenLoggedInFromAdminClient() {
+    return given()
+        .param("grant_type", "client_credentials")
+        .param("client_id", "makromapa-admin")
+        .param("username", ADMIN.getName())
+        .param("password", ADMIN.getPassword())
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-admin", "secret", UTF_8)))
+        .contentType(JSON)
+
+        .when()
+        .post("/oauth/token")
+
+        .then()
+        .status(OK)
+        .extract().body().jsonPath().getString("access_token");
+  }
+
+  private String getBackendSystemAccessToken() {
+    return given()
+        .param("grant_type", "client_credentials")
+        .param("clientId", "makromapa-backend")
+        .param("clientSecret", "secret")
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("makromapa-backend", "secret", UTF_8)))
         .contentType(JSON)
 
         .when()
