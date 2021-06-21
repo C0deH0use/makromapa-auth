@@ -217,7 +217,6 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
           .authorizeRequests(req -> req.antMatchers(USER_MANAGEMENT_PATH + WILD_CARD).authenticated())
 
           .httpBasic()
-          .realmName("makromapa/authorized_client")
           .and()
 
           .userDetailsService(new ClientDetailsUserDetailsService(new JdbcClientDetailsService(dataSource)))
