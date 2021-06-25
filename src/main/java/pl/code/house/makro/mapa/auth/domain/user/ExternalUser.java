@@ -53,7 +53,7 @@ class ExternalUser extends BaseUser {
         .type(this.getUserDetails().getType())
         .points(this.getUserDetails().getPoints())
         .provider(this.getProvider())
-        .enabled(this.getEnabled())
+        .active(this.getEnabled())
         .premiumFeatures(featureSet)
         .build();
   }

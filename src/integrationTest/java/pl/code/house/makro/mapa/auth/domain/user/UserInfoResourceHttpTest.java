@@ -67,7 +67,7 @@ class UserInfoResourceHttpTest {
         .body("picture", notNullValue())
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
-        .body("enabled", equalTo(true))
+        .body("active", equalTo(true))
         .body("points", equalTo(0))
     ;
   }
@@ -101,7 +101,7 @@ class UserInfoResourceHttpTest {
         .body("picture", equalTo("picture1"))
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
-        .body("enabled", equalTo(true))
+        .body("active", equalTo(true))
         .body("points", equalTo(0))
     ;
   }
@@ -147,7 +147,7 @@ class UserInfoResourceHttpTest {
         .body("email", equalTo(ADMIN.getName()))
         .body("picture", nullValue())
         .body("type", equalTo("ADMIN_USER"))
-        .body("enabled", equalTo(true))
+        .body("active", equalTo(true))
     ;
   }
 

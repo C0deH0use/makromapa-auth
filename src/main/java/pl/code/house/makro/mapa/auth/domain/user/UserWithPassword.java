@@ -61,7 +61,7 @@ class UserWithPassword extends BaseUser {
         .points(this.getUserDetails().getPoints())
         .type(this.getUserDetails().getType())
         .provider(this.getProvider())
-        .enabled(this.getEnabled())
+        .active(this.getEnabled())
         .premiumFeatures(featureSet)
         .build();
   }
