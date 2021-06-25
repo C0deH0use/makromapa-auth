@@ -65,7 +65,7 @@ class UpdateUserInfoWithUserFacadeTest {
 
     //then
     assertThat(infoDto.getSub()).isEqualTo(userId);
-    assertThat(infoDto.getActive()).isEqualTo(true);
+    assertThat(infoDto.getEnabled()).isEqualTo(true);
     assertThat(infoDto.getProvider()).isEqualTo(GOOGLE);
     assertThat(infoDto.getType()).isEqualTo(FREE_USER);
     assertThat(infoDto.getPremiumFeatures()).contains(PREMIUM);
@@ -97,7 +97,7 @@ class UpdateUserInfoWithUserFacadeTest {
 
     //then
     assertThat(infoDto.getSub()).isEqualTo(userId);
-    assertThat(infoDto.getActive()).isEqualTo(true);
+    assertThat(infoDto.getEnabled()).isEqualTo(true);
     assertThat(infoDto.getProvider()).isEqualTo(BASIC_AUTH);
     assertThat(infoDto.getType()).isEqualTo(FREE_USER);
     assertThat(infoDto.getPremiumFeatures()).isEmpty();
@@ -132,7 +132,7 @@ class UpdateUserInfoWithUserFacadeTest {
 
     //then
     assertThat(infoDto.getSub()).isEqualTo(userId);
-    assertThat(infoDto.getActive()).isEqualTo(true);
+    assertThat(infoDto.getEnabled()).isEqualTo(true);
     assertThat(infoDto.getProvider()).isEqualTo(BASIC_AUTH);
     assertThat(infoDto.getType()).isEqualTo(FREE_USER);
     assertThat(infoDto.getPremiumFeatures()).isEmpty();

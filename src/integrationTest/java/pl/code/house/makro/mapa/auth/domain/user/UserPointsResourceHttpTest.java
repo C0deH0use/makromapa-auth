@@ -81,7 +81,7 @@ class UserPointsResourceHttpTest {
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
         .body("points", equalTo(pointsEarned))
-        .body("active", equalTo(true));
+        .body("enabled", equalTo(true));
 
     //then
     assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(pointsEarned);
@@ -120,7 +120,7 @@ class UserPointsResourceHttpTest {
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
         .body("points", equalTo(pointsEarned))
-        .body("active", equalTo(true));
+        .body("enabled", equalTo(true));
 
     //then
     assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(pointsEarned);
@@ -158,7 +158,7 @@ class UserPointsResourceHttpTest {
         .body("type", equalTo("ADMIN_USER"))
         .body("premiumFeatures", empty())
         .body("points", equalTo(0))
-        .body("active", equalTo(true));
+        .body("enabled", equalTo(true));
 
     //then
     assertThat(repository.findById(ADMIN.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);

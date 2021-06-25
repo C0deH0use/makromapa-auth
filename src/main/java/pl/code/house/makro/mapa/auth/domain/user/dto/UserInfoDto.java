@@ -33,7 +33,7 @@ public class UserInfoDto implements Serializable {
 
   UserType type;
 
-  Boolean active;
+  Boolean enabled;
 
   int points;
 
