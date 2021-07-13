@@ -12,7 +12,6 @@ import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +35,7 @@ class ProductResource {
   private final ProductQueryFacade queryFacade;
 
   @GetMapping
-  List<ProductDto> getProducts(@AuthenticationPrincipal Authentication principal) {
+  List<ProductDto> getProducts(Authentication principal) {
     log.info("User: {} requested all points products that are currently available for MakroMapa", principal.getName());
 
     return queryFacade.findAll();

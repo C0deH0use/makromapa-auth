@@ -7,10 +7,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -50,6 +52,30 @@ class ProductResourceHttpTest {
   @BeforeEach
   void setup() {
     webAppContextSetup(context, springSecurity());
+  }
+
+  @Test
+  @DisplayName("should return all stored products")
+  void shouldReturnAllStoredProducts() {
+    given()
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
+
+        .when()
+        .get("/oauth/product")
+
+        .then()
+        .log().ifValidationFails()
+        .status(OK)
+
+        .body("$", hasSize(4))
+        .body("id", everyItem(notNullValue(Integer.class)))
+        .body("name", hasItems("APPROVED_DISH_PROPOSAL", "DISABLE_ADS", "sub_premium", "ads_removal"))
+        .body("description", everyItem(notNullValue(Integer.class)))
+        .body("points", hasItems(0, 100))
+        .body("enabled", hasItems(false, true))
+        .body("reason", hasItems("USE", "PURCHASE", "EARN"))
+    ;
   }
 
   @Test

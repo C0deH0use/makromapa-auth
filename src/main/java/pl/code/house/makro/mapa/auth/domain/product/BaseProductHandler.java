@@ -28,7 +28,7 @@ abstract class BaseProductHandler {
         .orElseThrow(() -> new IllegalArgumentException("Could not find product of which points where earned"));
     log.info("Adding {} points to user: {}, as result of {}", product.getPoints(), dto.getUserId(), product.getName());
 
-    if (!product.getReasons().contains(dto.getOperation())) {
+    if (product.getReason() != dto.getOperation()) {
       throw new IllegalOperationForSelectedProductException(String.format(PRODUCT_NOT_ACCEPTING_REASON_MESSAGE, product.getName(), dto.getOperation()));
     }
     return product;

@@ -135,7 +135,7 @@ class ProductUseHandlerTest {
         .id(productId)
         .name("Points Used on Ads")
         .points(100)
-        .reasons(Set.of(USE))
+        .reason(USE)
         .build();
   }
 
@@ -144,7 +144,7 @@ class ProductUseHandlerTest {
         .id(productId)
         .name("Points Used on PREMIUM")
         .points(300)
-        .reasons(Set.of(USE))
+        .reason(USE)
         .build();
   }
 }

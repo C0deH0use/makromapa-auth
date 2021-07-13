@@ -110,7 +110,7 @@ class PurchaseProductHandlerTest {
         .id(productId)
         .name("Points earned when dish proposal was approved")
         .points(20)
-        .reasons(Set.of(EARN))
+        .reason(EARN)
         .build();
   }
 
@@ -119,7 +119,7 @@ class PurchaseProductHandlerTest {
         .id(productId)
         .name("Points purchased")
         .points(20)
-        .reasons(Set.of(PURCHASE))
+        .reason(PURCHASE)
         .build();
   }
 }
