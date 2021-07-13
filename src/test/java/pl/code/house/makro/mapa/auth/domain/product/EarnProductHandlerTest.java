@@ -1,16 +1,17 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
-import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.EARN;
-import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.PURCHASE;
+import static pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperation.EARN;
+import static pl.code.house.makro.mapa.auth.domain.product.PurchaseProductHandlerTest.earnProduct;
+import static pl.code.house.makro.mapa.auth.domain.product.PurchaseProductHandlerTest.productId;
+import static pl.code.house.makro.mapa.auth.domain.product.PurchaseProductHandlerTest.purchaseProduct;
+import static pl.code.house.makro.mapa.auth.domain.product.PurchaseProductHandlerTest.userId;
 
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,30 +20,26 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
+import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.error.IllegalOperationForSelectedProductException;
 
 @ExtendWith(MockitoExtension.class)
-class PurchasePointsHandlerTest {
-
-  static final UUID userId = UUID.randomUUID();
-  static final long productId = 1000;
+class EarnProductHandlerTest {
 
   @Mock
-  private UserRepository userRepository;
+  private UserFacade userFacade;
 
   @Mock
-  private ProductFacade productFacade;
+  private ProductQueryFacade productFacade;
 
   @Mock
-  private PointsActionLogRepository actionLogRepository;
+  private ProductActionLogRepository actionLogRepository;
 
   @Captor
-  private ArgumentCaptor<PointsActionLog> logArgumentCaptor;
+  private ArgumentCaptor<ProductActionLog> logArgumentCaptor;
 
   @InjectMocks
-  private PurchasePointsHandler sut;
+  private EarnProductHandler sut;
 
   @Test
   @DisplayName("should correctly handle and update user points by requested amounts")
@@ -51,24 +48,23 @@ class PurchasePointsHandlerTest {
     PointsOperationDto dto = PointsOperationDto.builder()
         .userId(userId)
         .product(productId)
-        .operation(PURCHASE)
+        .operation(EARN)
         .build();
-
-    given(productFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
+    given(productFacade.findById(productId)).willReturn(Optional.of(earnProduct()));
 
     //when
     sut.handle(dto);
 
     //then
-    then(userRepository).should(times(1)).updateUserPoints(userId, 20);
+    then(userFacade).should(times(1)).updateUserPoints(userId, 20);
 
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
-    PointsActionLog capturedValue = logArgumentCaptor.getValue();
+    ProductActionLog capturedValue = logArgumentCaptor.getValue();
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
     assertThat(capturedValue.getDetails().getPoints()).isEqualTo(20);
     assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
-    assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(PURCHASE);
+    assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(EARN);
   }
 
   @Test
@@ -102,24 +98,7 @@ class PurchasePointsHandlerTest {
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Could not find product to because of which points where earned");
+        .hasMessage("Could not find product of which points where earned");
   }
 
-  static ProductDto earnProduct() {
-    return ProductDto.builder()
-        .id(productId)
-        .name("Points earned when dish proposal was approved")
-        .points(20)
-        .reasons(Set.of(EARN))
-        .build();
-  }
-
-  static ProductDto purchaseProduct() {
-    return ProductDto.builder()
-        .id(productId)
-        .name("Points purchased")
-        .points(20)
-        .reasons(Set.of(PURCHASE))
-        .build();
-  }
 }

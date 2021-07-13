@@ -17,7 +17,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
-import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Slf4j
@@ -26,7 +26,7 @@ class FacebookUserTokenGranter implements TokenGranter {
 
   static final String GRANT_TYPE = "external-token";
 
-  private final UserFacade userFacade;
+  private final UserQueryFacade userFacade;
 
   private final AuthorizationServerTokenServices tokenServices;
 

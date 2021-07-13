@@ -20,7 +20,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
-import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
 @Slf4j
@@ -29,7 +29,7 @@ class ExternalUserTokenGranter implements TokenGranter {
 
   static final String GRANT_TYPE = "external-token";
 
-  private final UserFacade userFacade;
+  private final UserQueryFacade queryFacade;
 
   private final AuthorizationServerTokenServices tokenServices;
 
@@ -63,7 +63,7 @@ class ExternalUserTokenGranter implements TokenGranter {
   private OAuth2Authentication getOAuth2Authentication(ClientDetails client, ExternalUserAuthRequest tokenRequest) {
     Jwt token = tokenRequest.getPrincipal().getToken();
 
-    UserDto userDto = userFacade.findUserByToken(token);
+    UserDto userDto = queryFacade.findUserByToken(token);
     tokenRequest.setExternalUserId(userDto);
     List<GrantedAuthority> userAuthorities = userAuthoritiesService.getUserAuthorities(userDto.getId());
     tokenRequest.setAuthorities(userAuthorities);

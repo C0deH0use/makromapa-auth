@@ -12,14 +12,14 @@ import org.springframework.security.oauth2.provider.request.DefaultOAuth2Request
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
-import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
 
 @Configuration
 class ExternalUserTokenConfiguration {
 
   @Bean
   ExternalUserCompositeTokenGranter externalUserTokenGranter(
-      UserFacade userFacade,
+      UserQueryFacade userFacade,
       @Qualifier("defaultAuthorizationServerTokenServices") AuthorizationServerTokenServices tokenService,
       TokenStore tokenStore,
       ClientDetailsService clientDetailsService,
@@ -27,7 +27,7 @@ class ExternalUserTokenConfiguration {
     return new ExternalUserCompositeTokenGranter(tokenGranters(userFacade, clientDetailsService, userAuthoritiesService, tokenService, tokenStore));
   }
 
-  private List<TokenGranter> tokenGranters(UserFacade userFacade, ClientDetailsService clientDetails,
+  private List<TokenGranter> tokenGranters(UserQueryFacade userFacade, ClientDetailsService clientDetails,
       UserAuthoritiesService userAuthoritiesService, AuthorizationServerTokenServices tokenService, TokenStore tokenStore) {
     OAuth2RequestFactory factory = new DefaultOAuth2RequestFactory(clientDetails);
     return List.of(

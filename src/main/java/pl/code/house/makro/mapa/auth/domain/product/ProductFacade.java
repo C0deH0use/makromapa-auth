@@ -1,30 +1,37 @@
 package pl.code.house.makro.mapa.auth.domain.product;
 
-import static java.util.stream.Collectors.toList;
+import static pl.code.house.makro.mapa.auth.domain.user.UserType.ADMIN_USER;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
+import org.springframework.transaction.annotation.Transactional;
+import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductPurchaseDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductFacade {
 
-  private final ProductRepository productRepository;
+  private final UserQueryFacade queryFacade;
+  private final ProductHandlerService handlerService;
 
-  public List<ProductDto> findAll() {
-    return productRepository.findAll()
-        .stream()
-        .map(Product::toDto)
-        .collect(toList());
+  @Transactional
+  public Optional<UserInfoDto> handleProductBy(UUID userId, ProductPurchaseDto updatePointsDto) {
+    if (isNotAdminUser(userId)) {
+      handlerService.handleProduct(updatePointsDto, userId);
+    }
+
+    return queryFacade.findUserById(userId);
   }
 
-  public Optional<ProductDto> findById(Long productId) {
-    return productRepository.findById(productId)
-        .map(Product::toDto);
+  private boolean isNotAdminUser(UUID userId) {
+    return queryFacade.findUserById(userId)
+        .filter(user -> ADMIN_USER == user.getType())
+        .isEmpty();
   }
 }

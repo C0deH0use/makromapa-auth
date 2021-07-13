@@ -30,7 +30,7 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
-import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDetailsDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
@@ -46,7 +46,7 @@ class ExternalUserTokenGranterTest {
   private ExternalUserTokenGranter sut;
 
   @Mock
-  private UserFacade userFacade;
+  private UserQueryFacade queryFacade;
 
   @Mock
   private AuthorizationServerTokenServices tokenServices;
@@ -66,7 +66,7 @@ class ExternalUserTokenGranterTest {
 
     given(clientDetailsService.loadClientByClientId(CLIENT_ID)).willReturn(MOCK_CLIENT_DETAILS);
     given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
-    given(userFacade.findUserByToken(any())).willReturn(userDto());
+    given(queryFacade.findUserByToken(any())).willReturn(userDto());
 
     //when
     sut.grant(grantType, request);

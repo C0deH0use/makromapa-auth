@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
@@ -15,11 +15,11 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.ADMIN;
@@ -35,15 +35,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 
 @SpringBootTest
-class UserPointsResourceHttpTest {
+class ProductResourceHttpTest {
 
   @Autowired
   private WebApplicationContext context;
 
   @Autowired
-  private UserRepository repository;
+  private UserQueryFacade queryFacade;
 
   @BeforeEach
   void setup() {
@@ -57,7 +59,7 @@ class UserPointsResourceHttpTest {
   void shouldUpdateUserPointsByEarning100() {
     //given
     int pointsEarned = 100;
-    assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
 
     given()
         .contentType(APPLICATION_JSON_VALUE)
@@ -66,11 +68,11 @@ class UserPointsResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post(OAUTH_USER_PATH + "/points")
+        .post("/oauth/product")
 
         .then()
         .log().all(true)
-        .status(OK)
+        .status(CREATED)
         .body("sub", equalTo(GOOGLE_PREMIUM_USER.getUserId().toString()))
         .body("provider", equalTo(GOOGLE.name()))
         .body("name", is(GOOGLE_PREMIUM_USER.getName()))
@@ -84,7 +86,7 @@ class UserPointsResourceHttpTest {
         .body("enabled", equalTo(true));
 
     //then
-    assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(pointsEarned);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(pointsEarned);
   }
 
   @Test
@@ -96,7 +98,7 @@ class UserPointsResourceHttpTest {
     int pointsEarned = 100;
 
     Header backendAuthHeader = backendAuthHeader();
-    assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
 
     given()
         .contentType(APPLICATION_JSON_VALUE)
@@ -105,11 +107,11 @@ class UserPointsResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post(OAUTH_USER_PATH + "/{userId}/points", GOOGLE_PREMIUM_USER.getUserId())
+        .post("/oauth/product/{userId}", GOOGLE_PREMIUM_USER.getUserId())
 
         .then()
         .log().ifValidationFails()
-        .status(OK)
+        .status(CREATED)
         .body("sub", equalTo(GOOGLE_PREMIUM_USER.getUserId().toString()))
         .body("provider", equalTo(GOOGLE.name()))
         .body("name", is(GOOGLE_PREMIUM_USER.getName()))
@@ -123,7 +125,7 @@ class UserPointsResourceHttpTest {
         .body("enabled", equalTo(true));
 
     //then
-    assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(pointsEarned);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(pointsEarned);
   }
 
   @Test
@@ -132,9 +134,8 @@ class UserPointsResourceHttpTest {
   @DisplayName("should skip if request was send for admin user")
   void shouldSkipIfRequestWasSendForAdminUser() {
     //given
-    int pointsEarned = 100;
     Header backendAuthHeader = backendAuthHeader();
-    assertThat(repository.findById(ADMIN.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(ADMIN.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
 
     given()
         .contentType(APPLICATION_JSON_VALUE)
@@ -143,11 +144,11 @@ class UserPointsResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post(OAUTH_USER_PATH + "/{userId}/points", ADMIN.getUserId())
+        .post("/oauth/product/{userId}", ADMIN.getUserId())
 
         .then()
         .log().ifValidationFails()
-        .status(OK)
+        .status(CREATED)
         .body("sub", equalTo(ADMIN.getUserId().toString()))
         .body("provider", equalTo(BASIC_AUTH.name()))
         .body("name", is(emptyOrNullString()))
@@ -161,7 +162,7 @@ class UserPointsResourceHttpTest {
         .body("enabled", equalTo(true));
 
     //then
-    assertThat(repository.findById(ADMIN.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(ADMIN.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
   }
 
   @Test
@@ -174,15 +175,15 @@ class UserPointsResourceHttpTest {
         .param("product", "1003")
 
         .when()
-        .post(OAUTH_USER_PATH + "/points")
+        .post("/oauth/product")
 
         .then()
         .log().all(true)
         .status(CONFLICT)
-        .body("error", equalTo("Product `PURCHASE_1000` does not accept following operation reason to assign points to user:EARN"));
+        .body("error", equalTo("Product `DISABLE_ADS` does not accept following operation reason to assign points to user:EARN"));
 
     //then
-    assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
   }
 
   @Test
@@ -196,15 +197,15 @@ class UserPointsResourceHttpTest {
         .param("product", "1200")
 
         .when()
-        .post(OAUTH_USER_PATH + "/points")
+        .post("/oauth/product")
 
         .then()
         .log().all(true)
         .status(BAD_REQUEST)
-        .body("error", equalTo("Could not find product to because of which points where earned"));
+        .body("error", equalTo("Could not find product of which points where earned"));
 
     //then
-    assertThat(repository.findById(GOOGLE_PREMIUM_USER.getUserId())).map(BaseUser::getUserDetails).map(UserDetails::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
   }
 
   @Test
@@ -216,7 +217,7 @@ class UserPointsResourceHttpTest {
         .param("operation", "EARN")
 
         .when()
-        .post(OAUTH_USER_PATH + "/points")
+        .post("/oauth/product")
 
         .then()
         .log().all(true)

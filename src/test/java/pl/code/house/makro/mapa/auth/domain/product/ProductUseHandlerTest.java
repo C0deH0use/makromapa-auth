@@ -1,12 +1,12 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
-import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.USE;
-import static pl.code.house.makro.mapa.auth.domain.user.PurchasePointsHandlerTest.purchaseProduct;
+import static pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperation.USE;
+import static pl.code.house.makro.mapa.auth.domain.product.PurchaseProductHandlerTest.purchaseProduct;
 
 import java.util.Optional;
 import java.util.Set;
@@ -19,30 +19,30 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 import pl.code.house.makro.mapa.auth.error.IllegalOperationForSelectedProductException;
 
 @ExtendWith(MockitoExtension.class)
-class UsePointsHandlerTest {
+class ProductUseHandlerTest {
 
   static final UUID userId = UUID.randomUUID();
   static final long productId = 1000;
 
   @Mock
-  private UserRepository userRepository;
+  private UserFacade userFacade;
 
   @Mock
-  private ProductFacade productFacade;
+  private ProductQueryFacade productQueryFacade;
 
   @Mock
-  private PointsActionLogRepository actionLogRepository;
+  private ProductActionLogRepository actionLogRepository;
 
   @Captor
-  private ArgumentCaptor<PointsActionLog> logArgumentCaptor;
+  private ArgumentCaptor<ProductActionLog> logArgumentCaptor;
 
   @InjectMocks
-  private UsePointsHandler sut;
+  private ProductUseHandler sut;
 
   @Test
   @DisplayName("should correctly handle and update user points by requested amounts")
@@ -54,16 +54,16 @@ class UsePointsHandlerTest {
         .operation(USE)
         .build();
 
-    given(productFacade.findById(productId)).willReturn(Optional.of(useOnAdsProduct()));
+    given(productQueryFacade.findById(productId)).willReturn(Optional.of(useOnAdsProduct()));
 
     //when
     sut.handle(dto);
 
     //then
-    then(userRepository).should(times(1)).updateUserPoints(userId, 100);
+    then(userFacade).should(times(1)).updateUserPoints(userId, 100);
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
-    PointsActionLog capturedValue = logArgumentCaptor.getValue();
+    ProductActionLog capturedValue = logArgumentCaptor.getValue();
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
     assertThat(capturedValue.getDetails().getPoints()).isEqualTo(100);
     assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
@@ -80,16 +80,16 @@ class UsePointsHandlerTest {
         .operation(USE)
         .build();
 
-    given(productFacade.findById(productId)).willReturn(Optional.of(useOnPremiumProduct()));
+    given(productQueryFacade.findById(productId)).willReturn(Optional.of(useOnPremiumProduct()));
 
     //when
     sut.handle(dto);
 
     //then
-    then(userRepository).should(times(1)).updateUserPoints(userId, 300);
+    then(userFacade).should(times(1)).updateUserPoints(userId, 300);
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
-    PointsActionLog capturedValue = logArgumentCaptor.getValue();
+    ProductActionLog capturedValue = logArgumentCaptor.getValue();
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
     assertThat(capturedValue.getDetails().getPoints()).isEqualTo(300);
     assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
@@ -106,7 +106,7 @@ class UsePointsHandlerTest {
         .operation(USE)
         .build();
 
-    given(productFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
+    given(productQueryFacade.findById(productId)).willReturn(Optional.of(purchaseProduct()));
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
@@ -122,12 +122,12 @@ class UsePointsHandlerTest {
         .product(productId)
         .build();
 
-    given(productFacade.findById(productId)).willReturn(Optional.empty());
+    given(productQueryFacade.findById(productId)).willReturn(Optional.empty());
 
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Could not find product to because of which points where earned");
+        .hasMessage("Could not find product of which points where earned");
   }
 
   static ProductDto useOnAdsProduct() {

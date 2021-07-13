@@ -2,15 +2,10 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.Assert.hasText;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
-import static pl.code.house.makro.mapa.auth.domain.user.ExternalUser.newUserFrom;
-import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.FACEBOOK;
-import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.fromIssuer;
 import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.NON;
-import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.PREMIUM;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserWithPassword.newDraftFrom;
@@ -21,11 +16,8 @@ import static pl.code.house.makro.mapa.auth.error.UserOperationError.VALIDATION_
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.social.facebook.api.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
@@ -34,7 +26,6 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
-import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
 import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
 import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
@@ -42,57 +33,23 @@ import pl.code.house.makro.mapa.auth.error.UserRegistrationException;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class UserFacade {
+public class UserFacade extends BaseUserFacade {
 
   private final PasswordEncoder passwordEncoder;
-
-  private final UserRepository userRepository;
-
-  private final UserAuthoritiesService userAuthoritiesService;
-
-  private final TermsAndConditionsFacade termsAndConditionsFacade;
-
-  private final UserAuthoritiesService authoritiesService;
-
   private final UserOptOutService optOutService;
-
   private final VerificationCodeService verificationCodeService;
+
+  public UserFacade(UserRepository userRepository, UserAuthoritiesService authoritiesService, PasswordEncoder passwordEncoder,
+      UserOptOutService optOutService,
+      VerificationCodeService verificationCodeService) {
+    super(userRepository, authoritiesService);
+    this.passwordEncoder = passwordEncoder;
+    this.optOutService = optOutService;
+    this.verificationCodeService = verificationCodeService;
+  }
 
   public static String maskEmail(String email) {
     return email.replaceAll("(^[^@]{3}|(?!^)\\G)[^@]", "$1*");
-  }
-
-  public Optional<UserInfoDto> findUserById(UUID userId) {
-    log.debug("Searching for User with id - `{}`", userId);
-
-    return userRepository.findById(userId)
-        .map(this::toUserInfo);
-  }
-
-  @Transactional
-  public UserDto findUserByToken(Jwt token) {
-    String externalUserId = tryGetExternalUserId(token);
-    OAuth2Provider oauth2Provider = fromIssuer(token.getClaim("iss"));
-    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
-
-    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId, oauth2Provider)
-        .map(u -> u.updateWith(parseUserDetails(token)))
-        .orElseGet(() -> createNewExternalUser(token));
-
-    return checkTcAndReturnDto(user);
-  }
-
-  @Transactional
-  public UserDto findUserByProfile(User userProfile) {
-    String externalUserId = userProfile.getId();
-    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", FACEBOOK, externalUserId);
-
-    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId, FACEBOOK)
-        .map(u -> u.updateWith(parseUserDetails(userProfile)))
-        .orElseGet(() -> createNewFacebookUser(userProfile));
-
-    return checkTcAndReturnDto(user);
   }
 
   @Transactional
@@ -137,7 +94,7 @@ public class UserFacade {
     log.info("Received request from `{}` client to activate DRAFT User `{}`", clientId, user.getId());
 
     user.activate();
-    userAuthoritiesService.insertUserAuthorities(user.getId(), FREE_USER);
+    authoritiesService.insertUserAuthorities(user.getId(), FREE_USER);
     verificationCodeService.useCode(verificationCode.getId());
 
     log.info("User `{}` is now active and can now login to the system via BASIC_AUTH protocol", user.getId());
@@ -194,15 +151,15 @@ public class UserFacade {
   }
 
   @Transactional
-  public void deleteUser(String authenticationToken) {
-    optOutService.optoutUser(authenticationToken);
+  public void updateUserPoints(UUID userId, int points) {
+    userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Active User with following id `" + userId + " ` does not exists"));
+    userRepository.updateUserPoints(userId, points);
   }
 
-  private UserDto checkTcAndReturnDto(BaseUser user) {
-    if (getUserPremiumFeatures(user).contains(PREMIUM)) {
-      termsAndConditionsFacade.isLatestTermsApproved(user.getTermsAndConditionsId());
-    }
-    return user.toDto();
+  @Transactional
+  public void deleteUser(String authenticationToken) {
+    optOutService.optoutUser(authenticationToken);
   }
 
   private UserInfoDto toUserInfo(BaseUser user) {
@@ -217,48 +174,6 @@ public class UserFacade {
         .collect(toSet());
   }
 
-  private ExternalUser createNewExternalUser(Jwt jwtPrincipal) {
-    String externalId = tryGetExternalUserId(jwtPrincipal);
-    OAuth2Provider oauth2Provider = fromIssuer(jwtPrincipal.getClaim("iss"));
-
-    UserDetails userDetails = parseUserDetails(jwtPrincipal);
-
-    return createNewFreeUser(externalId, oauth2Provider, userDetails);
-  }
-
-  private ExternalUser createNewFacebookUser(User profile) {
-    String externalId = profile.getId();
-
-    UserDetails userDetails = parseUserDetails(profile);
-    return createNewFreeUser(externalId, FACEBOOK, userDetails);
-  }
-
-  private ExternalUser createNewFreeUser(String externalId, OAuth2Provider oauth2Provider, UserDetails userDetails) {
-    log.info("Creating new FREE_USER `{}`. Authentication provider: {}", externalId, oauth2Provider);
-
-    ExternalUser externalUser = userRepository.saveAndFlush(newUserFrom(oauth2Provider, userDetails, externalId));
-    userAuthoritiesService.insertUserAuthorities(externalUser.getId(), FREE_USER);
-    return externalUser;
-  }
-
-  private UserDetails parseUserDetails(Jwt jwtPrincipal) {
-    return UserDetails.builder()
-        .type(FREE_USER)
-        .name(jwtPrincipal.getClaim("name"))
-        .email(jwtPrincipal.getClaim("email"))
-        .surname(jwtPrincipal.getClaim("family_name"))
-        .build();
-  }
-
-  private UserDetails parseUserDetails(User profile) {
-    return UserDetails.builder()
-        .type(FREE_USER)
-        .name(profile.getFirstName())
-        .email(profile.getEmail())
-        .surname(profile.getLastName())
-        .build();
-  }
-
   private UserWithPassword createNewDraftUser(NewUserRequest userRequest) {
     UserDetails userDetails = UserDetails.builder()
         .type(DRAFT_USER)
@@ -269,21 +184,6 @@ public class UserFacade {
 
     UserWithPassword user = newDraftFrom(encodedPassword, userDetails);
     return userRepository.saveAndFlush(user);
-  }
-
-  private String tryGetExternalUserId(Jwt principal) {
-    String externalId = principal.getClaim("sub");
-    if (isBlank(externalId)) {
-      throw new InsufficientUserDetailsException("Authentication Token does not contain required data > external user Id is missing");
-    }
-
-    return externalId;
-  }
-
-  private Optional<BaseUser> findBasicUserByEmail(String email) {
-    BaseUser user = userRepository.findUserWithPasswordByUserEmail(email)
-        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Could not find user by email: " + email));
-    return Optional.of(user);
   }
 
 }

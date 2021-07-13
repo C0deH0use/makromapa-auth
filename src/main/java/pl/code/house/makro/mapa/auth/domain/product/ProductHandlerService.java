@@ -1,23 +1,23 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdatePointsDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.ProductPurchaseDto;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class UserPointsService {
+class ProductHandlerService {
 
-  private final List<PointsOperationHandler> pointsHandlers;
+  private final List<BaseProductHandler> productHandlers;
 
-  void handleUpdate(UserInfoUpdatePointsDto updatePointsDto, UUID userId) {
+  void handleProduct(ProductPurchaseDto updatePointsDto, UUID userId) {
     PointsOperationDto operationDto = PointsOperationDto.from(userId, updatePointsDto);
 
-    pointsHandlers.stream()
+    productHandlers.stream()
         .filter(handler -> handler.isAcceptable(operationDto))
         .findFirst()
         .ifPresent(handler -> handler.handle(operationDto));

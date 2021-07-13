@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
@@ -186,8 +187,8 @@ class UserInfoResourceHttpTest {
   }
 
   @Test
-  @DisplayName("return UNAUTHORIZED if not using any access code in request")
-  void returnUnauthorizedIfNotUsingAnyAccessCodeInRequest() {
+  @DisplayName("return BAD_REQUEST if not using any access code in request")
+  void returnBadRequestIfNotUsingAnyAccessCodeInRequest() {
     given()
         .contentType(APPLICATION_JSON_VALUE)
 
@@ -196,7 +197,7 @@ class UserInfoResourceHttpTest {
 
         .then()
         .log().all(true)
-        .status(UNAUTHORIZED)
+        .status(BAD_REQUEST)
     ;
   }
 

@@ -22,7 +22,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
-import pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
 @Entity
@@ -33,7 +32,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 @NoArgsConstructor(access = PROTECTED)
 class Product extends AuditAwareEntity {
 
-  static final String TABLE_NAME = "points_product";
+  static final String TABLE_NAME = "product";
 
   private static final int SEQ_INITIAL_VALUE = 1000;
   private static final int SEQ_INCREMENT_BY_VALUE = 1;
@@ -58,17 +57,21 @@ class Product extends AuditAwareEntity {
   @Column(name = "reasons", insertable = false, updatable = false, nullable = false)
   private String reasons;
 
+  @Column(name = "enabled", insertable = false, updatable = false, nullable = false)
+  private boolean enabled;
+
   @Builder(access = PACKAGE)
-  Product(Long id, String name, String description, int points, Set<PointsOperationReason> reasons) {
+  Product(Long id, String name, String description, int points, boolean enabled, Set<ProductPurchaseOperation> reasons) {
     this.id = id;
     this.name = name;
     this.description = description;
     this.points = points;
+    this.enabled = enabled;
     this.reasons = reasons.stream().map(Enum::name).collect(joining(DELIMITER));
   }
 
-  Set<PointsOperationReason> getReasonsCollection() {
-    return Stream.of(reasons.split(DELIMITER)).filter(StringUtils::isNoneBlank).map(PointsOperationReason::valueOf).collect(toSet());
+  Set<ProductPurchaseOperation> getReasonsCollection() {
+    return Stream.of(reasons.split(DELIMITER)).filter(StringUtils::isNoneBlank).map(ProductPurchaseOperation::valueOf).collect(toSet());
   }
 
   ProductDto toDto() {
@@ -77,6 +80,7 @@ class Product extends AuditAwareEntity {
         .name(name)
         .description(description)
         .points(points)
+        .enabled(enabled)
         .reasons(getReasonsCollection())
         .build();
   }

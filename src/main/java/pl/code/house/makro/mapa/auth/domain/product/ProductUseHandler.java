@@ -1,18 +1,18 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
-import static pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason.USE;
+import static pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperation.USE;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.code.house.makro.mapa.auth.domain.product.ProductFacade;
+import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
 @Slf4j
 @Service
-class UsePointsHandler extends PointsOperationHandler {
+class ProductUseHandler extends BaseProductHandler {
 
-  UsePointsHandler(ProductFacade productFacade, PointsActionLogRepository logRepository, UserRepository userRepository) {
-    super(productFacade, logRepository, userRepository);
+  ProductUseHandler(ProductQueryFacade productFacade, ProductActionLogRepository logRepository, UserFacade userFacade) {
+    super(productFacade, logRepository, userFacade);
   }
 
   @Override

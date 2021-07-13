@@ -3,10 +3,10 @@ package pl.code.house.makro.mapa.auth.domain.user.dto;
 import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import lombok.Value;
-import pl.code.house.makro.mapa.auth.domain.user.PointsOperationReason;
+import pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperation;
 
 @Value
-public class UserInfoUpdatePointsDto implements Serializable {
+public class ProductPurchaseDto implements Serializable {
 
   private static final long serialVersionUID = -2055694038701358253L;
 
@@ -14,6 +14,6 @@ public class UserInfoUpdatePointsDto implements Serializable {
   Long product;
 
   @NotNull(message = "Operation reason is required")
-  PointsOperationReason operation;
+  ProductPurchaseOperation operation;
 
 }

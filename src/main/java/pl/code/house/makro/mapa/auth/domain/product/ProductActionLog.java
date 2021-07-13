@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.GenerationType.AUTO;
@@ -21,16 +21,16 @@ import lombok.NoArgsConstructor;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
 
 @Entity
-@Table(name = PointsActionLog.TABLE_NAME)
+@Table(name = ProductActionLog.TABLE_NAME)
 @Access(FIELD)
 @Getter(PACKAGE)
 @Builder(access = PACKAGE)
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PACKAGE)
-class PointsActionLog extends AuditAwareEntity {
+class ProductActionLog extends AuditAwareEntity {
 
-  static final String TABLE_NAME = "points_action_log";
+  static final String TABLE_NAME = "product_action_log";
 
   private static final int SEQ_INITIAL_VALUE = 1000;
   private static final int SEQ_INCREMENT_BY_VALUE = 1;

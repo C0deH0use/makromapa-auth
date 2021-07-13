@@ -5,7 +5,8 @@ import static org.springframework.security.crypto.factory.PasswordEncoderFactori
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
 import static org.springframework.util.StringUtils.toStringArray;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
-import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_USER_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_PRODUCT_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.GET_AUTHORITY_SQL;
 
@@ -186,8 +187,8 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
       http
           .csrf().disable()
 
-          .antMatcher(OAUTH_USER_PATH + WILD_CARD)
-          .authorizeRequests(req -> req.antMatchers(OAUTH_USER_PATH + WILD_CARD).authenticated())
+          .antMatcher(OAUTH_PATH + WILD_CARD)
+          .authorizeRequests(req -> req.antMatchers(OAUTH_PRODUCT_PATH + WILD_CARD).authenticated())
           .oauth2ResourceServer(customizer -> customizer.authenticationManagerResolver(managerResolver()))
       ;
     }

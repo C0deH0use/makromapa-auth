@@ -34,7 +34,7 @@ import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedExcep
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
 
 @ExtendWith(MockitoExtension.class)
-class UserFacadeWithExternalUserTest {
+class UserQueryFacadeWithExternalUserTest {
 
   @Mock
   private UserRepository repository;
@@ -55,7 +55,7 @@ class UserFacadeWithExternalUserTest {
   private ExternalUser storedUser;
 
   @InjectMocks
-  private UserFacade sut;
+  private UserQueryFacade sut;
 
   @Test
   @DisplayName("authorize new principal with JWT token")

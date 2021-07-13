@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.domain.user;
+package pl.code.house.makro.mapa.auth.domain.product;
 
 import static javax.persistence.EnumType.STRING;
 import static lombok.AccessLevel.PACKAGE;
@@ -25,7 +25,7 @@ class ActionDetails {
 
   @Enumerated(STRING)
   @Column(name = "reason", updatable = false, nullable = false)
-  private PointsOperationReason operationReason;
+  private ProductPurchaseOperation operationReason;
 
   @Column(name = "points", updatable = false, nullable = false)
   private int points;

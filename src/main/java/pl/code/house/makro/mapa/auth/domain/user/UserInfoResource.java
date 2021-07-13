@@ -41,6 +41,8 @@ class UserInfoResource {
 
   private final UserFacade facade;
 
+  private final UserQueryFacade queryFacade;
+
   private final ResourceServerTokenServices resourceServerTokenServices;
 
   @GetMapping("/info")
@@ -48,7 +50,7 @@ class UserInfoResource {
     UUID userId = extractUserId(bearerToken);
     log.debug("{} is requesting user info for {}", principal.getName(), userId);
 
-    return facade.findUserById(userId)
+    return queryFacade.findUserById(userId)
         .map(ResponseEntity::ok)
         .orElse(notFound().build());
   }
