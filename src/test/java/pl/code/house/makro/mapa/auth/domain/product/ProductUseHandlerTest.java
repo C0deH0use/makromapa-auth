@@ -60,7 +60,7 @@ class ProductUseHandlerTest {
     sut.handle(dto);
 
     //then
-    then(userFacade).should(times(1)).updateUserPoints(userId, 100);
+    then(userFacade).should(times(1)).updateUserPoints(userId, -100);
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     ProductActionLog capturedValue = logArgumentCaptor.getValue();
@@ -86,7 +86,7 @@ class ProductUseHandlerTest {
     sut.handle(dto);
 
     //then
-    then(userFacade).should(times(1)).updateUserPoints(userId, 300);
+    then(userFacade).should(times(1)).updateUserPoints(userId, -300);
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     ProductActionLog capturedValue = logArgumentCaptor.getValue();
@@ -127,7 +127,7 @@ class ProductUseHandlerTest {
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Could not find product of which points where earned");
+        .hasMessage("Could not find product by id [1000] that user want's to purchase");
   }
 
   static ProductDto useOnAdsProduct() {

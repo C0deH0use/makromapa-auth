@@ -192,8 +192,8 @@ class ProductResourceHttpTest {
   }
 
   @Test
-  @DisplayName("should return BAD_REQUEST when using invalid operation with given product")
-  void shouldReturnBadRequestWhenUsingInvalidOperationWithGivenProduct() {
+  @DisplayName("should return CONFLICT when using invalid operation with given product")
+  void shouldReturnConflictWhenUsingInvalidOperationWithGivenProduct() {
     given()
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
@@ -228,7 +228,7 @@ class ProductResourceHttpTest {
         .then()
         .log().all(true)
         .status(BAD_REQUEST)
-        .body("error", equalTo("Could not find product of which points where earned"));
+        .body("error", equalTo("Could not find product by id [1200] that user want's to purchase"));
 
     //then
     assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);

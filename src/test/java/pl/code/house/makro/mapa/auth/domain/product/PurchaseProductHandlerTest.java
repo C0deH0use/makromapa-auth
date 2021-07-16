@@ -60,7 +60,7 @@ class PurchaseProductHandlerTest {
     sut.handle(dto);
 
     //then
-    then(userFacade).should(times(1)).updateUserPoints(userId, 20);
+    then(userFacade).should(times(1)).updateUserPoints(userId, -20);
 
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
@@ -102,7 +102,7 @@ class PurchaseProductHandlerTest {
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Could not find product of which points where earned");
+        .hasMessage("Could not find product by id [1000] that user want's to purchase");
   }
 
   static ProductDto earnProduct() {

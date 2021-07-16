@@ -98,7 +98,7 @@ class EarnProductHandlerTest {
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Could not find product of which points where earned");
+        .hasMessage("Could not find product by id [1000] that user want's to purchase");
   }
 
 }
