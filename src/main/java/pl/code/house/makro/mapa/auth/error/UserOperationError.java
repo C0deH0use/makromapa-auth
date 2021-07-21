@@ -6,5 +6,5 @@ public enum UserOperationError {
   VALIDATION_CODE_USED,
   DRAFT_NOT_FOUND,
   USER_NOT_FOUND,
-
+  NOT_ENOUGH_POINTS,
 }

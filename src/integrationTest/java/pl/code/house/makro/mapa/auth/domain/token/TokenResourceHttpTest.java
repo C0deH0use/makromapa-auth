@@ -4,7 +4,6 @@ import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -25,7 +24,6 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
 import io.restassured.http.Header;
-import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 import static pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperation.EARN;
 import static pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperation.PURCHASE;
+import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.PREMIUM;
 
 import java.util.Optional;
 import java.util.Set;
@@ -19,6 +20,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 import pl.code.house.makro.mapa.auth.error.IllegalOperationForSelectedProductException;
@@ -37,6 +39,9 @@ class PurchaseProductHandlerTest {
 
   @Mock
   private ProductActionLogRepository actionLogRepository;
+
+  @Mock
+  private UserAuthoritiesService authoritiesService;
 
   @Captor
   private ArgumentCaptor<ProductActionLog> logArgumentCaptor;
@@ -60,13 +65,13 @@ class PurchaseProductHandlerTest {
     sut.handle(dto);
 
     //then
-    then(userFacade).should(times(1)).updateUserPoints(userId, -20);
-
+    then(userFacade).should(times(1)).updateUserPoints(userId, 0);
+    then(authoritiesService).should(times(1)).insertExpirableAuthority(userId, PREMIUM, 0);
     then(actionLogRepository).should(times(1)).save(logArgumentCaptor.capture());
 
     ProductActionLog capturedValue = logArgumentCaptor.getValue();
     assertThat(capturedValue.getUserId()).isEqualTo(userId);
-    assertThat(capturedValue.getDetails().getPoints()).isEqualTo(20);
+    assertThat(capturedValue.getDetails().getPoints()).isEqualTo(0);
     assertThat(capturedValue.getDetails().getProductId()).isEqualTo(productId);
     assertThat(capturedValue.getDetails().getOperationReason()).isEqualTo(PURCHASE);
   }
@@ -86,7 +91,7 @@ class PurchaseProductHandlerTest {
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalOperationForSelectedProductException.class)
-        .hasMessage("Product `Points purchased` does not accept following operation reason to assign points to user:EARN");
+        .hasMessage("Product `Premium product` does not accept following operation reason to assign points to user:EARN");
   }
 
   @Test
@@ -117,9 +122,11 @@ class PurchaseProductHandlerTest {
   static ProductDto purchaseProduct() {
     return ProductDto.builder()
         .id(productId)
-        .name("Points purchased")
-        .points(20)
+        .name("Premium product")
+        .points(0)
         .reason(PURCHASE)
+        .premiumFeature(PREMIUM)
+        .expiresInWeeks(0)
         .build();
   }
 }

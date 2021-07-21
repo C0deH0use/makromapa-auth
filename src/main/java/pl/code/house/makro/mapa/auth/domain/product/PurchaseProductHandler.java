@@ -4,6 +4,7 @@ import static pl.code.house.makro.mapa.auth.domain.product.ProductPurchaseOperat
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
 import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
@@ -11,8 +12,12 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 @Service
 class PurchaseProductHandler extends BaseProductHandler {
 
-  PurchaseProductHandler(ProductQueryFacade productFacade, ProductActionLogRepository logRepository, UserFacade userFacade) {
+  private final UserAuthoritiesService authoritiesService;
+
+  PurchaseProductHandler(ProductQueryFacade productFacade,
+      ProductActionLogRepository logRepository, UserFacade userFacade, UserAuthoritiesService userAuthoritiesService) {
     super(productFacade, logRepository, userFacade);
+    this.authoritiesService = userAuthoritiesService;
   }
 
   @Override
@@ -24,7 +29,9 @@ class PurchaseProductHandler extends BaseProductHandler {
   void handle(PointsOperationDto dto) {
     ProductDto product = findAndValidateProductCorrectUsage(dto);
 
-    log.info("User `{}` has PURCHASE {} points by means of product: {}", dto.getUserId(), product.getPoints(), product.getName());
+    log.info("User `{}` has PURCHASE product {}", dto.getUserId(), product.getName());
+    authoritiesService.insertExpirableAuthority(dto.getUserId(), product.getPremiumFeature(), product.getExpiresInWeeks());
+
     updateUserPoints(dto);
   }
 }

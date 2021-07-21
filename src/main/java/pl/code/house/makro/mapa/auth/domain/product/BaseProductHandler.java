@@ -32,6 +32,7 @@ abstract class BaseProductHandler {
     if (product.getReason() != dto.getOperation()) {
       throw new IllegalOperationForSelectedProductException(String.format(PRODUCT_NOT_ACCEPTING_REASON_MESSAGE, product.getName(), dto.getOperation()));
     }
+
     return product;
   }
 

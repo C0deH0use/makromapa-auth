@@ -152,6 +152,11 @@ public class UserFacade extends BaseUserFacade {
 
   @Transactional
   public void updateUserPoints(UUID userId, int points) {
+    if (points == 0) {
+      log.debug("No points to add or remove for user {}", userId);
+      return;
+    }
+
     userRepository.findById(userId)
         .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Active User with following id `" + userId + " ` does not exists"));
     userRepository.updateUserPoints(userId, points);

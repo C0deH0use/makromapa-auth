@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
+import pl.code.house.makro.mapa.auth.domain.user.PremiumFeature;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ProductDto;
 
 @Entity
@@ -61,6 +62,13 @@ class Product extends AuditAwareEntity {
   @Column(name = "enabled", insertable = false, updatable = false, nullable = false)
   private boolean enabled;
 
+  @Enumerated(STRING)
+  @Column(name = "premium_feature", insertable = false, updatable = false)
+  private PremiumFeature premiumFeature;
+
+  @Column(name = "expires_in_weeks", insertable = false, updatable = false)
+  private Integer expiresInWeeks;
+
   ProductDto toDto() {
     return ProductDto.builder()
         .id(id)
@@ -69,6 +77,8 @@ class Product extends AuditAwareEntity {
         .points(points)
         .enabled(enabled)
         .reason(reason)
+        .premiumFeature(premiumFeature)
+        .expiresInWeeks(expiresInWeeks)
         .build();
   }
 }

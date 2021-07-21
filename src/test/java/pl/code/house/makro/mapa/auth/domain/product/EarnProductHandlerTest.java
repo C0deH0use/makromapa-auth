@@ -82,7 +82,7 @@ class EarnProductHandlerTest {
     //when
     assertThatThrownBy(() -> sut.handle(dto))
         .isInstanceOf(IllegalOperationForSelectedProductException.class)
-        .hasMessage("Product `Points purchased` does not accept following operation reason to assign points to user:EARN");
+        .hasMessage("Product `Premium product` does not accept following operation reason to assign points to user:EARN");
   }
 
   @Test

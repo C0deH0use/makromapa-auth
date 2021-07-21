@@ -20,4 +20,9 @@ public interface TestUserRepository extends JpaRepository<BaseUser, UUID> {
 
   @Query("SELECT u.id FROM BaseUser u WHERE u.userDetails.email = :email")
   String findIdByEmail(@Param("email") String email);
+
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query("UPDATE BaseUser u SET u.userDetails.points = :points WHERE u.id = :userId")
+  int setUserPoints(@Param("userId") UUID userId, @Param("points") int points);
+
 }
