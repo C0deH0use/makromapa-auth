@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,6 @@ class ExternalUserTokenGranterTest {
   @DisplayName("grant token when valid request used")
   void grantTokenWhenValidRequestUsed() {
     //given
-    String grantType = VALID_GRANT_TYPE;
     TokenRequest request = validRequest();
 
     given(clientDetailsService.loadClientByClientId(CLIENT_ID)).willReturn(MOCK_CLIENT_DETAILS);
@@ -69,14 +69,14 @@ class ExternalUserTokenGranterTest {
     given(queryFacade.findUserByToken(any())).willReturn(userDto());
 
     //when
-    sut.grant(grantType, request);
+    sut.grant(VALID_GRANT_TYPE, request);
 
     //then
     then(tokenServices).should(atMostOnce()).createAccessToken(any());
   }
 
-  private UserDto userDto() {
-    return new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER, 0), true);
+  private Optional<UserDto> userDto() {
+    return Optional.of(new UserDto(GOOGLE_PREMIUM_USER.getUserId(), GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE, new UserDetailsDto(null, null, null, null, null, FREE_USER, 0), true));
   }
 
   private TokenRequest validRequest() {

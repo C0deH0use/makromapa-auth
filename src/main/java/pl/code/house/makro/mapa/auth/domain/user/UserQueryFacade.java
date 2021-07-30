@@ -3,7 +3,6 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.FACEBOOK;
-import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.fromIssuer;
 import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.NON;
 import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.PREMIUM;
 
@@ -39,28 +38,24 @@ public class UserQueryFacade extends BaseUserFacade {
   }
 
   @Transactional(readOnly = true)
-  public UserDto findUserByToken(Jwt token) {
+  public Optional<UserDto> findUserByToken(Jwt token) {
     String externalUserId = tryGetExternalUserId(token);
-    OAuth2Provider oauth2Provider = fromIssuer(token.getClaim("iss"));
+    OAuth2Provider oauth2Provider = tryGetOAuthProvider(token);
     log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
 
-    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId, oauth2Provider)
+    return userRepository.findByExternalIdAndAuthProvider(externalUserId, oauth2Provider)
         .map(u -> u.updateWith(parseUserDetails(token)))
-        .orElseGet(() -> createNewExternalUser(token));
-
-    return checkTcAndReturnDto(user);
+        .map(this::checkTcAndReturnDto);
   }
 
   @Transactional(readOnly = true)
-  public UserDto findUserByProfile(User userProfile) {
+  public Optional<UserDto> findUserByProfile(User userProfile) {
     String externalUserId = userProfile.getId();
     log.debug("Searching for User authenticated by `{}` with externalId - `{}`", FACEBOOK, externalUserId);
 
-    BaseUser user = userRepository.findByExternalIdAndAuthProvider(externalUserId, FACEBOOK)
+    return userRepository.findByExternalIdAndAuthProvider(externalUserId, FACEBOOK)
         .map(u -> u.updateWith(parseUserDetails(userProfile)))
-        .orElseGet(() -> createNewFacebookUser(userProfile));
-
-    return checkTcAndReturnDto(user);
+        .map(this::checkTcAndReturnDto);
   }
 
   private UserDto checkTcAndReturnDto(BaseUser user) {

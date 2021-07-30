@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
@@ -29,38 +28,27 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.ExternalMockUser;
-import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
-import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
 
 @ExtendWith(MockitoExtension.class)
-class UserQueryFacadeWithExternalUserTest {
+class UserFacadeWithExternalUserTest {
 
   @Mock
   private UserRepository repository;
-
-  @Mock
-  private TermsAndConditionsFacade termsAndConditionsFacade;
 
   @Spy
   private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Mock
-  private VerificationCodeService activationCodeService;
-
-  @Mock
   private UserAuthoritiesService userAuthoritiesService;
 
-  @Mock
-  private ExternalUser storedUser;
-
   @InjectMocks
-  private UserQueryFacade sut;
+  private UserFacade sut;
 
   @Test
-  @DisplayName("should return empty when finding user with new JWT token")
-  void shouldReturnEmptyWhenFindingUserWithNewJwtToken() {
+  @DisplayName("store new principal with JWT token")
+  void authorizeNewPrincipalWithJwtToken() {
     //given
     String token = GOOGLE_NEW_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
@@ -72,44 +60,58 @@ class UserQueryFacadeWithExternalUserTest {
         .build();
 
     given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId(), GOOGLE)).willReturn(Optional.empty());
+    given(repository.saveAndFlush(any(BaseUser.class))).willReturn(premiumUser());
 
     //when
-    Optional<UserDto> user = sut.findUserByToken(principal);
+    sut.createUser(principal);
 
     //then
-    assertThat(user).isEmpty();
+    ArgumentCaptor<BaseUser> userCaptor = ArgumentCaptor.forClass(BaseUser.class);
+
+    then(repository).should(times(1)).saveAndFlush(userCaptor.capture());
+    BaseUser passedUser = userCaptor.getValue();
+    assertThat(passedUser.getProvider()).isEqualTo(GOOGLE);
+    assertThat(passedUser.getTermsAndConditionsId()).isNull();
+    assertThat(passedUser.getUserDetails().getType()).isEqualTo(FREE_USER);
+    assertThat(passedUser.getUserDetails().getName()).isEqualTo(GOOGLE_NEW_USER.getName());
+    assertThat(passedUser.getUserDetails().getEmail()).isNotBlank();
+    assertThat(passedUser.getUserDetails().getPicture()).isBlank();
+
+    then(userAuthoritiesService).should(times(1)).insertUserAuthorities(GOOGLE_PREMIUM_USER.getUserId(), FREE_USER);
   }
 
   @Test
-  @DisplayName("authorize JWT token of existing PREMIUM User")
-  void authorizeJwtTokenOfExistingPremiumUser() {
+  @DisplayName("authorize new principal if JWT token is missing user detail")
+  void authorizeNewPrincipalIfJwtTokenIsMissingUserDetail() {
     //given
     String token = GOOGLE_NEW_USER.getJwt();
     Map<String, Object> headers = tokenHeaders();
-    Map<String, Object> claims = minimalClaims(GOOGLE_PREMIUM_USER.getExternalId());
+    Map<String, Object> claims = minimalClaims(GOOGLE_NEW_USER.getExternalId());
 
     Jwt principal = Jwt.withTokenValue(token)
         .headers(h -> h.putAll(headers))
         .claims(c -> c.putAll(claims))
         .build();
 
-    ExternalUser premiumUser = new ExternalUser(
-        GOOGLE_PREMIUM_USER.getUserId(),
-        1000L,
-        GOOGLE,
-        UserDetails.builder().type(FREE_USER).build(),
-        GOOGLE_PREMIUM_USER.getExternalId(),
-        true
-    );
-
-    given(repository.findByExternalIdAndAuthProvider(GOOGLE_PREMIUM_USER.getExternalId(), GOOGLE)).willReturn(Optional.of(premiumUser));
-    given(userAuthoritiesService.getUserAuthorities(GOOGLE_PREMIUM_USER.getUserId())).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
+    given(repository.findByExternalIdAndAuthProvider(GOOGLE_NEW_USER.getExternalId(), GOOGLE)).willReturn(Optional.empty());
+    given(repository.saveAndFlush(any(BaseUser.class))).willReturn(normalUser());
 
     //when
-    Optional<UserDto> user = sut.findUserByToken(principal);
+    sut.createUser(principal);
 
     //then
-    assertThat(user).isPresent();
+    ArgumentCaptor<BaseUser> userCaptor = ArgumentCaptor.forClass(BaseUser.class);
+
+    then(repository).should(times(1)).saveAndFlush(userCaptor.capture());
+    BaseUser passedUser = userCaptor.getValue();
+    assertThat(passedUser.getProvider()).isEqualTo(GOOGLE);
+    assertThat(passedUser.getTermsAndConditionsId()).isNull();
+    assertThat(passedUser.getUserDetails().getType()).isEqualTo(FREE_USER);
+    assertThat(passedUser.getUserDetails().getName()).isNull();
+    assertThat(passedUser.getUserDetails().getEmail()).isNull();
+    assertThat(passedUser.getUserDetails().getPicture()).isNull();
+
+    then(userAuthoritiesService).should(times(1)).insertUserAuthorities(GOOGLE_NEW_USER.getUserId(), FREE_USER);
   }
 
   @Test
@@ -126,7 +128,7 @@ class UserQueryFacadeWithExternalUserTest {
         .build();
 
     //then
-    assertThatThrownBy(() -> sut.findUserByToken(principal))
+    assertThatThrownBy(() -> sut.createUser(principal))
         .isInstanceOf(UnsupportedAuthenticationIssuerException.class)
         .hasMessageContaining("Unknown issuer")
         .hasMessageContaining("https://unknown-issuer.com")
@@ -147,10 +149,31 @@ class UserQueryFacadeWithExternalUserTest {
         .build();
 
     //then
-    assertThatThrownBy(() -> sut.findUserByToken(principal))
+    assertThatThrownBy(() -> sut.createUser(principal))
         .isInstanceOf(InsufficientUserDetailsException.class)
         .hasMessageContaining("external user Id is missing")
     ;
+  }
+
+  private ExternalUser premiumUser() {
+    return new ExternalUser(
+        GOOGLE_PREMIUM_USER.getUserId(),
+        1000L,
+        GOOGLE,
+        UserDetails.builder().type(FREE_USER).build(),
+        GOOGLE_PREMIUM_USER.getExternalId(),
+        true
+    );
+  }
+  private ExternalUser normalUser() {
+    return new ExternalUser(
+        GOOGLE_NEW_USER.getUserId(),
+        1000L,
+        GOOGLE,
+        UserDetails.builder().type(FREE_USER).build(),
+        GOOGLE_NEW_USER.getExternalId(),
+        true
+    );
   }
 
   private Map<String, Object> tokenClaims(String issuer, ExternalMockUser user) {

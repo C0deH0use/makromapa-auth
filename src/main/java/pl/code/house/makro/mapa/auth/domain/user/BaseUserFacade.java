@@ -55,6 +55,15 @@ abstract class BaseUserFacade {
     return externalId;
   }
 
+  protected OAuth2Provider tryGetOAuthProvider(Jwt principal) {
+    String iss = principal.getClaim("iss");
+
+    if (isBlank(iss)) {
+      throw new InsufficientUserDetailsException("Authentication Token does not contain required data > Token Issuer is missing");
+    }
+    return fromIssuer(iss);
+  }
+
   protected UserDetails parseUserDetails(Jwt jwtPrincipal) {
     return UserDetails.builder()
         .type(FREE_USER)

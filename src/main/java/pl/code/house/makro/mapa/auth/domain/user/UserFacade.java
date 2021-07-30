@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.Assert.hasText;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.REGISTRATION;
 import static pl.code.house.makro.mapa.auth.domain.user.CodeType.RESET_PASSWORD;
+import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.FACEBOOK;
 import static pl.code.house.makro.mapa.auth.domain.user.PremiumFeature.NON;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.DRAFT_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
@@ -18,6 +19,8 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.social.facebook.api.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
@@ -50,6 +53,22 @@ public class UserFacade extends BaseUserFacade {
 
   public static String maskEmail(String email) {
     return email.replaceAll("(^[^@]{3}|(?!^)\\G)[^@]", "$1*");
+  }
+
+  @Transactional
+  public UserDto createUser(User profile) {
+    checkIfUserExists(profile.getId(), FACEBOOK);
+
+    return createNewFacebookUser(profile).toDto();
+  }
+
+  @Transactional
+  public UserDto createUser(Jwt jwtPrincipal) {
+    String externalUserId = tryGetExternalUserId(jwtPrincipal);
+    OAuth2Provider oauth2Provider = tryGetOAuthProvider(jwtPrincipal);
+    checkIfUserExists(externalUserId, oauth2Provider);
+
+    return createNewExternalUser(jwtPrincipal).toDto();
   }
 
   @Transactional
@@ -169,6 +188,14 @@ public class UserFacade extends BaseUserFacade {
 
   private UserInfoDto toUserInfo(BaseUser user) {
     return user.toUserInfo(getUserPremiumFeatures(user));
+  }
+
+  private void checkIfUserExists(String externalUserId, OAuth2Provider oauth2Provider) {
+    log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
+
+    if (userRepository.findByExternalIdAndAuthProvider(externalUserId, oauth2Provider).isPresent()) {
+      throw new UserAlreadyExistsException("Following External user with externalID `%s` already exists.".formatted(externalUserId));
+    }
   }
 
   private Set<PremiumFeature> getUserPremiumFeatures(BaseUser user) {

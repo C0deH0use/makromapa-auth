@@ -15,6 +15,6 @@
 # ➜ /usr/local/Cellar/libpq/13.2/bin/psql --file=/Users/mmalik/Documents/MakroMapa/04_04_2021_db.sql --username=makromapa-db-user --host=127.0.0.1 --port=5432 makromapa-db
 ###########
 
-gcloud auth login
-gcloud config set project makromapa-dev-315712
+#gcloud auth login
+#gcloud config set project makromapa-dev-315712
 ./cloud_sql_proxy -instances="makromapa-dev-315712:europe-west1:makromapa-db=tcp:5432"

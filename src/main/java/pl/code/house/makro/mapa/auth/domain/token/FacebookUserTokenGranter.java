@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService;
+import pl.code.house.makro.mapa.auth.domain.user.UserFacade;
 import pl.code.house.makro.mapa.auth.domain.user.UserQueryFacade;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 
@@ -26,7 +27,8 @@ class FacebookUserTokenGranter implements TokenGranter {
 
   static final String GRANT_TYPE = "external-token";
 
-  private final UserQueryFacade userFacade;
+  private final UserFacade userFacade;
+  private final UserQueryFacade queryFacade;
 
   private final AuthorizationServerTokenServices tokenServices;
 
@@ -67,7 +69,8 @@ class FacebookUserTokenGranter implements TokenGranter {
   }
 
   private OAuth2Authentication getOAuth2Authentication(ClientDetails client, FacebookUserAuthRequest tokenRequest) {
-    UserDto userDto = userFacade.findUserByProfile(tokenRequest.getPrincipal().getUserProfile());
+    UserDto userDto = queryFacade.findUserByProfile(tokenRequest.getPrincipal().getUserProfile())
+        .orElseGet(() -> userFacade.createUser(tokenRequest.getPrincipal().getUserProfile()));
     tokenRequest.setExternalUserId(userDto);
     List<GrantedAuthority> userAuthorities = userAuthoritiesService.getUserAuthorities(userDto.getId());
     tokenRequest.setAuthorities(userAuthorities);
