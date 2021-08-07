@@ -112,10 +112,11 @@ class ProductResourceHttpTest {
     assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
 
     given()
+        .log().all(true)
         .contentType(APPLICATION_JSON_VALUE)
         .header(new Header(AUTHORIZATION, BEARER_TOKEN + GOOGLE_PREMIUM_USER.getAccessCode()))
-        .param("operation", "EARN")
-        .param("product", "1000")
+        .queryParam("operation", "EARN")
+        .queryParam("product", "1000")
 
         .when()
         .post("/oauth/product")
