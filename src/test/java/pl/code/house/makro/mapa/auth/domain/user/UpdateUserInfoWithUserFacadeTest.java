@@ -3,6 +3,9 @@ package pl.code.house.makro.mapa.auth.domain.user;
 import static java.util.Optional.empty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.Answers.RETURNS_SELF;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.BASIC_AUTH;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
@@ -18,11 +21,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.AdditionalAnswers;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +52,7 @@ class UpdateUserInfoWithUserFacadeTest {
         .type(FREE_USER)
         .email("old@google.com")
         .name(GOOGLE_NEW_USER.getName())
+        .points(500)
         .build();
     ExternalUser premiumUser = new ExternalUser(
         userId,
@@ -55,13 +62,14 @@ class UpdateUserInfoWithUserFacadeTest {
         GOOGLE_PREMIUM_USER.getExternalId(),
         true
     );
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "NEW NICKNAME", null, "PICTURE", null, 0);
+    UserInfoUpdateDto updatedDetails = new UserInfoUpdateDto("NEW NAME", "NEW SURNAME", "NEW NICKNAME", "PICTURE");
 
     given(repository.findById(userId)).willReturn(Optional.of(premiumUser));
+    given(repository.save(any(BaseUser.class))).willAnswer(returnsFirstArg());
     given(userAuthoritiesService.getUserAuthorities(userId)).willReturn(List.of(new SimpleGrantedAuthority("ROLE_PREMIUM")));
 
     //when
-    UserInfoDto infoDto = sut.updateUserDetails(userId, updatedDetails);
+    UserInfoDto infoDto = sut.updateUserInfo(userId, updatedDetails);
 
     //then
     assertThat(infoDto.getSub()).isEqualTo(userId);
@@ -75,6 +83,7 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
     assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
     assertThat(infoDto.getPicture()).isEqualTo("PICTURE");
+    assertThat(infoDto.getPoints()).isEqualTo(500);
   }
 
   @Test
@@ -87,13 +96,14 @@ class UpdateUserInfoWithUserFacadeTest {
         .email(REG_USER.getName())
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", true, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "Nickname", null, "PICTURE", null, 0);
+    UserInfoUpdateDto updatedDetails = new UserInfoUpdateDto("NEW NAME", "NEW SURNAME", "Nickname", "PICTURE");
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
+    given(repository.save(any(BaseUser.class))).willAnswer(returnsFirstArg());
     given(userAuthoritiesService.getUserAuthorities(userId)).willReturn(List.of());
 
     //when
-    UserInfoDto infoDto = sut.updateUserDetails(userId, updatedDetails);
+    UserInfoDto infoDto = sut.updateUserInfo(userId, updatedDetails);
 
     //then
     assertThat(infoDto.getSub()).isEqualTo(userId);
@@ -106,6 +116,7 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getSurname()).isEqualTo("NEW SURNAME");
     assertThat(infoDto.getNickname()).isEqualTo("Nickname");
     assertThat(infoDto.getPicture()).isEqualTo("PICTURE");
+    assertThat(infoDto.getPoints()).isEqualTo(0);
   }
 
   @Test
@@ -120,15 +131,17 @@ class UpdateUserInfoWithUserFacadeTest {
         .name("name")
         .surname("surname")
         .picture(expectedPic)
+        .points(1000)
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", true, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "", "NICK", null, null, null, 0);
+    UserInfoUpdateDto updatedDetails = new UserInfoUpdateDto("NEW NAME", "", "NICK", null);
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
+    given(repository.save(any(BaseUser.class))).willAnswer(returnsFirstArg());
     given(userAuthoritiesService.getUserAuthorities(userId)).willReturn(List.of());
 
     //when
-    UserInfoDto infoDto = sut.updateUserDetails(userId, updatedDetails);
+    UserInfoDto infoDto = sut.updateUserInfo(userId, updatedDetails);
 
     //then
     assertThat(infoDto.getSub()).isEqualTo(userId);
@@ -142,6 +155,7 @@ class UpdateUserInfoWithUserFacadeTest {
     assertThat(infoDto.getSurname()).isEmpty();
     assertThat(infoDto.getNickname()).isEqualTo("NICK");
     assertThat(infoDto.getPicture()).isEqualTo(expectedPic);
+    assertThat(infoDto.getPoints()).isEqualTo(1000);
   }
 
   @Test
@@ -149,12 +163,11 @@ class UpdateUserInfoWithUserFacadeTest {
   void throwIfUpdatingUserInfoOfNonExistingUser() {
     //given
     UUID userId = REG_USER.getUserId();
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", "", null, "PICTURE", null, 0);
-
+    UserInfoUpdateDto updatedDetails = new UserInfoUpdateDto("NEW NAME", "SURNAME", "", "PICTURE");
     given(repository.findById(userId)).willReturn(empty());
 
     //when
-    assertThatThrownBy(() -> sut.updateUserDetails(userId, updatedDetails))
+    assertThatThrownBy(() -> sut.updateUserInfo(userId, updatedDetails))
         .isInstanceOf(UserNotExistsException.class)
         .hasMessageContaining("User")
         .hasMessageContaining(userId.toString())
@@ -171,12 +184,12 @@ class UpdateUserInfoWithUserFacadeTest {
         .email(REG_USER.getName())
         .build();
     UserWithPassword user = new UserWithPassword(userId, "", false, null, details);
-    UserDetails updatedDetails = new UserDetails("NEW NAME", "NEW SURNAME", null, null, "PICTURE", null, 0);
+    UserInfoUpdateDto updatedDetails = new UserInfoUpdateDto("NEW NAME", "NEW SURNAME", null, "PICTURE");
 
     given(repository.findById(userId)).willReturn(Optional.of(user));
 
     //when
-    assertThatThrownBy(() -> sut.updateUserDetails(userId, updatedDetails))
+    assertThatThrownBy(() -> sut.updateUserInfo(userId, updatedDetails))
         .isInstanceOf(UserNotExistsException.class)
         .hasMessageContaining("User")
         .hasMessageContaining(userId.toString())

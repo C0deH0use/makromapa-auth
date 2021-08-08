@@ -26,6 +26,7 @@ import org.hibernate.annotations.DiscriminatorFormula;
 import pl.code.house.makro.mapa.auth.domain.AuditAwareEntity;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 
 @Entity
 @Table(name = BaseUser.TABLE_NAME)
@@ -67,26 +68,18 @@ abstract class BaseUser extends AuditAwareEntity {
 
   void activate() {
     this.enabled = true;
-    this.userDetails = UserDetails.builder()
-        .email(userDetails.getEmail())
-        .name(userDetails.getName())
-        .surname(userDetails.getSurname())
-        .nickname(userDetails.getNickname())
-        .picture(userDetails.getPicture())
+    this.userDetails = userDetails.toBuilder()
         .type(FREE_USER)
         .build();
   }
 
-  public BaseUser updateWith(UserDetails parseUserDetails) {
-    this.userDetails = UserDetails.builder()
-        .email(defaultString(parseUserDetails.getEmail(), userDetails.getEmail()))
-        .name(defaultString(parseUserDetails.getName(), userDetails.getName()))
-        .surname(defaultString(parseUserDetails.getSurname(), userDetails.getSurname()))
-        .nickname(defaultString(parseUserDetails.getNickname(), userDetails.getNickname()))
-        .picture(defaultString(parseUserDetails.getPicture(), userDetails.getPicture()))
-        .type(userDetails.getType())
+  public BaseUser updateWith(UserInfoUpdateDto userInfo) {
+    this.userDetails = userDetails.toBuilder()
+        .name(defaultString(userInfo.getName(), userDetails.getName()))
+        .surname(defaultString(userInfo.getSurname(), userDetails.getSurname()))
+        .nickname(defaultString(userInfo.getNickname(), userDetails.getNickname()))
+        .picture(defaultString(userInfo.getPicture(), userDetails.getPicture()))
         .build();
-
     return this;
   }
 

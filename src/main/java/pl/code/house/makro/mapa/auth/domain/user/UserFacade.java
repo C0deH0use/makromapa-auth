@@ -28,6 +28,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.NewUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoDto;
+import pl.code.house.makro.mapa.auth.domain.user.dto.UserInfoUpdateDto;
 import pl.code.house.makro.mapa.auth.domain.user.dto.VerificationCodeDto;
 import pl.code.house.makro.mapa.auth.error.PasswordResetException;
 import pl.code.house.makro.mapa.auth.error.UserAlreadyExistsException;
@@ -160,13 +161,13 @@ public class UserFacade extends BaseUserFacade {
   }
 
   @Transactional
-  public UserInfoDto updateUserDetails(UUID userId, UserDetails userDetails) {
-    BaseUser user = userRepository.findById(userId)
+  public UserInfoDto updateUserInfo(UUID userId, UserInfoUpdateDto userInfo) {
+    return userRepository.findById(userId)
         .filter(BaseUser::getEnabled)
+        .map(user -> user.updateWith(userInfo))
+        .map(userRepository::save)
+        .map(user -> user.toUserInfo(getUserPremiumFeatures(user)))
         .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Active User with following id `" + userId + " ` does not exists"));
-    user.updateWith(userDetails);
-
-    return toUserInfo(user);
   }
 
   @Transactional
@@ -184,10 +185,6 @@ public class UserFacade extends BaseUserFacade {
   @Transactional
   public void deleteUser(String authenticationToken) {
     optOutService.optoutUser(authenticationToken);
-  }
-
-  private UserInfoDto toUserInfo(BaseUser user) {
-    return user.toUserInfo(getUserPremiumFeatures(user));
   }
 
   private void checkIfUserExists(String externalUserId, OAuth2Provider oauth2Provider) {

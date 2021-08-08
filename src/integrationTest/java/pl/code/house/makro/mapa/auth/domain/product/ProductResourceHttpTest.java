@@ -6,6 +6,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -36,8 +37,10 @@ import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 import io.restassured.http.Header;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.UUID;
 import org.assertj.core.api.Condition;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -96,7 +99,7 @@ class ProductResourceHttpTest {
         .body("id", everyItem(notNullValue(Integer.class)))
         .body("name", hasItems("APPROVED_DISH_PROPOSAL", "DISABLE_ADS", "sub_premium", "ads_removal"))
         .body("description", everyItem(notNullValue(Integer.class)))
-        .body("points", hasItems(0, 100))
+        .body("points", hasItems(0, 1000))
         .body("enabled", hasItems(false, true))
         .body("reason", hasItems("USE", "PURCHASE", "EARN"))
     ;
@@ -108,8 +111,8 @@ class ProductResourceHttpTest {
   @DisplayName("should update user points by earning 100")
   void shouldUpdateUserPointsByEarning100() {
     //given
-    int pointsEarned = 100;
-    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
+    int expectedPoints = 2100;
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(2000);
 
     given()
         .log().all(true)
@@ -133,11 +136,11 @@ class ProductResourceHttpTest {
         .body("picture", is(not(emptyOrNullString())))
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
-        .body("points", equalTo(pointsEarned))
+        .body("points", equalTo(expectedPoints))
         .body("enabled", equalTo(true));
 
     //then
-    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(pointsEarned);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(expectedPoints);
   }
 
   @Test
@@ -146,10 +149,10 @@ class ProductResourceHttpTest {
   @DisplayName("should update other user points by earning 100")
   void shouldUpdateOtherUserPointsByEarning100() {
     //given
-    int pointsEarned = 100;
+    int expectedPoints = 600;
 
     Header backendAuthHeader = backendAuthHeader();
-    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(REG_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(500);
 
     given()
         .contentType(APPLICATION_JSON_VALUE)
@@ -158,25 +161,25 @@ class ProductResourceHttpTest {
         .param("product", "1000")
 
         .when()
-        .post("/oauth/product/{userId}", GOOGLE_PREMIUM_USER.getUserId())
+        .post("/oauth/product/{userId}", REG_USER.getUserId())
 
         .then()
         .log().ifValidationFails()
         .status(CREATED)
-        .body("sub", equalTo(GOOGLE_PREMIUM_USER.getUserId().toString()))
-        .body("provider", equalTo(GOOGLE.name()))
-        .body("name", is(GOOGLE_PREMIUM_USER.getName()))
-        .body("surname", is(not(emptyOrNullString())))
+        .body("sub", equalTo(REG_USER.getUserId().toString()))
+        .body("provider", equalTo(BASIC_AUTH.name()))
+        .body("name", is(emptyOrNullString()))
+        .body("surname", is(emptyOrNullString()))
         .body("nickname", is(emptyOrNullString()))
         .body("email", is(not(emptyOrNullString())))
-        .body("picture", is(not(emptyOrNullString())))
+        .body("picture", is(emptyOrNullString()))
         .body("type", equalTo("FREE_USER"))
-        .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
-        .body("points", equalTo(pointsEarned))
+        .body("premiumFeatures", empty())
+        .body("points", equalTo(expectedPoints))
         .body("enabled", equalTo(true));
 
     //then
-    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(pointsEarned);
+    assertThat(queryFacade.findUserById(REG_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(expectedPoints);
   }
 
   @Test
@@ -233,12 +236,12 @@ class ProductResourceHttpTest {
   void shouldHandleProductAdsPurchaseThatWillNotExpireAndSetSamePremiumFeatureAsPerTimeLimitedPurchase() {
     //given
     LocalDateTime shouldExpireIn = LocalDateTime.now(clock).plusWeeks(1).plusHours(1).truncatedTo(HOURS);
-    userRepository.setUserPoints(REG_USER.getUserId(), 500);
+    userRepository.setUserPoints(REG_USER.getUserId(), 2200);
     userAuthoritiesService.insertUserAuthorities(REG_USER.getUserId(), FREE_USER);
 
     assertThat(queryFacade.findUserById(REG_USER.getUserId()))
         .map(UserInfoDto::getPoints)
-        .hasValue(500);
+        .hasValue(2200);
     testUserAuthoritiesService.assertUserFeatureRoles(REG_USER.getUserId())
         .hasSize(0);
 
@@ -264,11 +267,11 @@ class ProductResourceHttpTest {
         .body("picture", is(nullValue()))
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("DISABLE_ADS"))
-        .body("points", equalTo(100))
+        .body("points", equalTo(1200))
         .body("enabled", equalTo(true));
 
     //then
-    assertThat(queryFacade.findUserById(REG_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(100);
+    assertThat(queryFacade.findUserById(REG_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(1200);
     testUserAuthoritiesService.assertUserFeatureRoles(REG_USER.getUserId())
         .hasSize(1)
         .filteredOn(tuple -> tuple._1.equalsIgnoreCase("ROLE_DISABLE_ADS"))
@@ -379,7 +382,7 @@ class ProductResourceHttpTest {
         .body("error", equalTo("Product `DISABLE_ADS` does not accept following operation reason to assign points to user:EARN"));
 
     //then
-    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(2000);
   }
 
   @Test
@@ -401,7 +404,7 @@ class ProductResourceHttpTest {
         .body("error", equalTo("Could not find product by id [1200] that user want's to purchase"));
 
     //then
-    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(0);
+    assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(2000);
   }
 
   @Test
@@ -450,7 +453,7 @@ class ProductResourceHttpTest {
         .log().ifValidationFails()
         .status(PRECONDITION_REQUIRED)
         .body("uniqueErrorId", notNullValue(UUID.class))
-        .body("error", equalTo("User does not have enough points to use them on product: `DISABLE_ADS` (required minimum points: 400)"))
+        .body("error", equalTo("User does not have enough points to use them on product: `DISABLE_ADS` (required minimum points: 1000)"))
     ;
 
     //then

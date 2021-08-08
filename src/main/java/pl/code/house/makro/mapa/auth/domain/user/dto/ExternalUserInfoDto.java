@@ -7,24 +7,14 @@ import lombok.Value;
 
 @Value
 @Builder
-public class UserInfoUpdateDto implements Serializable {
+public class ExternalUserInfoDto implements Serializable {
 
   @Serial
   private static final long serialVersionUID = -2055694038701358253L;
 
+  String email;
   String name;
   String surname;
   String nickname;
   String picture;
-
-  public UserInfoUpdateDto(
-      String name,
-      String surname,
-      String nickname,
-      String picture) {
-    this.name = name;
-    this.surname = surname;
-    this.nickname = nickname;
-    this.picture = picture;
-  }
 }

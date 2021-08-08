@@ -4,6 +4,8 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -69,7 +71,7 @@ class UserInfoResourceHttpTest {
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
         .body("enabled", equalTo(true))
-        .body("points", equalTo(0))
+        .body("points", equalTo(2000))
     ;
   }
 
@@ -103,7 +105,7 @@ class UserInfoResourceHttpTest {
         .body("type", equalTo("FREE_USER"))
         .body("premiumFeatures", hasItems("PREMIUM", "DISABLE_ADS"))
         .body("enabled", equalTo(true))
-        .body("points", equalTo(0))
+        .body("points", equalTo(2000))
     ;
   }
 
@@ -149,6 +151,9 @@ class UserInfoResourceHttpTest {
         .body("picture", nullValue())
         .body("type", equalTo("ADMIN_USER"))
         .body("enabled", equalTo(true))
+        .body("premiumFeatures", empty())
+        .body("enabled", equalTo(true))
+        .body("points", equalTo(0))
     ;
   }
 

@@ -83,8 +83,8 @@ abstract class BaseUserFacade {
   }
 
   protected Optional<BaseUser> findBasicUserByEmail(String email) {
-    BaseUser user = userRepository.findUserWithPasswordByUserEmail(email)
+    return userRepository.findUserWithPasswordByUserEmail(email)
+        .map(Optional::of)
         .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "Could not find user by email: " + email));
-    return Optional.of(user);
   }
 }

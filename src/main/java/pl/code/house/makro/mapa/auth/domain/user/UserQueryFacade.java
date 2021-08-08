@@ -44,7 +44,6 @@ public class UserQueryFacade extends BaseUserFacade {
     log.debug("Searching for User authenticated by `{}` with externalId - `{}`", oauth2Provider, externalUserId);
 
     return userRepository.findByExternalIdAndAuthProvider(externalUserId, oauth2Provider)
-        .map(u -> u.updateWith(parseUserDetails(token)))
         .map(this::checkTcAndReturnDto);
   }
 
@@ -54,7 +53,6 @@ public class UserQueryFacade extends BaseUserFacade {
     log.debug("Searching for User authenticated by `{}` with externalId - `{}`", FACEBOOK, externalUserId);
 
     return userRepository.findByExternalIdAndAuthProvider(externalUserId, FACEBOOK)
-        .map(u -> u.updateWith(parseUserDetails(userProfile)))
         .map(this::checkTcAndReturnDto);
   }
 

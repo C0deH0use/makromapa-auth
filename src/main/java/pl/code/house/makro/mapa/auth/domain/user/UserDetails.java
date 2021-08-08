@@ -19,7 +19,7 @@ import pl.code.house.makro.mapa.auth.domain.user.dto.UserDetailsDto;
 @ToString
 @EqualsAndHashCode
 @Getter(PACKAGE)
-@Builder(access = PACKAGE)
+@Builder(access = PACKAGE, toBuilder = true)
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PACKAGE)
 class UserDetails {

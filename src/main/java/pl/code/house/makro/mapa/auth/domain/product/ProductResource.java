@@ -47,7 +47,7 @@ class ProductResource {
     log.info("Request to update User {} points, via {} operation:{}", userId, updatePointsDto.getOperation(), updatePointsDto.getProduct());
 
     return facade.handleProductBy(userId, updatePointsDto)
-        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "User with following id `" + userId + " ` does not exists"));
+        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "User with following id `%s ` does not exists".formatted(userId)));
   }
 
   @PostMapping
@@ -58,6 +58,6 @@ class ProductResource {
         userId, updatePointsDto.getProduct(), updatePointsDto.getOperation());
 
     return facade.handleProductBy(userId, updatePointsDto)
-        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "User with following id `" + userId + " ` does not exists"));
+        .orElseThrow(() -> new UserNotExistsException(USER_NOT_FOUND, "User with following id `%s ` does not exists".formatted(userId)));
   }
 }

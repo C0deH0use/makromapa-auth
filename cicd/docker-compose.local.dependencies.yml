@@ -15,11 +15,6 @@ services:
       - POSTGRES_USER=makromapa-auth-user
       - POSTGRES_PASSWORD=mysecretpassword
 
-    networks:
-      main:
-        aliases:
-          - postgres_db
-
 networks:
   main:
     driver: bridge

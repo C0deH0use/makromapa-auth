@@ -2,9 +2,8 @@ package pl.code.house.makro.mapa.auth.domain.user;
 
 import static org.apache.commons.lang3.StringUtils.isAnyBlank;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.ResponseEntity.ok;
-import static org.springframework.http.ResponseEntity.status;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserFacade.maskEmail;
 
@@ -12,7 +11,6 @@ import java.security.Principal;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +20,7 @@ import org.springframework.security.oauth2.common.exceptions.InvalidGrantExcepti
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pl.code.house.makro.mapa.auth.domain.user.dto.ActivateUserRequest;
 import pl.code.house.makro.mapa.auth.domain.user.dto.CommunicationDto;
@@ -41,8 +40,9 @@ class UserResource {
 
   private final UserFacade facade;
 
+  @ResponseStatus(CREATED)
   @PostMapping("/registration")
-  ResponseEntity<CommunicationDto> registerNewDraft(UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
+  CommunicationDto registerNewDraft(UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
     log.info("Request to register new user `{}` by {}", newUserRequest.getEmail(), principal.getPrincipal());
 
     String clientId = getClientId(principal);
@@ -61,37 +61,35 @@ class UserResource {
       throw new InvalidGrantException("Implicit grant type not supported from user registration endpoint");
     }
 
-    CommunicationDto draftDto = facade.registerNewUser(newUserRequest);
-    return status(CREATED).body(draftDto);
+    return facade.registerNewUser(newUserRequest);
   }
 
+  @ResponseStatus(OK)
   @PostMapping(path = "/activate")
-  ResponseEntity<UserDto> activateDraft(UsernamePasswordAuthenticationToken principal,
+  UserDto activateDraft(UsernamePasswordAuthenticationToken principal,
       ActivateUserRequest activateUserRequest) {
     log.info(USER_ACTIVATION_LOG, principal.getName(), maskEmail(activateUserRequest.getEmail()), activateUserRequest.getVerificationCode());
     String clientId = getClientId(principal);
 
-    UserDto userDto = facade.activateDraftBy(activateUserRequest, clientId);
-
-    return ok(userDto);
+    return facade.activateDraftBy(activateUserRequest, clientId);
   }
 
+  @ResponseStatus(OK)
   @PostMapping("/password/reset")
-  ResponseEntity<CommunicationDto> resetUserPassword(UsernamePasswordAuthenticationToken principal,
+  CommunicationDto resetUserPassword(UsernamePasswordAuthenticationToken principal,
       @RequestParam("email") String email) {
     log.info("Registered request from {} to reset password for user `{}`", principal.getName(), email);
 
-    CommunicationDto communicationDto = facade.resetPasswordFor(email);
-    return ok(communicationDto);
+    return facade.resetPasswordFor(email);
   }
 
+  @ResponseStatus(OK)
   @PostMapping("/password/change")
-  ResponseEntity changeUserPassword(UsernamePasswordAuthenticationToken principal,
+  void changeUserPassword(UsernamePasswordAuthenticationToken principal,
       NewPasswordRequest newPasswordRequest) {
     log.info("Registered request from {} to reset password for user `{}`", principal.getName(), newPasswordRequest.getNewPassword());
 
     facade.changeUserPassword(newPasswordRequest.getEmail(), newPasswordRequest.getCode(), newPasswordRequest.getNewPassword());
-    return ok().build();
   }
 
   private String getClientId(Principal principal) {
