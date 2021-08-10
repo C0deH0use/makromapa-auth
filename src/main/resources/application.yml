@@ -32,6 +32,11 @@ management:
     health:
         defaults:
             enabled: true
+        
+        db:
+            enabled: true
+        mail:
+            enabled: true
 server:
     port: 9090
 
@@ -109,6 +114,7 @@ app:
         - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_long_hair.png
         - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_elegant.png
         - https://www.makromapa.pl/assets/profile_avatars/avatar_girl_curly.png
+
     provider:
         clients:
             - 564812606198-psjo00jbumas117peub5h33v83t4j3ip.apps.googleusercontent.com
@@ -116,3 +122,10 @@ app:
             - 564812606198-u6b5to8rhjsqkpi9sidsek3vrk02kjq5.apps.googleusercontent.com
             - https://securetoken.google.com/makromapa
             - https://appleid.apple.com
+
+    receipt:
+        validation:
+            apple:
+                password: test
+                itunes: https://buy.itunes.apple.com/verifyReceipt
+                sandbox: https://sandbox.itunes.apple.com/verifyReceipt

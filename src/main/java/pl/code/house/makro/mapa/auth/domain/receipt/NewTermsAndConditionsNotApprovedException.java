@@ -1,4 +1,4 @@
-package pl.code.house.makro.mapa.auth.error;
+package pl.code.house.makro.mapa.auth.domain.receipt;
 
 import static org.springframework.http.HttpStatus.UPGRADE_REQUIRED;
 

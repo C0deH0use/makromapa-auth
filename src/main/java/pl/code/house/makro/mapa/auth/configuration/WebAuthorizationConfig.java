@@ -7,6 +7,7 @@ import static org.springframework.util.StringUtils.toStringArray;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.EXTERNAL_AUTHENTICATION_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_PRODUCT_PATH;
+import static pl.code.house.makro.mapa.auth.ApiConstraints.OAUTH_RECEIPT_PATH;
 import static pl.code.house.makro.mapa.auth.ApiConstraints.USER_MANAGEMENT_PATH;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.GET_AUTHORITY_SQL;
 
@@ -189,6 +190,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 
           .antMatcher(OAUTH_PATH + WILD_CARD)
           .authorizeRequests(req -> req.antMatchers(OAUTH_PRODUCT_PATH + WILD_CARD).authenticated())
+          .authorizeRequests(req -> req.antMatchers(OAUTH_RECEIPT_PATH + WILD_CARD).authenticated())
           .oauth2ResourceServer(customizer -> customizer.authenticationManagerResolver(managerResolver()))
       ;
     }

@@ -2,7 +2,6 @@ package pl.code.house.makro.mapa.auth.domain.product;
 
 import static java.util.UUID.fromString;
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static pl.code.house.makro.mapa.auth.error.UserOperationError.USER_NOT_FOUND;
 
@@ -28,7 +27,7 @@ import pl.code.house.makro.mapa.auth.error.UserNotExistsException;
 @Validated
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = "/oauth/product", produces = APPLICATION_JSON_VALUE, consumes = ALL_VALUE)
+@RequestMapping(path = "/oauth/product", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 class ProductResource {
 
   private final ProductFacade facade;

@@ -4,9 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 import static pl.code.house.makro.mapa.auth.domain.user.OAuth2Provider.GOOGLE;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_NEW_USER;
 import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_USER;
@@ -19,7 +16,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -31,7 +27,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import pl.code.house.makro.mapa.auth.domain.user.TestUser.ExternalMockUser;
 import pl.code.house.makro.mapa.auth.domain.user.dto.UserDto;
 import pl.code.house.makro.mapa.auth.error.InsufficientUserDetailsException;
-import pl.code.house.makro.mapa.auth.error.NewTermsAndConditionsNotApprovedException;
 import pl.code.house.makro.mapa.auth.error.UnsupportedAuthenticationIssuerException;
 
 @ExtendWith(MockitoExtension.class)
