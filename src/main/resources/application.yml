@@ -32,7 +32,7 @@ management:
     health:
         defaults:
             enabled: true
-        
+
         db:
             enabled: true
         mail:
