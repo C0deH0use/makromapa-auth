@@ -1,0 +1,35 @@
+{
+  "request": {
+    "url": "/sandbox/verifyReceipt",
+    "method": "POST",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.receipt-data",
+          "equalTo": "MIJF9wYJKoZIhvcNAQcCoIJF6DCCReQCAQExCzAJBgUrDgMCGgUAMII1mAYJKoZIhvcNAQcBoII1iQSCNYUxgjWBMAoCAQgCAQEEAhYAMAoCARQCAQEEAgwAMAsCAQECAQEEAwIBADALAgELAgEBBAMCAQAwCwIBDwIBAQQDAgEAMAsCARACAQEEAwIBADALAgEZAgEBBAMCAQMwDAIBAwIBAQQEDAIyNTAMAgEKAgEBBAQWAjQrMAwCAQ4CAQEEBAICAM8wDQIBDQIBAQQFAgMCIuAwDQIBEwIBAQQFDAMxLjAwDgIBCQIBAQQGAgRQMjU1MBgCAQQCAQIEEBE8i4A67jeWmcZBUG0nziswGwIBAAIBAQQTDBFQcm9kdWN0aW9uU2FuZGJveDAcAgEFAgEBBBRXmxfahuClkpJtx6E9Xn"
+        }
+      },
+      {
+        "matchesJsonPath": {
+          "expression": "$.password",
+          "equalTo": "test"
+        }
+      },
+      {
+        "matchesJsonPath": {
+          "expression": "$.exclude-old-transactions",
+          "equalTo": "false"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "status": "21002"
+    }
+  }
+}

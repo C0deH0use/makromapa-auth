@@ -1,10 +1,9 @@
 package pl.code.house.makro.mapa.auth.domain.receipt;
 
-import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static pl.code.house.makro.mapa.auth.domain.receipt.StoreEnvironment.SANDBOX;
 
 import java.util.Map;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,7 @@ class AppleReceiptValidationClient {
     this.appStorePassword = appStorePassword;
   }
 
-  ValidationResponseDto validateAgainstItunes(String receipt) {
+  AppleRecieptValidationResponse validateAgainstItunes(String receipt) {
     Map<String, Object> payload = Map.of(
         "receipt-data", receipt,
         "password", appStorePassword,
@@ -41,10 +40,11 @@ class AppleReceiptValidationClient {
     return itunesClient.post()
         .contentType(APPLICATION_JSON)
         .bodyValue(payload)
-        .exchangeToMono(getResponseHandler(Environment.PRODUCTION)).block();
+        .exchangeToMono(this::getResponseHandler)
+        .block();
   }
 
-  ValidationResponseDto validateAgainstSandbox(String receipt) {
+  AppleRecieptValidationResponse validateAgainstSandbox(String receipt) {
     Map<String, Object> payload = Map.of(
         "receipt-data", receipt,
         "password", appStorePassword,
@@ -54,28 +54,28 @@ class AppleReceiptValidationClient {
     return sandboxClient.post()
         .contentType(APPLICATION_JSON)
         .bodyValue(payload)
-        .exchangeToMono(getResponseHandler(Environment.SANDBOX)).block();
+        .exchangeToMono(this::getResponseHandler)
+        .block();
   }
 
   @NotNull
-  private Function<ClientResponse, Mono<ValidationResponseDto>> getResponseHandler(Environment environment) {
-    return response -> {
-      if (response.statusCode() == OK) {
-        return response.bodyToMono(ValidationResponseDto.class);
-      }
-
-      if (environment == Environment.PRODUCTION && response.statusCode().value() == SANDBOX_RECEIPT_STATUS_CODE) {
-        Mono.error(new ItunesReceiptValidationException(response.statusCode()));
-      }
-
+  private Mono<AppleRecieptValidationResponse> getResponseHandler(ClientResponse response) {
+    if (!response.statusCode().is2xxSuccessful()) {
       return Mono.error(new ReceiptValidationException("Apple Receipt validation failed. StatusCode: " + response.statusCode()));
-    };
+    }
+    return response.bodyToMono(AppleRecieptValidationResponse.class)
+        .map(this::validateResponse);
   }
 
-
-  private enum Environment {
-    PRODUCTION,
-    SANDBOX
+  @NotNull
+  private AppleRecieptValidationResponse validateResponse(AppleRecieptValidationResponse response) {
+    if ((response.getEnvironment() == null || SANDBOX != response.getEnvironment())
+        && response.getStatus() == SANDBOX_RECEIPT_STATUS_CODE) {
+      throw new ItunesReceiptValidationException(response.getStatus());
+    }
+    if (response.getStatus() != 0) {
+      throw new ReceiptValidationException("Apple Receipt validation failed. StatusCode: " + response.getStatus());
+    }
+    return response;
   }
-
 }

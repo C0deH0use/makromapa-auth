@@ -11,11 +11,11 @@ public class ReceiptValidatorService {
 
   private final AppleReceiptValidationService appleService;
 
-  ValidationResponseDto validateReceipt(ReceiptValidationDto receiptDto) {
+  boolean validateReceipt(ReceiptValidationDto receiptDto) {
     log.info("Validating Purchase Receipt from Store: {}", receiptDto.getStore());
 
     if (receiptDto.getStore() == Store.PLAY_STORE) {
-      return null;
+      return true;
     }
 
     return appleService.validateReceipt(receiptDto.getLocalReceipt());

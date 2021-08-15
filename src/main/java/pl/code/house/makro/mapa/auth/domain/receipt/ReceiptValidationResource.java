@@ -25,7 +25,7 @@ class ReceiptValidationResource {
 
   @PostMapping
   @ResponseStatus(OK)
-  ValidationResponseDto validateReceiptPurchase(Authentication principal, @Valid @RequestBody ReceiptValidationDto receiptDto) {
+  boolean validateReceiptPurchase(Authentication principal, @Valid @RequestBody ReceiptValidationDto receiptDto) {
     log.info("Request to validate User {} receipt purchase in {}", principal.getName(), receiptDto.getStore());
 
     return receiptValidator.validateReceipt(receiptDto);

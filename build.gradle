@@ -188,6 +188,10 @@ dependencies {
             'com.icegreen:greenmail-junit5:1.6.2',
     )
 
+    integrationTestImplementation (
+            "org.springframework.cloud:spring-cloud-contract-wiremock"
+    )
+
     integrationTestRuntimeOnly(
             "org.junit.platform:junit-platform-engine:${junitPlatformVersion}",
     )
