@@ -83,9 +83,6 @@ public class UserFacade extends BaseUserFacade {
       }
 
       UserWithPassword existingDraft = (UserWithPassword) userByEmail.get();
-      if (verificationCodeService.findVerificationCode(existingDraft.getId(), REGISTRATION).isPresent()) {
-        throw new UserAlreadyExistsException("Following BASIC_AUTH user with email has valid verification_code.");
-      }
       return verificationCodeService.sendVerificationCodeToDraftUser(existingDraft);
 
     } else {

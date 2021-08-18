@@ -99,8 +99,6 @@ class UserFacadeWithRegisteredUserTest {
     NewUserRequest request = new NewUserRequest("token", "clientId", REG_DRAFT_USER.getName(), REG_DRAFT_USER.getPassword());
     given(repository.findUserWithPasswordByUserEmail(REG_DRAFT_USER.getName())).willReturn(of(savedUser(REG_DRAFT_USER.getUserId(), REG_DRAFT_USER, DRAFT_USER, false)));
 
-    given(activationCodeService.findVerificationCode(REG_DRAFT_USER.getUserId(), REGISTRATION)).willReturn(Optional.empty());
-
     //when
     sut.registerNewUser(request);
 
@@ -147,18 +145,27 @@ class UserFacadeWithRegisteredUserTest {
   }
 
   @Test
-  @DisplayName("throw if registering user when draft already exists and activation code is valid")
-  void throwIfRegisteringUserWhenDraftAlreadyExistsAndVerificationCodeIsValid() {
+  @DisplayName("should send new verification code is draft is present and code is active")
+  void shouldSendNewVerificationCodeIsDraftIsPresentAndCodeIsActive() {
     //given
     NewUserRequest request = new NewUserRequest("token", "clientId", REG_DRAFT_USER.getName(), REG_DRAFT_USER.getPassword());
     given(repository.findUserWithPasswordByUserEmail(REG_DRAFT_USER.getName())).willReturn(of(savedUser(REG_DRAFT_USER.getUserId(), REG_DRAFT_USER, DRAFT_USER, false)));
 
-    given(activationCodeService.findVerificationCode(REG_DRAFT_USER.getUserId(), REGISTRATION)).willReturn(Optional.of(validCode()));
-
     //when
-    assertThatThrownBy(() -> sut.registerNewUser(request))
-        .isInstanceOf(UserAlreadyExistsException.class)
-        .hasMessageContaining("has valid verification_code");
+    sut.registerNewUser(request);
+
+    //then
+    then(repository).should(times(0)).saveAndFlush(any(UserWithPassword.class));
+
+    ArgumentCaptor<UserWithPassword> draftUserCaptor = ArgumentCaptor.forClass(UserWithPassword.class);
+    then(activationCodeService).should(times(1)).sendVerificationCodeToDraftUser(draftUserCaptor.capture());
+
+    assertThat(draftUserCaptor.getValue().getId()).isEqualTo(REG_DRAFT_USER.getUserId());
+    assertThat(draftUserCaptor.getValue().getProvider()).isEqualTo(BASIC_AUTH);
+    assertThat(draftUserCaptor.getValue().getPassword()).isEqualTo(REG_DRAFT_USER.getPassword());
+    assertThat(draftUserCaptor.getValue().getTermsAndConditionsId()).isNull();
+    assertThat(draftUserCaptor.getValue().getUserDetails().getEmail()).isEqualTo(REG_DRAFT_USER.getName());
+    assertThat(draftUserCaptor.getValue().getUserDetails().getType()).isEqualTo(DRAFT_USER);
   }
 
   @Test

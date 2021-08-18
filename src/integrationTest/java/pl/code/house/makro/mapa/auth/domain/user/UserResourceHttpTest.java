@@ -12,7 +12,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.encodeBasicAuth;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -39,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -91,9 +89,10 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @SneakyThrows
   @Transactional
   @DisplayName("register new user by mobile client")
-  void registerNewUserByMobileClient() throws MessagingException {
+  void registerNewUserByMobileClient() {
     //given
     UUID newDraftId = given()
         .param("grant_type", "external-token")
@@ -124,9 +123,10 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @SneakyThrows
   @Transactional
   @DisplayName("request activation_code for existing draft user if existing code is invalid - disabled")
-  void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidDisabled() throws MessagingException {
+  void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidDisabled() {
     //given
     Optional<UserVerificationCode> existingActivationCode = codeRepository.findByUserIdAndCodeType(REG_DRAFT_USER_WITH_DISABLED_CODE.getUserId(), REGISTRATION).stream().findFirst();
     assertThat(existingActivationCode).isPresent();
@@ -162,9 +162,10 @@ class UserResourceHttpTest {
   }
 
   @Test
+  @SneakyThrows
   @Transactional
   @DisplayName("request activation_code for existing draft user if existing code is invalid - has expired")
-  void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidHasExpired() throws MessagingException {
+  void requestActivationCodeForExistingDraftUserIfExistingCodeIsInvalidHasExpired() {
     //given
     assertThat(codeRepository.findByUserIdAndCodeType(REG_DRAFT_USER_WITH_EXPIRED_CODE.getUserId(), REGISTRATION).stream().anyMatch(ac -> ac.getExpiresOn().isBefore(now(clock)))).isTrue();
 
@@ -199,6 +200,49 @@ class UserResourceHttpTest {
     assertThat(mailBean.getReceivedMessages()).hasSize(1);
     assertThat(mailBean.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(REG_DRAFT_USER_WITH_EXPIRED_CODE.getName());
   }
+
+  @Test
+  @SneakyThrows
+  @Transactional
+  @DisplayName("request activation_code for existing draft user if existing code is valid")
+  void requestActivationCodeForExistingDraftUserIfExistingCodeIsValid() {
+    assertThat(codeRepository.findByUserIdAndCodeType(REG_DRAFT_USER.getUserId(), REGISTRATION)
+        .stream()
+        .filter(UserVerificationCode::getEnabled)
+        .anyMatch(ac -> ac.getExpiresOn().isAfter(now(clock)))
+    ).isTrue();
+
+    given()
+        .param("grant_type", "external-token")
+        .param("client_id", "basic-auth-makromapa-mobile")
+        .param("username", REG_DRAFT_USER.getName())
+        .param("password", REG_DRAFT_USER.getPassword())
+        .contentType(APPLICATION_JSON_VALUE)
+        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
+
+        .when()
+        .post(USER_MANAGEMENT_PATH + "/registration")
+
+        .then()
+        .log().all()
+        .status(CREATED)
+        .body("codeType", equalTo("REGISTRATION"))
+        .body("communicationChannel", equalTo("EMAIL"))
+        .body("communicationTarget", equalTo(REG_DRAFT_USER.getName()))
+        .body("userId", equalTo(REG_DRAFT_USER.getUserId().toString()))
+
+    ;
+    Optional<UserVerificationCode> newActivationCode = codeRepository.findByUserIdAndCodeType(REG_DRAFT_USER.getUserId(), REGISTRATION)
+        .stream()
+        .findFirst();
+    assertThat(newActivationCode).isPresent();
+    assertThat(newActivationCode.get().getEnabled()).isTrue();
+    assertThat(newActivationCode.get().getExpiresOn()).isBeforeOrEqualTo(now(clock).plusHours(expiresOn));
+
+    assertThat(mailBean.getReceivedMessages()).hasSize(1);
+    assertThat(mailBean.getReceivedMessages()[0].getRecipients(RecipientType.TO)[0].toString()).isEqualTo(REG_DRAFT_USER.getName());
+  }
+
 
   @Test
   @Transactional
@@ -398,33 +442,6 @@ class UserResourceHttpTest {
         .log().all()
         .status(NOT_FOUND)
         .body("error", equalTo("Could not find user by email: " + UNKNOWN_USER))
-    ;
-  }
-
-  @Test
-  @DisplayName("Return BAD_REQUEST when registering user that already has been registered and activation_code is valid")
-  void returnBadRequestWhenRegisteringUserThatAlreadyHasBeenRegisteredAndActivationCodeIsValid() {
-    assertThat(codeRepository.findByUserIdAndCodeType(REG_DRAFT_USER.getUserId(), REGISTRATION)
-        .stream()
-        .filter(UserVerificationCode::getEnabled)
-        .anyMatch(ac -> ac.getExpiresOn().isAfter(now(clock)))
-    ).isTrue();
-
-    given()
-        .param("grant_type", "external-token")
-        .param("client_id", "basic-auth-makromapa-mobile")
-        .param("username", REG_DRAFT_USER.getName())
-        .param("password", REG_DRAFT_USER.getPassword())
-        .contentType(APPLICATION_JSON_VALUE)
-        .header(new Header(AUTHORIZATION, "Basic " + encodeBasicAuth("basic-auth-makromapa-mobile", "secret", UTF_8)))
-
-        .when()
-        .post(USER_MANAGEMENT_PATH + "/registration")
-
-        .then()
-        .log().all()
-        .status(BAD_REQUEST)
-        .body("error", containsStringIgnoringCase("has valid verification_code"))
     ;
   }
 
