@@ -74,7 +74,7 @@ public class UserFacade extends BaseUserFacade {
 
   @Transactional
   public CommunicationDto registerNewUser(NewUserRequest newUserRequest) {
-    log.info("Registering new DRAFT User `{}` as BASIC_AUTH authentication provider", newUserRequest.getEmail());
+    log.info("Registering new DRAFT User `{}` as BASIC_AUTH authentication provider", maskEmail(newUserRequest.getEmail()));
 
     Optional<BaseUser> userByEmail = userRepository.findUserWithPasswordByUserEmail(newUserRequest.getEmail());
     if (userByEmail.isPresent()) {

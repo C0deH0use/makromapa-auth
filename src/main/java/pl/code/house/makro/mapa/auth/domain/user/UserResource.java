@@ -43,7 +43,7 @@ class UserResource {
   @ResponseStatus(CREATED)
   @PostMapping("/registration")
   CommunicationDto registerNewDraft(UsernamePasswordAuthenticationToken principal, NewUserRequest newUserRequest) {
-    log.info("Request to register new user `{}` by {}", newUserRequest.getEmail(), principal.getPrincipal());
+    log.info("Request to register new user `{}` by {}", maskEmail(newUserRequest.getEmail()), principal.getPrincipal());
 
     String clientId = getClientId(principal);
 
