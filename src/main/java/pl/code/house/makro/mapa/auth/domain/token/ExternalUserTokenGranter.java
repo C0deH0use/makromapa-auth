@@ -71,7 +71,7 @@ class ExternalUserTokenGranter implements TokenGranter {
     List<GrantedAuthority> userAuthorities = userAuthoritiesService.getUserAuthorities(userDto.getId());
     tokenRequest.setAuthorities(userAuthorities);
 
-    Authentication userAuth = new JwtAuthenticationToken(token, userAuthorities);
+    Authentication userAuth = new JwtAuthenticationToken(token, userAuthorities, userDto.getId().toString());
     OAuth2Request auth2Request = tokenRequest.createOAuth2Request(client);
 
     return new ExternalUserAuthentication(auth2Request, userAuth);

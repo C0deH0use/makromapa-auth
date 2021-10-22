@@ -4,7 +4,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static pl.code.house.makro.mapa.auth.domain.receipt.StoreEnvironment.SANDBOX;
 
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -58,7 +57,6 @@ class AppleReceiptValidationClient {
         .block();
   }
 
-  @NotNull
   private Mono<AppleRecieptValidationResponse> getResponseHandler(ClientResponse response) {
     if (!response.statusCode().is2xxSuccessful()) {
       return Mono.error(new ReceiptValidationException("Apple Receipt validation failed. StatusCode: " + response.statusCode()));
@@ -67,7 +65,6 @@ class AppleReceiptValidationClient {
         .map(this::validateResponse);
   }
 
-  @NotNull
   private AppleRecieptValidationResponse validateResponse(AppleRecieptValidationResponse response) {
     if ((response.getEnvironment() == null || SANDBOX != response.getEnvironment())
         && response.getStatus() == SANDBOX_RECEIPT_STATUS_CODE) {

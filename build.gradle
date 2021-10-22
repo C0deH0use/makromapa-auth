@@ -1,16 +1,19 @@
 buildscript {
     ext {
-        set('springBootVersion', "2.5.0")
-        set("springCloudVersion", "2020.0.2")
+        set('springBootVersion', "2.5.5")
+        set("springCloudVersion", "2020.0.4")
         set('springClouContractVersion', "3.0.2")
         set("springSecurityOAuth2Version", "2.5.1.RELEASE")
+
+        set('springDependencyVersion', "1.0.10.RELEASE")
+        set("springCloudStarterSecurity", "2.5.5.RELEASE")
 
         set("lombokVersion", "1.18.20")
 
         set("restAssured", "4.3.3")
-        set("junit5Version", "5.7.2")
-        set("junitPlatformVersion", "1.7.2")
-        set('junit-jupiter.version', '5.7.2')
+        set("junit5Version", "5.8.1")
+        set("junitPlatformVersion", "1.8.1")
+        set('junit-jupiter.version', '5.8.1')
         set("spockVersion", "2.0-groovy-3.0")
 
 
@@ -22,14 +25,14 @@ buildscript {
 
     ext["mockito.version"] = "3.9.0"
     ext['groovy.version'] = '3.0.7'
-    ext['junit-jupiter.version'] = "5.7.2"
+    ext['junit-jupiter.version'] = "5.8.1"
 
     repositories {
         mavenCentral()
     }
 
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:v"
         classpath "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
@@ -44,7 +47,7 @@ plugins {
     id "org.flywaydb.flyway" version "7.8.2"
     id "io.freefair.lombok" version "5.3.3.3"
 
-    id 'org.springframework.boot' version '2.5.0'
+    id 'org.springframework.boot' version '2.5.5'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
@@ -123,39 +126,41 @@ bootJar {
 }
 
 dependencies {
+
+    compileOnly "org.projectlombok:lombok"
+    developmentOnly "org.springframework.boot:spring-boot-devtools"
     implementation(
-            'org.springframework.boot:spring-boot-starter-actuator',
-            'org.springframework.boot:spring-boot-starter-logging',
+            "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-logging:${springBootVersion}",
 
-            'org.springframework.boot:spring-boot-starter-data-jpa',
-            'org.springframework.boot:spring-boot-starter-web',
-            "org.springframework.boot:spring-boot-starter-webflux",
+            "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-web:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}",
 
-            'org.springframework.boot:spring-boot-starter-validation',
-            'org.springframework.boot:spring-boot-starter-mail',
-            'org.springframework.boot:spring-boot-starter-thymeleaf',
+            "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-mail:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}",
 
-            'org.springframework.security:spring-security-oauth2-jose',
-            'org.springframework.security:spring-security-oauth2-resource-server',
+            //"org.springframework.security:spring-security-oauth2-authorization-server:0.2.0",
+            "org.springframework.security:spring-security-oauth2-jose:5.5.1",
+            "org.springframework.security:spring-security-oauth2-resource-server:5.5.1",
+
             "org.springframework.social:spring-social-facebook:2.0.3.RELEASE",
             "org.springframework.social:spring-social-web:1.1.6.RELEASE",
 
-            'org.springframework.boot:spring-boot-starter-security',
-            'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure',
-            'com.nimbusds:oauth2-oidc-sdk',
+            "org.springframework.boot:spring-boot-starter-security:${springBootVersion}",
+            "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springBootVersion}",
+            "com.nimbusds:oauth2-oidc-sdk:9.18",
 
-            'org.flywaydb:flyway-core',
-            'org.postgresql:postgresql',
+            "org.flywaydb:flyway-core:8.0.0",
+            "org.postgresql:postgresql:42.2.24.jre7",
 
             "org.apache.commons:commons-lang3:${apacheCommonsLang3Version}",
             "io.vavr:vavr:${vavrVersion}",
     )
-
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor(
-            'org.springframework.boot:spring-boot-configuration-processor',
-            'org.projectlombok:lombok'
+            "org.springframework.boot:spring-boot-configuration-processor",
+            "org.projectlombok:lombok"
     )
 
     testRuntimeOnly(
@@ -163,13 +168,13 @@ dependencies {
             "org.junit.vintage:junit-vintage-engine:${junit5Version}",
     )
 
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
     }
 
     testImplementation(
-            'io.projectreactor:reactor-test',
-            'org.springframework.security:spring-security-test',
+            "io.projectreactor:reactor-test",
+            "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-starter-contract-stub-runner:${springClouContractVersion}",
 
             "org.junit.jupiter:junit-jupiter-api:${junit5Version}",
@@ -184,8 +189,8 @@ dependencies {
             "org.spockframework:spock-core:${spockVersion}",
             "org.exparity:hamcrest-date:2.0.7",
 
-            'com.icegreen:greenmail:1.6.2',
-            'com.icegreen:greenmail-junit5:1.6.2',
+            "com.icegreen:greenmail:1.6.2",
+            "com.icegreen:greenmail-junit5:1.6.2",
     )
 
     integrationTestImplementation (
