@@ -111,7 +111,7 @@ class ProductResourceHttpTest {
   @DisplayName("should update user points by earning 100")
   void shouldUpdateUserPointsByEarning100() {
     //given
-    int expectedPoints = 2100;
+    int expectedPoints = 2350;
     assertThat(queryFacade.findUserById(GOOGLE_PREMIUM_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(2000);
 
     given()
@@ -149,7 +149,7 @@ class ProductResourceHttpTest {
   @DisplayName("should update other user points by earning 100")
   void shouldUpdateOtherUserPointsByEarning100() {
     //given
-    int expectedPoints = 600;
+    int expectedPoints = 850;
 
     Header backendAuthHeader = backendAuthHeader();
     assertThat(queryFacade.findUserById(REG_USER.getUserId())).map(UserInfoDto::getPoints).hasValue(500);
