@@ -75,7 +75,7 @@ class FacebookUserTokenGranter implements TokenGranter {
     List<GrantedAuthority> userAuthorities = userAuthoritiesService.getUserAuthorities(userDto.getId());
     tokenRequest.setAuthorities(userAuthorities);
 
-    FacebookAuthentication userAuth = new FacebookAuthentication(tokenRequest.getPrincipal().getUserProfile(), userAuthorities);
+    FacebookAuthentication userAuth = new FacebookAuthentication(userDto.getId().toString(), tokenRequest.getPrincipal().getUserProfile(), userAuthorities);
     OAuth2Request auth2Request = tokenRequest.createOAuth2Request(client);
     return new ExternalUserAuthentication(auth2Request, userAuth);
   }

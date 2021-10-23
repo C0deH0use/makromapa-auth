@@ -3,6 +3,7 @@ package pl.code.house.makro.mapa.auth.domain.token;
 import static pl.code.house.makro.mapa.auth.domain.user.UserAuthoritiesService.userStartAuthoritiesFor;
 import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 
+import java.io.Serial;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -14,18 +15,22 @@ import org.springframework.social.facebook.api.User;
 @EqualsAndHashCode(callSuper = true)
 public class FacebookAuthentication extends AbstractAuthenticationToken {
 
+  @Serial
   private static final long serialVersionUID = 1191701135435410597L;
 
+  String userName;
   User userProfile;
 
   public FacebookAuthentication(User userProfile) {
     super(userStartAuthoritiesFor(FREE_USER));
+    this.userName = "";
     this.userProfile = userProfile;
     this.setAuthenticated(true);
   }
 
-  public FacebookAuthentication(User userProfile, List<GrantedAuthority> userAuthorities) {
+  public FacebookAuthentication(String sub, User userProfile, List<GrantedAuthority> userAuthorities) {
     super(userAuthorities);
+    this.userName = sub;
     this.userProfile = userProfile;
     this.setAuthenticated(true);
   }

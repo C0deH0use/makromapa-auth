@@ -7,4 +7,4 @@
 ###############################################################################################
 
 
-docker-compose  -f cicd/docker-compose.local.dependencies.yml up --build -V --force-recreate --detach
+docker-compose  -f cicd/docker-compose.local.dependencies.yml up --build -V --force-recreate --detach --remove-orphans

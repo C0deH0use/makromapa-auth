@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
 @Configuration
@@ -34,6 +36,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
   public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
     endpoints
         .tokenStore(tokenStore)
+        .accessTokenConverter(getAccessTokenConverter())
         .userApprovalHandler(userApprovalHandler)
         .authenticationManager(authenticationManager)
     ;
@@ -46,5 +49,13 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         .tokenKeyAccess("denyAll()")
         .checkTokenAccess("isAuthenticated() and hasAnyRole('MAKROMAPA_BACKEND', 'USER_INFO_AUTH')")
     ;
+  }
+
+  private DefaultAccessTokenConverter getAccessTokenConverter() {
+    DefaultUserAuthenticationConverter userAuthenticationConverter = new DefaultUserAuthenticationConverter();
+    userAuthenticationConverter.setUserClaimName("sub");
+    DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
+    accessTokenConverter.setUserTokenConverter(userAuthenticationConverter);
+    return accessTokenConverter;
   }
 }
