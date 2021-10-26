@@ -6,7 +6,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -37,10 +36,8 @@ import static pl.code.house.makro.mapa.auth.domain.user.UserType.FREE_USER;
 import io.restassured.http.Header;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.UUID;
 import org.assertj.core.api.Condition;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -99,7 +96,7 @@ class ProductResourceHttpTest {
         .body("id", everyItem(notNullValue(Integer.class)))
         .body("name", hasItems("APPROVED_DISH_PROPOSAL", "DISABLE_ADS", "sub_premium", "ads_removal"))
         .body("description", everyItem(notNullValue(Integer.class)))
-        .body("points", hasItems(0, 1000))
+        .body("points", hasItems(0, 350, 1000))
         .body("enabled", hasItems(false, true))
         .body("reason", hasItems("USE", "PURCHASE", "EARN"))
     ;

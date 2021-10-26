@@ -25,8 +25,12 @@ class TermsAndConditionsFacade {
 
   void isLatestTermsApproved(Long termsAndConditionsId) {
     TermsAndConditions latestTnC = repository.findFirstByOrderByLastUpdatedAsc();
-    boolean userNotApprovedLatestTnC = latestTnC.getId().equals(termsAndConditionsId);
+    if(latestTnC == null) {
+      log.debug("No Terms and Conditions to check against yet.");
+      return;
+    }
 
+    boolean userNotApprovedLatestTnC = latestTnC.getId().equals(termsAndConditionsId);
     if (!userNotApprovedLatestTnC) {
       throw new NewTermsAndConditionsNotApprovedException("New terms and conditions are required for user approval");
     }
