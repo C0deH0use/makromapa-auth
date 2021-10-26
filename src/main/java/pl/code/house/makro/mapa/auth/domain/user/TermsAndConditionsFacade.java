@@ -25,7 +25,7 @@ class TermsAndConditionsFacade {
 
   void isLatestTermsApproved(Long termsAndConditionsId) {
     TermsAndConditions latestTnC = repository.findFirstByOrderByLastUpdatedAsc();
-    if(latestTnC == null) {
+    if (latestTnC == null) {
       log.debug("No Terms and Conditions to check against yet.");
       return;
     }
