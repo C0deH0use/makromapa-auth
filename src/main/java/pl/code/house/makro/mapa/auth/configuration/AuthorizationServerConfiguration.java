@@ -53,7 +53,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
   private DefaultAccessTokenConverter getAccessTokenConverter() {
     DefaultUserAuthenticationConverter userAuthenticationConverter = new DefaultUserAuthenticationConverter();
-    userAuthenticationConverter.setUserClaimName("sub");
+    userAuthenticationConverter.setDefaultAuthorities(new String[]{"sub"});
     DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
     accessTokenConverter.setUserTokenConverter(userAuthenticationConverter);
     return accessTokenConverter;
