@@ -11,7 +11,7 @@ buildscript {
 
         set("lombokVersion", "1.18.20")
 
-        set("restAssured", "4.3.3")
+        set("restAssured", "4.4.0")
         set("junit5Version", "5.8.2")
         set("junitPlatformVersion", "1.8.2")
         set('junit-jupiter.version', '5.8.2')
@@ -19,8 +19,6 @@ buildscript {
 
         set("flywayVersion", "7.8.2")
         set("swaggerVersion", "2.9.2")
-        set("apacheCommonsLang3Version", "3.12.0")
-        set("vavrVersion", "0.10.3")
     }
 
     ext["mockito.version"] = "3.9.0"
@@ -152,13 +150,14 @@ dependencies {
 
             "org.springframework.boot:spring-boot-starter-security",
             "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure",
-            "com.nimbusds:oauth2-oidc-sdk:9.18",
+            'com.nimbusds:oauth2-oidc-sdk:9.21',
 
-            "org.flywaydb:flyway-core:8.0.0",
-            "org.postgresql:postgresql:42.2.24.jre7",
+            'org.flywaydb:flyway-core:8.4.1',
+            'org.postgresql:postgresql:42.3.1',
 
-            "org.apache.commons:commons-lang3:${apacheCommonsLang3Version}",
-            "io.vavr:vavr:${vavrVersion}",
+            'com.sun.xml.bind:jaxb-impl:3.0.2',
+            "org.apache.commons:commons-lang3:3.12.0",
+            "io.vavr:vavr:0.10.4",
     )
     annotationProcessor(
             "org.springframework.boot:spring-boot-configuration-processor",
@@ -189,10 +188,10 @@ dependencies {
             "io.rest-assured:rest-assured-common:${restAssured}",
 
             "org.spockframework:spock-core:${spockVersion}",
-            "org.exparity:hamcrest-date:2.0.7",
+            'org.exparity:hamcrest-date:2.0.8',
 
-            "com.icegreen:greenmail:1.6.2",
-            "com.icegreen:greenmail-junit5:1.6.2",
+            'com.icegreen:greenmail:1.6.5',
+            'com.icegreen:greenmail-junit5:1.6.5',
     )
 
     integrationTestImplementation (
