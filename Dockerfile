@@ -1,4 +1,4 @@
-FROM openjdk:16-oraclelinux8
+FROM openjdk:17-oraclelinux8
 
 ARG commit_short_sha
 

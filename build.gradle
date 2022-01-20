@@ -1,21 +1,21 @@
 buildscript {
     ext {
+        set('springDependencyVersion', "1.0.10.RELEASE")
         set('springBootVersion', "2.5.5")
         set("springCloudVersion", "2020.0.4")
         set('springClouContractVersion', "3.0.2")
         set("springSecurityOAuth2Version", "2.5.1.RELEASE")
 
         set('springDependencyVersion', "1.0.10.RELEASE")
-        set("springCloudStarterSecurity", "2.5.5.RELEASE")
+        set("springCloudStarterSecurity", "2.2.5.RELEASE")
 
         set("lombokVersion", "1.18.20")
 
         set("restAssured", "4.3.3")
-        set("junit5Version", "5.8.1")
-        set("junitPlatformVersion", "1.8.1")
-        set('junit-jupiter.version', '5.8.1')
-        set("spockVersion", "2.0-groovy-3.0")
-
+        set("junit5Version", "5.8.2")
+        set("junitPlatformVersion", "1.8.2")
+        set('junit-jupiter.version', '5.8.2')
+        set("spockVersion", "2.1-M2-groovy-3.0")
 
         set("flywayVersion", "7.8.2")
         set("swaggerVersion", "2.9.2")
@@ -24,15 +24,16 @@ buildscript {
     }
 
     ext["mockito.version"] = "3.9.0"
-    ext['groovy.version'] = '3.0.7'
-    ext['junit-jupiter.version'] = "5.8.1"
+    ext['groovy.version'] = '3.0.9'
+    ext['junit-jupiter.version'] = "5.8.2"
+    ext['log4j2.version'] = '2.17.0'
 
     repositories {
         mavenCentral()
     }
 
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:v"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
@@ -47,13 +48,13 @@ plugins {
     id "org.flywaydb.flyway" version "7.8.2"
     id "io.freefair.lombok" version "5.3.3.3"
 
-    id 'org.springframework.boot' version '2.5.5'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version "${springDependencyVersion}"
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 configurations {
@@ -103,7 +104,8 @@ springBoot {
                     'commit_sha': System.getenv('CI_COMMIT_SHA') ?: 'LOCAL'
             ]
         }
-    }}
+    }
+}
 
 bootRun {
     doFirst() {
@@ -130,16 +132,16 @@ dependencies {
     compileOnly "org.projectlombok:lombok"
     developmentOnly "org.springframework.boot:spring-boot-devtools"
     implementation(
-            "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}",
-            "org.springframework.boot:spring-boot-starter-logging:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-actuator",
+            "org.springframework.boot:spring-boot-starter-logging",
 
-            "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}",
-            "org.springframework.boot:spring-boot-starter-web:${springBootVersion}",
-            "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-data-jpa",
+            "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.boot:spring-boot-starter-webflux",
 
-            "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}",
-            "org.springframework.boot:spring-boot-starter-mail:${springBootVersion}",
-            "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-validation",
+            "org.springframework.boot:spring-boot-starter-mail",
+            "org.springframework.boot:spring-boot-starter-thymeleaf",
 
             //"org.springframework.security:spring-security-oauth2-authorization-server:0.2.0",
             "org.springframework.security:spring-security-oauth2-jose:5.5.1",
@@ -148,8 +150,8 @@ dependencies {
             "org.springframework.social:spring-social-facebook:2.0.3.RELEASE",
             "org.springframework.social:spring-social-web:1.1.6.RELEASE",
 
-            "org.springframework.boot:spring-boot-starter-security:${springBootVersion}",
-            "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springBootVersion}",
+            "org.springframework.boot:spring-boot-starter-security",
+            "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure",
             "com.nimbusds:oauth2-oidc-sdk:9.18",
 
             "org.flywaydb:flyway-core:8.0.0",
@@ -282,3 +284,44 @@ task integrationTest(type: Test) {
     }
 }
 
+/*
+ * Build
+ */
+
+task patchVersion {
+    doLast {
+        Properties props = new Properties()
+        File propsFile = new File('gradle.properties')
+        props.load(propsFile.newDataInputStream())
+        def stableVersion = props.getProperty('version') as String
+        if (stableVersion.indexOf('-SNAPSHOT') > 0) {
+            throw new GradleException('Cannot patch a non SNAPSHOT version')
+        } else {
+            def (major, minor, patch) = stableVersion.tokenize('.')
+            patch = String.valueOf(patch.toInteger() + 1)
+            String snapshotVersion = major + '.' + minor + '.' + patch + '-SNAPSHOT'
+            props.setProperty('version', snapshotVersion)
+            props.store(propsFile.newWriter(), null)
+            println(snapshotVersion)
+        }
+    }
+}
+
+task releaseVersion {
+    doLast {
+        File propsFile = new File('gradle.properties')
+
+        Properties props = new Properties()
+        props.load(propsFile.newDataInputStream())
+
+        def snapshotVersion = props.getProperty('version') as String
+        if (snapshotVersion.indexOf('-SNAPSHOT') > 0) {
+            def stableVersion = snapshotVersion - '-SNAPSHOT'
+            props.setProperty('version', stableVersion)
+            props.store(propsFile.newWriter(), null)
+            println(stableVersion)
+        } else {
+            throw new GradleException('Cannot release a non SNAPSHOT version')
+        }
+    }
+}

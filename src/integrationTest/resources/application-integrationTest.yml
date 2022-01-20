@@ -33,3 +33,6 @@ app:
                 password: test
                 itunes: http://localhost:${wiremock.server.port:9091}/verifyReceipt
                 sandbox: http://localhost:${wiremock.server.port:9091}/sandbox/verifyReceipt
+wiremock:
+    server:
+        https-port: -1
