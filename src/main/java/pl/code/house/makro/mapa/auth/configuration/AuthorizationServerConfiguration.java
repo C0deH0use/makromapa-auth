@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
 @Configuration
@@ -52,7 +51,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
   }
 
   private DefaultAccessTokenConverter getAccessTokenConverter() {
-    DefaultUserAuthenticationConverter userAuthenticationConverter = new DefaultUserAuthenticationConverter();
+    UserAuthenticationConverter userAuthenticationConverter = new UserAuthenticationConverter();
     userAuthenticationConverter.setDefaultAuthorities(new String[]{"sub"});
     DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
     accessTokenConverter.setUserTokenConverter(userAuthenticationConverter);
