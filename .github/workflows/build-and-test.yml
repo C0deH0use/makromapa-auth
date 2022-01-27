@@ -1,21 +1,13 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
-name: Java CI with Gradle
+name: Build & Test
 
 on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, test ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -26,13 +18,46 @@ jobs:
         java-version: '17'
         distribution: 'zulu'
         cache: 'gradle'
-    - name: Setup Gradle & Build without tests
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: wrapper         
+    - name: Build without tests
       uses: gradle/gradle-build-action@v2
       with:
         gradle-version: wrapper
         arguments: clean build -x test
-    - name: Run tests
+  
+  test: 
+    needs: build
+    runs-on: ubuntu-latest
+    
+    services: 
+      postgres_db: 
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: makromapa-db-dev
+          POSTGRES_USER: makromapa-auth-user
+          POSTGRES_PASSWORD: mysecretpassword
+        
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    steps:
+    - name: Run Unit Tests
       uses: gradle/gradle-build-action@v2
       with:
         gradle-version: wrapper
         arguments: test
+    - name: Run Integration Tests
+      uses: gradle/gradle-build-action@v2
+      env: 
+          SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/makromapa-db-dev
+      with:
+        gradle-version: wrapper
+        arguments: integrationTest -Pprofiles=integrationTest,cicd
