@@ -63,7 +63,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          arguments: test
+          arguments: clean build test
       - name: Run Integration Tests
         uses: gradle/gradle-build-action@v2
         env:
