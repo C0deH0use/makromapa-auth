@@ -110,7 +110,8 @@ jobs:
         uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GPC_CREDENTIALS_JSON }}'
-        run: |-
+
+      - run: |-
           gcloud --quiet auth configure-docker
 
       - name: 'Set up Cloud SDK'
