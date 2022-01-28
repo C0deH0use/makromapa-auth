@@ -1,8 +1,8 @@
 FROM openjdk:17-oraclelinux8
 
-ARG commit_short_sha
+ARG COMMIT_SHA='0.0.0'
 
-ENV CI_COMMIT_SHA=${commit_short_sha}
+ENV CI_COMMIT_SHA=$COMMIT_SHA
 
 COPY build/libs/makromapa-auth.jar /
 

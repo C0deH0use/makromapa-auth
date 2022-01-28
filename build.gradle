@@ -99,7 +99,7 @@ springBoot {
     buildInfo {
         properties {
             additional = [
-                    'commit_sha': System.getenv('CI_COMMIT_SHA') ?: 'LOCAL'
+                    'commit_sha': System.getenv('COMMIT_SHORT_SHA') ?: 'LOCAL'
             ]
         }
     }
