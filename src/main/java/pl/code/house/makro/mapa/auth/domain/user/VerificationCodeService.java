@@ -146,7 +146,7 @@ class VerificationCodeService {
 
   private UserVerificationCode buildVerificationCodeWith(UserWithPassword draftUser, CodeType codeType) {
     ZonedDateTime expiresOn = now(clock).plusHours(passwordResetProperties.getExpiresOn());
-    String code = randomNumeric(6);
+    String code = randomNumeric(4) + "29";
 
     log.debug("Building new verificationCode `{}` ... with expiry date set to {}", code, expiresOn);
     return UserVerificationCode.builder()
