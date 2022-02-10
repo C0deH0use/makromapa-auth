@@ -3,7 +3,9 @@ package pl.code.house.makro.mapa.auth.domain.infrastructure;
 import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.webAppContextSetup;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -61,8 +63,49 @@ class HealthCheckResourceHttpTest {
         .get("/actuator/health")
 
         .then()
+        .log().all(true)
+        .statusCode(OK.value())
+        .body("status", equalTo("UP"))
+        .body("components", hasKey("db"))
+        .body("components", hasKey("diskSpace"))
+        .body("components", hasKey("ping"))
+        .body("components", hasKey("livenessState"))
+        .body("components", hasKey("readinessState"))
+        .body("groups", containsInAnyOrder("liveness", "readiness"))
+    ;
+  }
+
+  @Test
+  @DisplayName("should display readiness health status")
+  void shouldDisplayReadinessHealthStatus() {
+    //given
+    given()
+        .contentType(JSON)
+
+        .when()
+        .get("/actuator/health/readiness")
+
+        .then()
         .log().ifValidationFails()
         .statusCode(OK.value())
+        .body("status", equalTo("UP"))
+    ;
+  }
+
+  @Test
+  @DisplayName("should display liveness health status")
+  void shouldDisplayLivenessHealthStatus() {
+    //given
+    given()
+        .contentType(JSON)
+
+        .when()
+        .get("/actuator/health/liveness")
+
+        .then()
+        .log().ifValidationFails()
+        .statusCode(OK.value())
+        .body("status", equalTo("UP"))
     ;
   }
 
