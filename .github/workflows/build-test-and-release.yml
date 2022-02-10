@@ -29,6 +29,8 @@ jobs:
       with:
         name: build-artifactory
         path: build/
+        retention-days: 1
+
 
   unit-test:
     name: test changes
