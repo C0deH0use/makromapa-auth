@@ -44,5 +44,5 @@ jobs:
         env:
           CR_TOKEN: $GIT_ACCESS_TOKEN
         with:
-          charts_dir: k8s/charts/auth-service
+          charts_dir: k8s/Charts
           charts_repo_url: https://github.com/C0deH0use/devops
