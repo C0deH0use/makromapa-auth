@@ -260,7 +260,7 @@ class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
           .antMatcher("/actuator/**")
 
           .authorizeRequests(req -> req
-              .antMatchers("/actuator/health").permitAll()
+              .antMatchers("/actuator/health/**").permitAll()
               .anyRequest().hasRole("ADMIN")
           )
           .httpBasic()

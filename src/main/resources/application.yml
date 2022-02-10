@@ -29,13 +29,15 @@ management:
     web:
       exposure:
         include: info, health, loggers
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-components: always
   health:
-    defaults:
-      enabled: true
-
-    db:
-      enabled: true
     mail:
+      enabled: false
+    defaults:
       enabled: true
 server:
   port: 9090
@@ -65,17 +67,10 @@ spring:
     port: 465
     properties:
       mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
         smtps:
           starttls:
             enable: true
-          timeout: 8000
-        transport:
-          protocol: smtps
-    protocol: smtps
+          timeout: 2000
     username: kontakt@makromapa.pl
 
   profiles:
