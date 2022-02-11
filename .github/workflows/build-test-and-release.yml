@@ -139,13 +139,13 @@ jobs:
       # Build the Docker image
       - name: Build
         run: |-
-          echo "Project: $PROJECT_ID" ${{ steps.all.outputs.version }}
+          echo "Project: $PROJECT_ID" ${{ steps.version.outputs.value }}
           docker build \
-            --tag "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.all.outputs.version }}-${GITHUB_SHA::7}" \
+            --tag "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.version.outputs.value }}-${GITHUB_SHA::7}" \
             --build-arg COMMIT_SHA=${GITHUB_SHA::7} \
             .
 
       # Push the Docker image to Google Container Registry
       - name: Publish
         run: |-
-          docker push "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.all.outputs.version }}-${GITHUB_SHA::7}"
+          docker push "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.version.outputs.value }}-${GITHUB_SHA::7}"
