@@ -1,12 +1,3 @@
-spring:
-    datasource:
-        password: mysecretpassword
-        url: jdbc:postgresql://10.111.128.3:5432/makromapa-auth
-        username: makromapa-auth-user
-    flyway:
-        locations:
-            - classpath:db/migration/default
-            - classpath:db/migration/prod
 app:
     provider:
         clients:

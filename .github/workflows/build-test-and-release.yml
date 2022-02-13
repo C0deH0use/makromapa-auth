@@ -6,7 +6,6 @@ on:
 
 env:
   PROJECT_ID: makromapa-338723
-  GIT_ACCESS_TOKEN: "${{ secrets.GIT_BOT_ACCESS_TOKEN }}"
 
 jobs:
   build:
@@ -31,7 +30,6 @@ jobs:
         name: build-artifactory
         path: build/
         retention-days: 1
-
 
   unit-test:
     name: test changes
@@ -119,10 +117,11 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: '${{ secrets.GPC_CREDENTIALS_JSON }}'
+          workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: '${{ secrets.GPC_SERVICE_ACCOUNT }}'
 
-      - run: |-
-          gcloud --quiet auth configure-docker
+      - id: 'docker-login'
+        run: "gcloud auth configure-docker"
 
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v0'
@@ -130,15 +129,7 @@ jobs:
       - name: 'Use gcloud CLI'
         run: 'gcloud info'
 
-      #- name: Get the GKE credentials so we can deploy to the cluster
-      #  uses: google-github-actions/get-gke-credentials
-      #    with:
-      #      cluster_name: ${{ env.GKE_CLUSTER }}
-      #      location: ${{ env.GKE_ZONE }}
-      #      credentials: ${{ secrets.GKE_SA_KEY }}
-
-      # Build the Docker image
-      - name: Build
+      - name: "Build Docker Image"
         run: |-
           echo "Project: $PROJECT_ID" ${{ steps.version.outputs.value }}
           docker build \
@@ -146,26 +137,27 @@ jobs:
             --build-arg COMMIT_SHA=${GITHUB_SHA::7} \
             .
 
-      # Push the Docker image to Google Container Registry
-      - name: Publish
-        run: |-
+      - name: "Push the Docker image to Google Container Registry"
+        run: |- 
           docker push "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.version.outputs.value }}-${GITHUB_SHA::7}"
 
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.4.0
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.2.1
-        env:
-          CR_TOKEN: $GIT_ACCESS_TOKEN
-        with:
-          charts_dir: k8s/Charts
-          charts_repo_url: https://github.com/C0deH0use/devops
+#  update-chart-repository:
+#    name: Update Helm Template with new version
+#    runs-on: ubuntu-latest
+#      #    needs: [integration-tests, unit-test]
+#      needs: [ Publish ]
+#
+#      steps:
+#        - uses: 'actions/checkout@v2'
+#
+#        - uses: 'actions/download-artifact@v2'
+#            with:
+#              name: build-artifactory
+#              path: build/
+#
+#        - uses: madhead/read-java-properties@latest
+#          id: version
+#          with:
+#            file: gradle.properties
+#            property: version
+#            default: 0.0.1
