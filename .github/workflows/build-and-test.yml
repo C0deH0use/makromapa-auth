@@ -1,4 +1,4 @@
-name: Build & Test
+name: PR workflow (Build and Test code)
 
 on:
   pull_request:
