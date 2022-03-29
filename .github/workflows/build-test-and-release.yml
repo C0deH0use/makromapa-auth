@@ -4,9 +4,6 @@ on:
   push:
     branches: [ master, test ]
 
-env:
-  PROJECT_ID: makromapa-338723
-
 jobs:
   build:
     name: build changes
@@ -131,6 +128,7 @@ jobs:
 
       - name: "Build Docker Image"
         run: |-
+          PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           echo "Project: $PROJECT_ID" ${{ steps.version.outputs.value }}
           docker build \
             --tag "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.version.outputs.value }}-${GITHUB_SHA::7}" \
@@ -138,7 +136,8 @@ jobs:
             .
 
       - name: "Push the Docker image to Google Container Registry"
-        run: |- 
+        run: |-
+          PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           docker push "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.version.outputs.value }}-${GITHUB_SHA::7}"
 
 #  update-chart-repository:
