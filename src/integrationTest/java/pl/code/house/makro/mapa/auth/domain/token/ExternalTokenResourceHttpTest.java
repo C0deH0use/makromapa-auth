@@ -22,6 +22,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.GOOGLE_PREMIUM_
 import java.util.UUID;
 import org.assertj.core.api.LongAssert;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import pl.code.house.makro.mapa.auth.domain.user.TestUserRepository;
 
+@Disabled
 @SpringBootTest
 class ExternalTokenResourceHttpTest {
 

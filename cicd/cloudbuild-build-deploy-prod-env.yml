@@ -33,7 +33,7 @@ steps:
   - name: 'openjdk:17-oraclelinux8'
     id: integration_test
     args: [ "./gradlew", "integrationTest", "-Pprofiles=integrationTest,cicd", "-i" ]
-    env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-db-dev' ]
+    env: [ 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/makromapa-auth-dev' ]
     waitFor:
       - postgres_db
 

@@ -46,7 +46,7 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     password: mysecretpassword
-    url: jdbc:postgresql://localhost:5433/makromapa-db-auth
+    url: jdbc:postgresql://localhost:5433/makromapa-auth-dev
     username: makromapa-auth-user
   flyway:
     locations: classpath:db/migration/default

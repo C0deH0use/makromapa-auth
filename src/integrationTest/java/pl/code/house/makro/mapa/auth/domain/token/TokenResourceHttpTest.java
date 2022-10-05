@@ -25,6 +25,7 @@ import static pl.code.house.makro.mapa.auth.domain.user.TestUser.REG_USER;
 
 import io.restassured.http.Header;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +77,7 @@ class TokenResourceHttpTest {
   }
 
   @Test
+  @Disabled
   @Transactional
   @DisplayName("return token details when requesting with valid access token")
   void returnTokenDetailsWhenRequestingWithValidAccessToken() {
