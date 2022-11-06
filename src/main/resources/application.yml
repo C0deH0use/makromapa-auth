@@ -117,7 +117,6 @@ app:
       - 564812606198-u6b5to8rhjsqkpi9sidsek3vrk02kjq5.apps.googleusercontent.com
       - https://securetoken.google.com/makromapa
       - https://appleid.apple.com
-
   receipt:
     validation:
       apple:
