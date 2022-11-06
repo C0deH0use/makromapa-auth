@@ -154,14 +154,14 @@ jobs:
           
           
           docker build \
-            --tag "gcr.io/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
+            --tag "${{ inputs.registry }}-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
             --build-arg COMMIT_SHA=${GITHUB_SHA::7} \
             .
 
       - name: "Push the Docker image to Google Container Registry"
         run: |-
           PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
-          docker push "gcr.io/$PROJECT_ID/makromapa-auth:${{ steps.build_image.outputs.appVersion }}"
+          docker push "${{ inputs.registry }}-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${{ steps.build_image.outputs.appVersion }}"
 
 
   update-chart-repository:
