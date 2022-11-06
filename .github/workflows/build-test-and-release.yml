@@ -144,8 +144,7 @@ jobs:
           
           APP_VERSION="${{ steps.version.outputs.value }}-${GITHUB_SHA::7}"
           echo "::set-output name=appVersion::$(echo $APP_VERSION)"
-          run: echo "appVersion=$APP_VERSION" >> $GITHUB_OUTPUT
-          
+          echo "appVersion=$APP_VERSION" >> $GITHUB_OUTPUT
           
           docker build \
             --tag "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
