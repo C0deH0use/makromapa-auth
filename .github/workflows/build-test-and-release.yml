@@ -1,5 +1,11 @@
 name: Build & Test
 
+inputs:
+  registry:
+    description: 'Google Artifact registry to use'
+    required: false
+    default: europe-central2-docker.pkg.dev
+
 on:
   push:
     branches: [ master, test ]
@@ -115,8 +121,17 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
+          token_format: access_token
           workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
           service_account: '${{ secrets.GPC_SERVICE_ACCOUNT }}'
+          access_token_lifetime: 300s
+
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ inputs.registry }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       - id: 'docker-login'
         run: "gcloud auth configure-docker"
@@ -135,6 +150,8 @@ jobs:
           
           APP_VERSION="${{ steps.version.outputs.value }}-${GITHUB_SHA::7}"
           echo "::set-output name=appVersion::$(echo $APP_VERSION)"
+          run: echo "appVersion=$APP_VERSION" >> $GITHUB_OUTPUT
+          
           
           docker build \
             --tag "gcr.io/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
