@@ -147,14 +147,14 @@ jobs:
           echo "appVersion=$APP_VERSION" >> $GITHUB_OUTPUT
           
           docker build \
-            --tag "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
+            --tag "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-images/makromapa-auth:${APP_VERSION}" \
             --build-arg COMMIT_SHA=${GITHUB_SHA::7} \
             .
 
-      - name: "Push the Docker image to Google Container Registry"
+      - name: "Push the Docker image to Google Artifact Registry"
         run: |-
           PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
-          docker push "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${{ steps.build_image.outputs.appVersion }}"
+          docker push "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-images/makromapa-auth:${{ steps.build_image.outputs.appVersion }}"
 
 
   update-chart-repository:
