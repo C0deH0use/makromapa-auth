@@ -143,7 +143,6 @@ jobs:
           echo "Project: $PROJECT_ID, version: ${{ steps.version.outputs.value }}"
           
           APP_VERSION="${{ steps.version.outputs.value }}-${GITHUB_SHA::7}"
-          echo "::set-output name=appVersion::$(echo $APP_VERSION)"
           echo "appVersion=$APP_VERSION" >> $GITHUB_OUTPUT
           
           docker build \
