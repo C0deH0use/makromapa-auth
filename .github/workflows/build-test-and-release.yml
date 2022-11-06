@@ -1,11 +1,5 @@
 name: Build & Test
 
-inputs:
-  registry:
-    description: 'Google Artifact registry to use'
-    required: false
-    default: europe-central2-docker.pkg.dev
-
 on:
   push:
     branches: [ master, test ]
@@ -129,7 +123,7 @@ jobs:
       - name: Login to Artifact Registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ inputs.registry }}
+          registry: europe-central2-docker.pkg.dev
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
@@ -154,14 +148,14 @@ jobs:
           
           
           docker build \
-            --tag "${{ inputs.registry }}-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
+            --tag "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${APP_VERSION}" \
             --build-arg COMMIT_SHA=${GITHUB_SHA::7} \
             .
 
       - name: "Push the Docker image to Google Container Registry"
         run: |-
           PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
-          docker push "${{ inputs.registry }}-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${{ steps.build_image.outputs.appVersion }}"
+          docker push "europe-central2-docker.pkg.dev/$PROJECT_ID/makromapa-auth:${{ steps.build_image.outputs.appVersion }}"
 
 
   update-chart-repository:
